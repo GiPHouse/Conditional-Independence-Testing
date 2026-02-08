@@ -10,7 +10,6 @@ This document provides guidelines and instructions for contributing to the CI Te
 - [Adding a New CI Test](#adding-a-new-ci-test)
 - [Testing](#testing)
 - [Pull Request Process](#pull-request-process)
-- [Questions and Support](#questions-and-support)
 
 ## Development Setup
 
@@ -286,5 +285,5 @@ Benchmark results are saved in `target/criterion/` and include:
 ## Additional Resources
 
 - [Rust Book](https://doc.rust-lang.org/book/) - Learn Rust
-- [Criterion Documentation](https://bheisler.github.io/criterion.rs/book/) - Benchmarking
+- [Criterion Documentation](https://criterion-rs.github.io/book/index.html) - Benchmarking
 - [PyO3 Guide](https://pyo3.rs/) - Python bindings
