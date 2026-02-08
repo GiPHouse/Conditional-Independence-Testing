@@ -1,0 +1,1 @@
+// CITest trait definition

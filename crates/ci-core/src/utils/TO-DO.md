@@ -1,0 +1,1 @@
+If there is potentially code that can be reused in multiple different places, that code is supposed to be put here.

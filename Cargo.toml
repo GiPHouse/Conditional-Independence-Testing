@@ -1,0 +1,31 @@
+[workspace]
+members = [
+    "crates/ci-core",
+    "crates/ci-python",
+    "crates/ci-r",
+    "crates/ci-js",
+]
+resolver = "2"
+
+[workspace.dependencies]
+
+
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0"
+
+ndarray = "0.15"
+statrs = "0.16"
+
+pyo3 = { version = "0.20", features = ["extension-module"] }
+
+# Development dependencies (testing, benchmarking)
+criterion = "0.5"
+proptest = "1.0"
+
+# Linting/development
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"

@@ -1,0 +1,30 @@
+[package]
+name = "ci-core"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Team <team@example.com>"]
+license = ""
+description = "Conditional Independence Testing"
+repository = ""
+keywords = ["statistics", "causal-inference", "conditional-independence"]
+categories = ["science"]
+
+exclude = [""]
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+ndarray = { workspace = true }
+statrs = { workspace = true }
+
+rand = "0.8"
+
+[dev-dependencies]
+criterion = { workspace = true }
+proptest = { workspace = true }
+
+[[bench]]
+name = "test_performance"
+harness = false
+
+[lib]
