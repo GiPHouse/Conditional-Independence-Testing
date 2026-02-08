@@ -1,0 +1,18 @@
+[package]
+name = "ci-python"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Team <team@example.com>"]
+license = ""
+description = "PyO3 bindings for Conditional Independence Testing"
+repository = ""
+
+[dependencies]
+ci-core = { path = "../ci-core" }
+pyo3 = { workspace = true }
+
+[lints]
+workspace = true
+
+[lib]
+crate-type = ["cdylib"]

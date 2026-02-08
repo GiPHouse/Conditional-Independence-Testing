@@ -1,0 +1,16 @@
+[package]
+name = "ci-r"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Team <team@example.com>"]
+license = ""
+description = "extendr bindings for Conditional Independence Testing"
+repository = ""
+
+[dependencies]
+ci-core = { path = "../ci-core" }
+
+[lints]
+workspace = true
+
+[lib]

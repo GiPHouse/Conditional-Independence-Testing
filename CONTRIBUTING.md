@@ -1,6 +1,6 @@
 # Contributing to CI Testing Library
 
-Thank you for your interest in contributing! This document provides guidelines and instructions for contributing to the CI Testing library.
+This document provides guidelines and instructions for contributing to the CI Testing library.
 
 ## Table of Contents
 
@@ -213,7 +213,7 @@ cargo test -- --nocapture
 
 ## Benchmarking
 
-We use [Criterion](https://github.com/bheisler/criterion.rs) for benchmarking:
+We use [Criterion](https://github.com/criterion-rs/criterion.rs) for benchmarking:
 ```bash
 # Run all benchmarks
 cargo bench --workspace
@@ -288,4 +288,3 @@ Benchmark results are saved in `target/criterion/` and include:
 - [Rust Book](https://doc.rust-lang.org/book/) - Learn Rust
 - [Criterion Documentation](https://bheisler.github.io/criterion.rs/book/) - Benchmarking
 - [PyO3 Guide](https://pyo3.rs/) - Python bindings
-- [Architecture Decision Records](docs/design/) - Design rationale

@@ -1,0 +1,17 @@
+[package]
+name = "ci-js"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Team <team@example.com>"]
+license = ""
+description = "wasm-pack bindings for Conditional Independence Testing"
+repository = ""
+
+[dependencies]
+ci-core = { path = "../ci-core" }
+
+[lints]
+workspace = true
+
+[lib]
+crate-type = ["cdylib"]

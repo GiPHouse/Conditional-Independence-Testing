@@ -23,8 +23,7 @@ rand = "0.8"
 criterion = { workspace = true }
 proptest = { workspace = true }
 
-[[bench]]
-name = "test_performance"
-harness = false
+[lints]
+workspace = true
 
 [lib]
