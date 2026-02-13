@@ -1,12 +1,10 @@
 use crate::strategy::CITest;
 
-struct PowerDivergence {
-  // Object traits
+pub struct PowerDivergence {
+    // Object traits
 }
 
 impl CITest for PowerDivergence {
-  fn run_test(&self) {}
-  //Other necessary stuff
+    fn run_test(&self) {}
+    //Other necessary stuff
 }
-
-

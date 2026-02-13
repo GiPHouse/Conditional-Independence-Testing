@@ -1,3 +1,3 @@
-pub trait CITest { 
-  fn run_test(&self);
+pub trait CITest {
+    fn run_test(&self);
 }

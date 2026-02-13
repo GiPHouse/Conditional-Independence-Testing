@@ -1,12 +1,12 @@
-use std::collections::HashMap;
 use crate::strategy::CITest;
+use std::collections::HashMap;
 
-struct Registry {
-  tests: HashMap<String, Box<dyn CITest>>
+pub struct Registry {
+    pub tests: HashMap<String, Box<dyn CITest>>,
 }
 
 impl Registry {
-  fn register_tests() {} // Maybe this can run internally automatically?
-  fn get_test() {}
-  //Other necessary stuff
-} 
+    pub fn register_tests() {} // Maybe this can run internally automatically?
+    pub fn get_test() {}
+    //Other necessary stuff
+}
