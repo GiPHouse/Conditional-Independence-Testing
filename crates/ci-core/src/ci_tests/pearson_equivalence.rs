@@ -1,7 +1,7 @@
 use crate::strategy::CITest;
 
 pub struct PearsonEquivalence {
-    // Object traits
+    name: String,
 }
 
 impl CITest for PearsonEquivalence {
