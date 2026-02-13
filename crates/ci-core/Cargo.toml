@@ -12,6 +12,7 @@ categories = ["science"]
 exclude = [""]
 
 [dependencies]
+anyhow = { workspace = true}
 serde = { workspace = true }
 thiserror = { workspace = true }
 ndarray = { workspace = true }
