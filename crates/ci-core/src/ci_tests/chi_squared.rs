@@ -1,4 +1,4 @@
-use super::super::strategy::CITest;
+use crate::strategy::CITest;
 
 struct ChiSquared {
   // Object traits
