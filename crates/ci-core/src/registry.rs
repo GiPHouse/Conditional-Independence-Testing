@@ -1,7 +1,6 @@
 use crate::strategy::CITest;
 use std::collections::HashMap;
 
-
 /// Finds a memory type that satisfies both hardware requirements and desired properties.
 /// # Parameters
 /// - `memory_properties`: The GPU's available memory types and their properties
@@ -29,12 +28,12 @@ pub struct Registry {
 /// # Errors
 /// Returns an error if no memory type satisfies both requirements.
 impl Registry {
-    pub fn get_test(&self, test_name: &str) -> anyhow::Result<Option<&Box<dyn CITest>>>  {
+    pub fn get_test(&self, test_name: &str) -> anyhow::Result<&dyn CITest> {
         let test_name = test_name.to_lowercase();
-        if !self.tests.contains_key(&test_name) {
-            anyhow::bail!("Test not found");
-        }
-        Ok(self.tests.get(&test_name))
+        self.tests
+            .get(&test_name)
+            .map(|citest| citest.as_ref())
+            .ok_or_else(|| anyhow::anyhow!("Test '{}' not found!", test_name))
     }
 
     pub fn list_all_tests(&self) -> anyhow::Result<Vec<&String>> {
@@ -50,7 +49,11 @@ impl Registry {
         Ok(all_tests)
     }
 
-    pub fn add_to_registry(&mut self, test_name: &str, test: impl CITest+'static) -> anyhow::Result<()> {
+    pub fn add_to_registry(
+        &mut self,
+        test_name: &str,
+        test: impl CITest + 'static,
+    ) -> anyhow::Result<()> {
         let test_name = test_name.to_lowercase();
         if self.tests.contains_key(&test_name) {
             anyhow::bail!("Test already exists in registry!");
@@ -59,8 +62,6 @@ impl Registry {
         self.tests.insert(test_name, ci_test);
         Ok(())
     }
-
-    
 }
 
 //let register = Registry::new()
