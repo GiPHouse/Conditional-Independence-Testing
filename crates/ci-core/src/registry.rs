@@ -50,12 +50,13 @@ impl Registry {
         Ok(all_tests)
     }
 
-    pub fn add_to_registry(&mut self, name: String, test: impl CITest+'static) -> anyhow::Result<()> {
-        if self.tests.contains_key(&name) {
+    pub fn add_to_registry(&mut self, test_name: String, test: impl CITest+'static) -> anyhow::Result<()> {
+        let test_name = test_name.to_lowercase();
+        if self.tests.contains_key(&test_name) {
             anyhow::bail!("Test already exists in registry!");
         }
         let ci_test = Box::new(test);
-        self.tests.insert(name, ci_test);
+        self.tests.insert(test_name, ci_test);
         Ok(())
     }
 
