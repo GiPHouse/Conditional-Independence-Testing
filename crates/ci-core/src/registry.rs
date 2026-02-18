@@ -29,7 +29,7 @@ pub struct Registry {
 /// # Errors
 /// Returns an error if no memory type satisfies both requirements.
 impl Registry {
-    pub fn get_test(&self, test_name: String) -> anyhow::Result<Option<&Box<dyn CITest>>>  {
+    pub fn get_test(&self, test_name: &str) -> anyhow::Result<Option<&Box<dyn CITest>>>  {
         let test_name = test_name.to_lowercase();
         if !self.tests.contains_key(&test_name) {
             anyhow::bail!("Test not found");
@@ -50,7 +50,7 @@ impl Registry {
         Ok(all_tests)
     }
 
-    pub fn add_to_registry(&mut self, test_name: String, test: impl CITest+'static) -> anyhow::Result<()> {
+    pub fn add_to_registry(&mut self, test_name: &str, test: impl CITest+'static) -> anyhow::Result<()> {
         let test_name = test_name.to_lowercase();
         if self.tests.contains_key(&test_name) {
             anyhow::bail!("Test already exists in registry!");
