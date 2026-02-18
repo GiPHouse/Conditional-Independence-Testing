@@ -10,6 +10,17 @@ pub struct Registry {
 }
 
 impl Registry {
+    /// Creates a new Registry with all CITests as elements.
+    #[must_use = "creating a Registry without using it has no effect"]
+    pub fn new() -> Self {
+        let mut registry = Self {
+            tests: HashMap::new(),
+        };
+
+        crate::ci_tests::register_all_tests(&mut registry);
+
+        registry
+    }
     /// Retrieves a test implementation by name.
     ///
     /// # Parameters
