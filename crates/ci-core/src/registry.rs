@@ -1,33 +1,25 @@
 use crate::strategy::CITest;
 use std::collections::HashMap;
 
-/// Finds a memory type that satisfies both hardware requirements and desired properties.
-/// # Parameters
-/// - `memory_properties`: The GPU's available memory types and their properties
-/// - `allowed_memory_types`: Bitmask of which memory types the buffer supports
-/// - `desired_properties`: The properties we need
+/// Central registry for managing available conditional independence test implementations.
 ///
-/// # Returns
-/// The index of the first suitable memory type found.
-///
-/// # Errors
-/// Returns an error if no memory type satisfies both requirements.
+/// The registry maintains a collection of test implementations that can be retrieved
+/// by name.
 pub struct Registry {
     pub tests: HashMap<String, Box<dyn CITest>>,
 }
 
-/// Finds a memory type that satisfies both hardware requirements and desired properties.
-/// # Parameters
-/// - `memory_properties`: The GPU's available memory types and their properties
-/// - `allowed_memory_types`: Bitmask of which memory types the buffer supports
-/// - `desired_properties`: The properties we need
-///
-/// # Returns
-/// The index of the first suitable memory type found.
-///
-/// # Errors
-/// Returns an error if no memory type satisfies both requirements.
 impl Registry {
+    /// Retrieves a test implementation by name.
+    ///
+    /// # Parameters
+    /// - `test_name`: Name of the test to retrieve (case-insensitive)
+    ///
+    /// # Returns
+    /// A reference to the test implementation.
+    ///
+    /// # Errors
+    /// Returns an error if the test name is not found in the registry.
     pub fn get_test(&self, test_name: &str) -> anyhow::Result<&dyn CITest> {
         let test_name = test_name.to_lowercase();
         self.tests
@@ -36,6 +28,13 @@ impl Registry {
             .ok_or_else(|| anyhow::anyhow!("Test '{}' not found!", test_name))
     }
 
+    /// Returns a list of all registered test names.
+    ///
+    /// # Returns
+    /// A vector containing references to all test names in the registry.
+    ///
+    /// # Errors
+    /// Returns an error if the registry is empty.
     pub fn list_all_tests(&self) -> anyhow::Result<Vec<&String>> {
         if self.tests.is_empty() {
             anyhow::bail!("No tests found!");
@@ -49,6 +48,14 @@ impl Registry {
         Ok(all_tests)
     }
 
+    /// Adds a new test implementation to the registry.
+    ///
+    /// # Parameters
+    /// - `test_name`: Unique identifier for the test (case-insensitive)
+    /// - `test`: Implementation of the CITest trait
+    ///
+    /// # Errors
+    /// Returns an error if a test with the same name already exists.
     pub fn add_to_registry(
         &mut self,
         test_name: &str,
