@@ -12,6 +12,7 @@ pub struct Registry {
 impl Registry {
     /// Creates a new Registry with all `CITests` as elements.
     #[must_use = "creating a Registry without using it has no effect"]
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let mut registry = Self {
             tests: HashMap::new(),
