@@ -10,7 +10,7 @@ pub struct Registry {
 }
 
 impl Registry {
-    /// Creates a new Registry with all CITests as elements.
+    /// Creates a new Registry with all `CITests` as elements.
     #[must_use = "creating a Registry without using it has no effect"]
     pub fn new() -> Self {
         let mut registry = Self {
@@ -35,8 +35,8 @@ impl Registry {
         let test_name = test_name.to_lowercase();
         self.tests
             .get(&test_name)
-            .map(|citest| citest.as_ref())
-            .ok_or_else(|| anyhow::anyhow!("Test '{}' not found!", test_name))
+            .map(std::convert::AsRef::as_ref)
+            .ok_or_else(|| anyhow::anyhow!("Test '{test_name}' not found!"))
     }
 
     /// Returns a list of all registered test names.
@@ -63,7 +63,7 @@ impl Registry {
     ///
     /// # Parameters
     /// - `test_name`: Unique identifier for the test (case-insensitive)
-    /// - `test`: Implementation of the CITest trait
+    /// - `test`: Implementation of the `CITest` trait
     ///
     /// # Errors
     /// Returns an error if a test with the same name already exists.
@@ -100,8 +100,8 @@ mod tests {
         // This assert would fire and test will fail.
         // Please note, that private functions can be tested too!
         let registry = Registry::new();
-        assert_eq!(registry.get_test("chi_square").is_ok(), true);
-        assert_eq!(registry.get_test("dummy").is_ok(), false);
+        assert!(registry.get_test("chi_square").is_ok());
+        assert!(registry.get_test("dummy").is_err());
     }
 
     #[test]
@@ -109,7 +109,7 @@ mod tests {
         // This assert would fire and test will fail.
         // Please note, that private functions can be tested too!
         let registry = Registry::new();
-        assert_eq!(registry.list_all_tests()?.is_empty(), false);
+        assert!(!registry.list_all_tests()?.is_empty());
         Ok(())
     }
 }
