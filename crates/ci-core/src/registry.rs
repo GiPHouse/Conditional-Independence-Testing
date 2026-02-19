@@ -84,3 +84,32 @@ impl Registry {
 
 //let register = Registry::new()
 //let chi_square = register.get_test("Chi_square")
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_registry_new() {
+        let registry = Registry::new();
+        assert_ne!(registry.tests.len(), 0);
+    }
+
+    #[test]
+    fn test_get_test() {
+        // This assert would fire and test will fail.
+        // Please note, that private functions can be tested too!
+        let registry = Registry::new();
+        assert_eq!(registry.get_test("chi_square").is_ok(), true);
+        assert_eq!(registry.get_test("dummy").is_ok(), false);
+    }
+
+    #[test]
+    fn test_list_tests() -> anyhow::Result<()> {
+        // This assert would fire and test will fail.
+        // Please note, that private functions can be tested too!
+        let registry = Registry::new();
+        assert_eq!(registry.list_all_tests()?.is_empty(), false);
+        Ok(())
+    }
+}
