@@ -6,3 +6,12 @@ use pyo3::prelude::*;
 pub struct PyRegistry {
     registry: Registry,
 }
+
+impl PyRegistry  {
+    pub fn new() -> Self {
+        let pyregistry = Self {
+            registry: Registry::new()
+        };
+        pyregistry
+    }
+}
