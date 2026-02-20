@@ -91,12 +91,14 @@ mod tests {
     use super::*;
 
     #[test]
+    // Test to check register creation
     fn test_registry_new() {
         let registry = Registry::new();
         assert_ne!(registry.tests.len(), 0);
     }
 
     #[test]
+    // Test to check getting tests
     fn test_get_test() {
         // This assert would fire and test will fail.
         // Please note, that private functions can be tested too!
@@ -106,6 +108,7 @@ mod tests {
     }
 
     #[test]
+    // Test to check listing all tests
     fn test_list_tests() -> anyhow::Result<()> {
         // This assert would fire and test will fail.
         // Please note, that private functions can be tested too!
