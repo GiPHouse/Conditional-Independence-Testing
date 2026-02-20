@@ -10,8 +10,9 @@ pub struct Registry {
 }
 
 impl Registry {
-    /// Creates a new Registry with all CITests as elements.
+    /// Creates a new Registry with all `CITests` as elements.
     #[must_use = "creating a Registry without using it has no effect"]
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let mut registry = Self {
             tests: HashMap::new(),
@@ -35,8 +36,8 @@ impl Registry {
         let test_name = test_name.to_lowercase();
         self.tests
             .get(&test_name)
-            .map(|citest| citest.as_ref())
-            .ok_or_else(|| anyhow::anyhow!("Test '{}' not found!", test_name))
+            .map(std::convert::AsRef::as_ref)
+            .ok_or_else(|| anyhow::anyhow!("Test '{test_name}' not found!"))
     }
 
     /// Returns a list of all registered test names.
@@ -63,7 +64,7 @@ impl Registry {
     ///
     /// # Parameters
     /// - `test_name`: Unique identifier for the test (case-insensitive)
-    /// - `test`: Implementation of the CITest trait
+    /// - `test`: Implementation of the `CITest` trait
     ///
     /// # Errors
     /// Returns an error if a test with the same name already exists.
@@ -84,3 +85,35 @@ impl Registry {
 
 //let register = Registry::new()
 //let chi_square = register.get_test("Chi_square")
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    // Test to check register creation
+    fn test_registry_new() {
+        let registry = Registry::new();
+        assert_ne!(registry.tests.len(), 0);
+    }
+
+    #[test]
+    // Test to check getting tests
+    fn test_get_test() {
+        // This assert would fire and test will fail.
+        // Please note, that private functions can be tested too!
+        let registry = Registry::new();
+        assert!(registry.get_test("chi_square").is_ok());
+        assert!(registry.get_test("dummy").is_err());
+    }
+
+    #[test]
+    // Test to check listing all tests
+    fn test_list_tests() -> anyhow::Result<()> {
+        // This assert would fire and test will fail.
+        // Please note, that private functions can be tested too!
+        let registry = Registry::new();
+        assert!(!registry.list_all_tests()?.is_empty());
+        Ok(())
+    }
+}
