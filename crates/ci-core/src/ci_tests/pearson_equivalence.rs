@@ -1,8 +1,6 @@
 use crate::strategy::CITest;
 
-pub struct PearsonEquivalence {
-    // Object traits
-}
+pub struct PearsonEquivalence {}
 
 impl CITest for PearsonEquivalence {
     fn run_test(&self) {}
