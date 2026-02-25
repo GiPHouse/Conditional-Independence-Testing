@@ -6,7 +6,7 @@ use std::collections::HashMap;
 /// The registry maintains a collection of test implementations that can be retrieved
 /// by name.
 pub struct Registry {
-    pub tests: HashMap<String, Box<dyn CITest>>,
+    pub tests: HashMap<String, fn() -> Box<dyn CITest>>,
 }
 
 impl Registry {
@@ -32,12 +32,13 @@ impl Registry {
     ///
     /// # Errors
     /// Returns an error if the test name is not found in the registry.
-    pub fn get_test(&self, test_name: &str) -> anyhow::Result<&dyn CITest> {
+    pub fn get_test(&self, test_name: &str) -> anyhow::Result<Box<dyn CITest>> {
         let test_name = test_name.to_lowercase();
-        self.tests
-            .get(&test_name)
-            .map(std::convert::AsRef::as_ref)
-            .ok_or_else(|| anyhow::anyhow!("Test '{test_name}' not found!"))
+        let test = self.tests.get(&test_name);
+        match test {
+            Some(t) => Ok(t()),
+            None => Err(anyhow::anyhow!("Test '{test_name}' not found!")),
+        }
     }
 
     /// Returns a list of all registered test names.
@@ -71,14 +72,13 @@ impl Registry {
     pub fn add_to_registry(
         &mut self,
         test_name: &str,
-        test: impl CITest + 'static,
+        test: fn() -> Box<dyn CITest>,
     ) -> anyhow::Result<()> {
         let test_name = test_name.to_lowercase();
         if self.tests.contains_key(&test_name) {
             anyhow::bail!("Test already exists in registry!");
-        }
-        let ci_test = Box::new(test);
-        self.tests.insert(test_name, ci_test);
+        };
+        self.tests.insert(test_name, test);
         Ok(())
     }
 }

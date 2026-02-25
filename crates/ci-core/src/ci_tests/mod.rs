@@ -20,34 +20,34 @@ use crate::registry::Registry;
 
 pub fn register_all_tests(registry: &mut Registry) {
     registry
-        .add_to_registry("chi_square", ChiSquared {})
+        .add_to_registry("chi_square", || Box::new(ChiSquared {}))
         .expect("Failed to register Chi Square test!");
 
     registry
-        .add_to_registry("g_test", GTest {})
+        .add_to_registry("g_test", || Box::new(GTest {}))
         .expect("Failed to register GTest!");
 
     registry
-        .add_to_registry("independence_match", IndependenceMatch {})
+        .add_to_registry("independence_match", || Box::new(IndependenceMatch {}))
         .expect("Failed to register Independence Match test!");
 
     registry
-        .add_to_registry("likelihood_ratio", LikelihoodRatio {})
+        .add_to_registry("likelihood_ratio", || Box::new(LikelihoodRatio {}))
         .expect("Failed to register Likelihood Ratio test!");
 
     registry
-        .add_to_registry("modified_likelihood", ModifiedLikelihood {})
+        .add_to_registry("modified_likelihood", || Box::new(ModifiedLikelihood {}))
         .expect("Failed to register Modified Likelihood tTest!");
 
     registry
-        .add_to_registry("pearson_correlation", PearsonCorrelation {})
+        .add_to_registry("pearson_correlation", || Box::new(PearsonCorrelation {}))
         .expect("Failed to register Pearson Correlation test!");
 
     registry
-        .add_to_registry("pearson_equivalence", PearsonEquivalence {})
+        .add_to_registry("pearson_equivalence", || Box::new(PearsonEquivalence {}))
         .expect("Failed to register Pearson Equivalence test!");
 
     registry
-        .add_to_registry("power_divergence", PowerDivergence {})
+        .add_to_registry("power_divergence", || Box::new(PowerDivergence {}))
         .expect("Failed to register Power Divergence test!");
 }
