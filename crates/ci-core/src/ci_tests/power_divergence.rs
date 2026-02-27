@@ -9,24 +9,22 @@ pub struct PowerDivergence {
 }
 
 fn contingency_table<Q>(data: Array2<Q>, col1: usize, col2: usize) -> Array2<usize> where Q: Eq + Hash {
+    let rows = data.len_of(Axis(0));
     let mut col1_data_map: HashMap<&Q, usize> = HashMap::new(); 
     let mut col1_size: usize = 0;
-    for i in data.slice(s![..,col1]) {
-        if !col1_data_map.contains_key(i) {
-            col1_data_map.insert(i, col1_size);
-            col1_size += 1;
-        }
-    }
     let mut col2_data_map: HashMap<&Q, usize> = HashMap::new();
     let mut col2_size: usize = 0;
-    for i in data.slice(s![..,col2]) {
-        if !col2_data_map.contains_key(i) {
-            col2_data_map.insert(i, col2_size);
+    for row in 0..rows {
+        if !col1_data_map.contains_key(&data[[row,col1]]) {
+            col1_data_map.insert(&data[[row,col1]], col1_size);
+            col1_size += 1;
+        }
+        if !col2_data_map.contains_key(&data[[row,col2]]) {
+            col2_data_map.insert(&data[[row,col2]], col2_size);
             col2_size += 1;
         }
     }
     let mut result = Array::zeros((col1_size,col2_size));
-    let rows = data.len_of(Axis(0));
     for row in 0..rows {
         let i = &data[[row,col1]];
         let j = &data[[row,col2]];
