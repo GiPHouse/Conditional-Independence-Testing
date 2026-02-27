@@ -1,3 +1,5 @@
+use ndarray::Array2;
+
 use crate::strategy::CITest;
 
 pub struct PowerDivergence {
