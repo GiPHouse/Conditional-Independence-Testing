@@ -1,4 +1,4 @@
-use scirs2_core::Array2;
+use scirs2_core::prelude::*;
 use std::{collections::HashMap, usize};
 use core::hash::Hash;
 
