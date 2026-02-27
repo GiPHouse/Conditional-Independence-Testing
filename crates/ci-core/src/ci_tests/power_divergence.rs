@@ -1,4 +1,6 @@
-use ndarray::Array2;
+use scirs2_core::Array2;
+use std::{collections::HashMap, usize};
+use core::hash::Hash;
 
 use crate::strategy::CITest;
 
