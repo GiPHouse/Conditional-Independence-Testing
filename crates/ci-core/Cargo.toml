@@ -17,9 +17,11 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 ndarray = { workspace = true }
 ndarray-linalg = { workspace = true }
-statrs = { workspace = true }
+scirs2-core = { workspace = true }
+scirs2-linalg = { workspace = true }
+scirs2-stats = { workspace = true }
+scirs2 = { workspace = true }
 
-rand = "0.8"
 
 [dev-dependencies]
 criterion = { workspace = true }
