@@ -8,7 +8,7 @@ pub struct PowerDivergence {
     // Object traits
 }
 
-fn contingency_table<Q>(data: Array2<Q>, col1: usize, col2: usize) -> Array2<usize> where Q: Eq + Hash {
+fn contingency_table<Q>(data: &Array2<Q>, col1: usize, col2: usize) -> Array2<usize> where Q: Eq + Hash {
     let rows = data.len_of(Axis(0));
     let mut col1_data_map: HashMap<&Q, usize> = HashMap::new(); 
     let mut col1_size: usize = 0;
