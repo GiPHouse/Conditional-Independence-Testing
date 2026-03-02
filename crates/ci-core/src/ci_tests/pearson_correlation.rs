@@ -1,9 +1,14 @@
+use std::ops::Mul;
+
 use crate::strategy::TestResult;
 use scirs2::stats::pearsonr;
+use scirs2_core::Array2D;
+use scirs2_core::array;
 use scirs2_core::ndarray::Array1;
 use scirs2_core::ndarray::Array2;
 use scirs2_linalg::lstsq;
-
+use scirs2_neural::utils;
+use crate::registry::Registry;
 use crate::strategy::CITest;
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
@@ -21,68 +26,225 @@ impl CITest for PearsonCorrelation {
         boolean: bool,
     ) -> anyhow::Result<TestResult> {
         if array.len() == 0 {
-            let (coef, p_value) = pearsonr(&x_values.view(), &y_values.view(), "Two-sided")?;
-            if boolean {
-                return Ok(TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL)));
-            } else {
-                return Ok(TestResult::Correlated(Ok((p_value, coef))));
-            }
+            let (coefficient, p_value) = pearsonr(&x_values.view(), &y_values.view(), "two-sided")?;
+            Ok(result(boolean, p_value, coefficient)?)
         } else {
-            let x_coef = lstsq(&array.view(), &x_values.view(), None)?.x;
-            let y_coef = lstsq(&array.view(), &y_values.view(), None)?.x;
-            let residual_x = x_values - array.dot(&x_coef);
-            let residual_y = y_values - array.dot(&y_coef);
-            let (coef, p_value) = pearsonr(&residual_x.view(), &residual_y.view(), "two-sided")?;
-            if boolean {
-                return Ok(TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL)));
-            } else {
-                return Ok(TestResult::Correlated(Ok((p_value, coef))));
+            let x_coefficient = lstsq(&array.view(), &x_values.view(), None)?.x;
+            let y_coefficient = lstsq(&array.view(), &y_values.view(), None)?.x;
+            let residual_x = x_values - array.dot(&x_coefficient);
+            let residual_y = y_values - array.dot(&y_coefficient);
+            let (coefficient, p_value) = pearsonr(&residual_x.view(), &residual_y.view(), "two-sided")?;
+            Ok(result(boolean, p_value, coefficient)?)
+        }
+    }
+}
+
+fn result(boolean: bool, p_value: f64, coefficient: f64) -> anyhow::Result<TestResult> {
+    if boolean {
+            return Ok(TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL)));
+        } else {
+            return Ok(TestResult::Correlated(Ok((p_value, coefficient))));
+        }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use scirs2_core::ndarray::{Array1, Array2, Axis};
+    use scirs2_core::random::{Distribution, Normal, SeedableRng, rngs::SmallRng};
+
+    const N: usize = 1000;
+
+    fn seeded_rng() -> SmallRng {
+        SmallRng::seed_from_u64(42)
+    }
+
+    fn gen_normal(n: usize, mean: f64, std_dev: f64, rng: &mut SmallRng) -> Array1<f64> {
+        let dist = Normal::new(mean, std_dev).unwrap();
+        Array1::from_vec((0..n).map(|_| dist.sample(rng)).collect())
+    }
+
+    fn empty_array() -> Array2<f64> {
+        Array2::zeros((0, 0))
+    }
+
+    fn pearson() -> PearsonCorrelation {
+        PearsonCorrelation {}
+    }
+
+    #[test]
+    fn debug_pearsonr_sizes() {
+        let mut rng = seeded_rng();
+        for n in [200, 300, 350, 400, 450, 500] {
+            let x = gen_normal(n, 0.0, 1.0, &mut rng);
+            let y = gen_normal(n, 0.0, 1.0, &mut rng);
+            let raw = pearsonr(&x.view(), &y.view(), "two-sided");
+            eprintln!("N={}: {:?}", n, raw);
+        }
+    }
+
+    // --- 1. Empty array + independent X, Y + boolean=false ---
+    // X and Y are independently generated, no conditioning variables.
+    // Expected: high p_value (> 0.05), low |coefficient| (< 0.1)
+    #[test]
+    fn test_empty_array_independent_boolean_false() {
+        let mut rng = seeded_rng();
+        let x = gen_normal(N, 0.0, 1.0, &mut rng);
+        let y = gen_normal(N, 0.0, 1.0, &mut rng);
+
+        let result = pearson().run_test(empty_array(), x, y, false).unwrap();
+        match result {
+            TestResult::Correlated(Ok((p_value, coefficient))) => {
+                assert!(p_value > SIGNIFICANCE_LEVEL, "p_value {p_value} should be > 0.05 for independent data");
+                assert!(coefficient.abs() < 0.1, "coefficient {coefficient} should be near 0 for independent data");
             }
+            _ => panic!("Expected TestResult::Correlated"),
+        }
+    }
+
+    // --- 2. Empty array + independent X, Y + boolean=true ---
+    // Expected: true (variables are independent)
+    #[test]
+    fn test_empty_array_independent_boolean_true() {
+        let mut rng = seeded_rng();
+        let x = gen_normal(N, 0.0, 1.0, &mut rng);
+        let y = gen_normal(N, 0.0, 1.0, &mut rng);
+
+        let result = pearson().run_test(empty_array(), x, y, true).unwrap();
+        match result {
+            TestResult::Boolean(Ok(independent)) => {
+                assert!(independent, "Independent data should return true");
+            }
+            _ => panic!("Expected TestResult::Boolean"),
+        }
+    }
+
+    // --- 3. Empty array + correlated X, Y + boolean=false ---
+    // Y = 3*X + small noise, so they are strongly correlated.
+    // Expected: low p_value (< 0.05), high |coefficient| (> 0.9)
+    #[test]
+    fn test_empty_array_correlated_boolean_false() {
+        let mut rng = seeded_rng();
+        let x = gen_normal(N, 0.0, 1.0, &mut rng);
+        let noise = gen_normal(N, 0.0, 0.1, &mut rng);
+        let y = &x * 3.0 + &noise;
+
+        let result = pearson().run_test(empty_array(), x, y, false).unwrap();
+        match result {
+            TestResult::Correlated(Ok((p_value, coefficient))) => {
+                assert!(p_value < SIGNIFICANCE_LEVEL, "p_value {p_value} should be < 0.05 for correlated data");
+                assert!(coefficient.abs() > 0.9, "coefficient {coefficient} should be high for correlated data");
+            }
+            _ => panic!("Expected TestResult::Correlated"),
+        }
+    }
+
+    // --- 4. Empty array + correlated X, Y + boolean=true ---
+    // Expected: false (variables are NOT independent)
+    #[test]
+    fn test_empty_array_correlated_boolean_true() {
+        let mut rng = seeded_rng();
+        let x = gen_normal(N, 0.0, 1.0, &mut rng);
+        let noise = gen_normal(N, 0.0, 0.1, &mut rng);
+        let y = &x * 3.0 + &noise;
+
+        let result = pearson().run_test(empty_array(), x, y, true).unwrap();
+        match result {
+            TestResult::Boolean(Ok(independent)) => {
+                assert!(!independent, "Correlated data should return false");
+            }
+            _ => panic!("Expected TestResult::Boolean"),
+        }
+    }
+
+    // --- 5. Non-empty array + conditionally independent + boolean=false ---
+    // Z is a confounder: X = 3*Z + noise, Y = 2*Z + noise.
+    // After conditioning on Z, residuals should be independent.
+    // Expected: high p_value (> 0.05), low |coefficient| (< 0.1)
+    #[test]
+    fn test_conditioned_independent_boolean_false() {
+        let mut rng = seeded_rng();
+        let z = gen_normal(N, 0.0, 1.0, &mut rng);
+        let noise_x = gen_normal(N, 0.0, 0.1, &mut rng);
+        let noise_y = gen_normal(N, 0.0, 0.1, &mut rng);
+        let x = &z * 3.0 + &noise_x;
+        let y = &z * 2.0 + &noise_y;
+        let array = z.insert_axis(Axis(1));
+
+        let result = pearson().run_test(array, x, y, false).unwrap();
+        match result {
+            TestResult::Correlated(Ok((p_value, coefficient))) => {
+                assert!(p_value > SIGNIFICANCE_LEVEL, "p_value {p_value} should be > 0.05 after conditioning");
+                assert!(coefficient.abs() < 0.1, "coefficient {coefficient} should be near 0 after conditioning");
+            }
+            _ => panic!("Expected TestResult::Correlated"),
+        }
+    }
+
+    // --- 6. Non-empty array + conditionally independent + boolean=true ---
+    // Expected: true (conditionally independent given Z)
+    #[test]
+    fn test_conditioned_independent_boolean_true() {
+        let mut rng = seeded_rng();
+        let z = gen_normal(N, 0.0, 1.0, &mut rng);
+        let noise_x = gen_normal(N, 0.0, 0.1, &mut rng);
+        let noise_y = gen_normal(N, 0.0, 0.1, &mut rng);
+        let x = &z * 3.0 + &noise_x;
+        let y = &z * 2.0 + &noise_y;
+        let array = z.insert_axis(Axis(1));
+
+        let result = pearson().run_test(array, x, y, true).unwrap();
+        match result {
+            TestResult::Boolean(Ok(independent)) => {
+                assert!(independent, "Conditionally independent data should return true");
+            }
+            _ => panic!("Expected TestResult::Boolean"),
+        }
+    }
+
+    // --- 7. Non-empty array + conditionally dependent (v-structure) + boolean=false ---
+    // X and Y are independent, but Z = 2*X + 2*Y + noise (collider).
+    // Conditioning on Z makes X and Y dependent.
+    // Expected: low p_value (< 0.05), high |coefficient|
+    #[test]
+    fn test_conditioned_dependent_boolean_false() {
+        let mut rng = seeded_rng();
+        let x = gen_normal(N, 0.0, 1.0, &mut rng);
+        let y = gen_normal(N, 0.0, 1.0, &mut rng);
+        let noise = gen_normal(N, 0.0, 0.1, &mut rng);
+        let z = &x * 2.0 + &y * 2.0 + &noise;
+        let array = z.insert_axis(Axis(1));
+
+        let result = pearson().run_test(array, x, y, false).unwrap();
+        match result {
+            TestResult::Correlated(Ok((p_value, coefficient))) => {
+                assert!(p_value < SIGNIFICANCE_LEVEL, "p_value {p_value} should be < 0.05 for v-structure");
+                assert!(coefficient.abs() > 0.5, "coefficient {coefficient} should be high for v-structure");
+            }
+            _ => panic!("Expected TestResult::Correlated"),
+        }
+    }
+
+    // --- 8. Non-empty array + conditionally dependent (v-structure) + boolean=true ---
+    // Expected: false (NOT independent after conditioning on collider)
+    #[test]
+    fn test_conditioned_dependent_boolean_true() {
+        let mut rng = seeded_rng();
+        let x = gen_normal(N, 0.0, 1.0, &mut rng);
+        let y = gen_normal(N, 0.0, 1.0, &mut rng);
+        let noise = gen_normal(N, 0.0, 0.1, &mut rng);
+        let z = &x * 2.0 + &y * 2.0 + &noise;
+        let array = z.insert_axis(Axis(1));
+
+        let result = pearson().run_test(array, x, y, true).unwrap();
+        match result {
+            TestResult::Boolean(Ok(independent)) => {
+                assert!(!independent, "V-structure conditioned on collider should return false");
+            }
+            _ => panic!("Expected TestResult::Boolean"),
         }
     }
 }
 
-#[test]
-fn test_conditional_independence() -> anyhow::Result<()> {
-    let test = PearsonCorrelation {};
-
-    // Z variable
-    let z = Array1::from_vec(vec![1., 2., 3., 4., 5.]);
-
-    // X and Y both depend on Z
-    let x = &z * 2.0;
-    let y = &z * 3.0;
-
-    // Conditioning matrix must be (n_samples, n_features)
-    let array = z.clone().insert_axis(scirs2_core::ndarray::Axis(1));
-
-    let result = test.run_test(array, x, y, false)?;
-
-    match result {
-        TestResult::Correlated(Ok((_, r))) => {
-            // After conditioning, correlation should drop
-            assert!(r.abs() < 0.01);
-        }
-        _ => panic!("Unexpected result type"),
-    }
-
-    Ok(())
-}
-//     # Step 2: If Z is empty compute a non-conditional test.
-//     if len(Z) == 0: --> if array.len() == 0 {
-//         coef, p_value = stats.pearsonr(data.loc[:, X], data.loc[:, Y]) --> let coef, p_value = scirs.stats.pearsonr(&x_values, &y_values, "Two-sided")?;
-
-//     # Step 3: If Z is non-empty, use linear regression to compute residuals and test independence on it.
-//     else:
-//         X_coef = np.linalg.lstsq(data.loc[:, Z], data.loc[:, X], rcond=None)[0] --> let X_coef = array.least_squares(&x_values)?;
-//         Y_coef = np.linalg.lstsq(data.loc[:, Z], data.loc[:, Y], rcond=None)[0] --> let Y_coef = array.least_squares(&y_values)?;
-
-//         residual_X = data.loc[:, X] - data.loc[:, Z].dot(X_coef) --> let residual_X = x_values - array.dot(&X_coef)?;
-//         residual_Y = data.loc[:, Y] - data.loc[:, Z].dot(Y_coef) --> let residual_Y = y_values - array.dot(&Y_coef)?;
-//         correlation_coef, p_value = stats.pearsonr(residual_X, residual_Y) ----> let coef, p_value = scirs.stats.pearsonr(&residual_X, &residual_Y, "Two-sided")?;
-
-//     if what_is_this_boolean:
-//         return p_value >= kwargs["significance_level"]
-//     else:
-//         return coef, p_value
-//          }
+// Potential bug in scirs2 returns NaN for p_value when N>=300. Is this a library bug
+// in its t-distribution CDF calculation.
