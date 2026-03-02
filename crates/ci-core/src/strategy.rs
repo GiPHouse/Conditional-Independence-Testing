@@ -18,6 +18,6 @@ pub trait CITest {
         array: Array2<f64>,
         x_value: Array1<f64>,
         y_value: Array1<f64>,
-        boolen: bool,
+        boolean: bool,
     ) -> anyhow::Result<TestResult>;
 }

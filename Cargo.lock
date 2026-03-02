@@ -300,6 +300,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
+name = "chacha20"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6f8d983286843e49675a4b7a2d174efe136dc93a18d69130dd18198a6c167601"
+dependencies = [
+ "cfg-if",
+ "cpufeatures",
+ "rand_core 0.10.0",
+]
+
+[[package]]
 name = "chrono"
 version = "0.4.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -322,9 +333,11 @@ dependencies = [
  "ndarray 0.15.6",
  "ndarray-linalg",
  "proptest",
+ "rand 0.10.0",
  "scirs2",
  "scirs2-core",
  "scirs2-linalg",
+ "scirs2-neural",
  "scirs2-stats",
  "serde",
  "thiserror 1.0.69",
@@ -409,6 +422,15 @@ name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
+
+[[package]]
+name = "cpufeatures"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b2a41393f66f16b0823bb79094d54ac5fbd34ab292ddafb9a0456ac9f87d201"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "crc32fast"
@@ -1677,6 +1699,7 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc266eb313df6c5c09c1c7b1fbe2510961e5bcd3add930c1e31f7ed9da0feff8"
 dependencies = [
+ "chacha20",
  "getrandom 0.4.1",
  "rand_core 0.10.0",
 ]
@@ -2124,6 +2147,22 @@ dependencies = [
  "statrs",
  "thiserror 2.0.18",
  "toml",
+]
+
+[[package]]
+name = "scirs2-neural"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43878513baadf9c0d68426e450fdb3fc5474375d031502b93ab94a40fa3173ef"
+dependencies = [
+ "approx",
+ "scirs2-core",
+ "scirs2-linalg",
+ "scirs2-metrics",
+ "serde",
+ "serde_json",
+ "statrs",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

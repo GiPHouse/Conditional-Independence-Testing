@@ -21,6 +21,8 @@ scirs2-core = { workspace = true }
 scirs2-linalg = { workspace = true }
 scirs2-stats = { workspace = true }
 scirs2 = { workspace = true }
+rand = "0.10.0"
+scirs2-neural = "0.2.0"
 
 
 [dev-dependencies]
