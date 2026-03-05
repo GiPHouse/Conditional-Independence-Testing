@@ -1,9 +1,9 @@
 [workspace]
 members = [
     "crates/ci-core",
-    "crates/ci-python",
+    "crates/ci_python",
     "crates/ci-r",
-    "crates/ci-js",
+    "crates/ci_js",
 ]
 resolver = "2"
 
@@ -13,7 +13,7 @@ resolver = "2"
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
 anyhow = "1"
-ndarray = "0.15"
+ndarray = "0.17"
 ndarray-linalg = "0.18.1"
 scirs2-core = { version = "0.2.0"}
 scirs2-linalg = { version = "0.2.0"}
@@ -21,6 +21,7 @@ scirs2-stats = { version = "0.2.0"}
 scirs2 = { version = "0.2.0"}
 
 pyo3 = { version = "0.28", features = ["extension-module"] }
+numpy = { version = "0.28" }
 
 # Development dependencies (testing, benchmarking)
 criterion = "0.5"
