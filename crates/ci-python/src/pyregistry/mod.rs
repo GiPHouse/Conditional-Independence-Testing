@@ -1,7 +1,7 @@
 use ci_core::{registry::Registry, strategy::CITest};
 use pyo3::prelude::*;
 
-#[pyclass(frozen)]
+#[pyclass(frozen, name = "_RustRegistry")]
 pub struct PyRegistry(Registry);
 
 #[pymethods]
@@ -26,7 +26,7 @@ impl PyRegistry {
     }
 }
 
-#[pyclass(frozen)]
+#[pyclass(frozen, name = "_RustCITest")]
 struct PyCITest {
     test: Box<dyn CITest>,
 }

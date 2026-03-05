@@ -15,4 +15,5 @@ pyo3 = { workspace = true }
 workspace = true
 
 [lib]
+name = "_ci_python"
 crate-type = ["cdylib"]

@@ -1,0 +1,6 @@
+from collections.abc import Callable
+
+class _RustRegistry:
+    def __init__(self) -> None: ...
+    def get_test(self, test_name: str) -> Callable: ...  # TODO: Add proper `Callable` signature.
+    def list_all(self) -> list[str]: ...
