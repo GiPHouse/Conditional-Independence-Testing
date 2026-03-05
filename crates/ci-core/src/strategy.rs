@@ -10,7 +10,7 @@ pub enum TestResult {
     Boolean(anyhow::Result<bool>),
 }
 
-pub trait CITest {
+pub trait CITest: Send + Sync {
     //fn name(&self) -> &'static str;
     //fn data_types(&self) -> &'static [&'static str];
     fn run_test(

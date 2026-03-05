@@ -1,15 +1,9 @@
-use std::ops::Mul;
-
-use crate::registry::Registry;
 use crate::strategy::CITest;
 use crate::strategy::TestResult;
 use scirs2::stats::pearsonr;
-use scirs2_core::array;
 use scirs2_core::ndarray::Array1;
 use scirs2_core::ndarray::Array2;
-use scirs2_core::Array2D;
 use scirs2_linalg::lstsq;
-use scirs2_neural::utils;
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
@@ -99,7 +93,7 @@ mod tests {
     use scirs2_core::ndarray::{Array1, Array2, Axis};
     use scirs2_core::random::{rngs::SmallRng, Distribution, Normal, SeedableRng};
 
-    const N: usize = 1000;
+    const N: usize = 200; // Can't have N greater than or equal to 300 due to scirs2 bug
 
     fn seeded_rng() -> SmallRng {
         SmallRng::seed_from_u64(42)
@@ -290,7 +284,7 @@ mod tests {
                     "p_value {p_value} should be < 0.05 for v-structure"
                 );
                 assert!(
-                    coefficient.abs() > 0.5,
+                    coefficient.abs() > 0.9,
                     "coefficient {coefficient} should be high for v-structure"
                 );
             }

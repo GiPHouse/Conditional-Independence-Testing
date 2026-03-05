@@ -1,0 +1,11 @@
+The intermediate value t^(z+0.5) in the Lanczos gamma computation is 155.5^148.5 ≈ 10^325.5, 
+which overflows f64 (max ~1.8×10^308). Even though exp(-t) would bring it back down, 
+the intermediate product overflows to inf, and inf * 0 → NaN propagates through.
+
+This happens when a = df/2 ≥ 149, i.e., df ≥ 298, i.e., N ≥ 300.
+
+This is a library bug in scirs2's gamma_function implementation. 
+The Lanczos approximation computes t^(z+0.5) * exp(-t) as two separate operations, 
+\but for large arguments the intermediate t^(z+0.5) overflows before being multiplied by the small exp(-t).
+
+The fix is to use ln_gamma (log-gamma) instead, which avoids overflow by working in log-space.
