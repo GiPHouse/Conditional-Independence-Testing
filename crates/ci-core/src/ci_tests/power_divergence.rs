@@ -10,31 +10,31 @@ pub struct PowerDivergence {
     // Object traits
 }
 
-fn contingency_table(data: &DataFrame, col1: &String, col2: &String) -> Array2<usize> {
+fn contingency_table(data: &DataFrame, col1: &str, col2: &str) -> Array2<usize> {
     let column1 = data.column(col1).unwrap().as_materialized_series();
     let column2 = data.column(col2).unwrap().as_materialized_series();
-    let mut col1_data_map = HashMap::new(); 
+    let mut col1_data_map = HashMap::new();
     let mut col1_size: usize = 0;
     for i in column1.iter() {
-        if !col1_data_map.contains_key(&i) {
-            col1_data_map.insert(i, col1_size);
+        if let std::collections::hash_map::Entry::Vacant(e) = col1_data_map.entry(i) {
+            e.insert(col1_size);
             col1_size += 1;
         }
     }
     let mut col2_data_map = HashMap::new();
     let mut col2_size: usize = 0;
     for i in column2.iter() {
-        if !col2_data_map.contains_key(&i) {
-            col2_data_map.insert(i, col2_size);
+        if let std::collections::hash_map::Entry::Vacant(e) = col2_data_map.entry(i) {
+            e.insert(col2_size);
             col2_size += 1;
         }
     }
-    let mut result = Array::zeros((col1_size,col2_size));
+    let mut result = Array::zeros((col1_size, col2_size));
     let mut it1 = column1.iter();
     let mut it2 = column2.iter();
     let mut i = it1.next();
     let mut j = it2.next();
-    while i.is_some() && j.is_some()  {
+    while i.is_some() && j.is_some() {
         if let Some(result_row) = col1_data_map.get(&i.unwrap()) {
             if let Some(result_col) = col2_data_map.get(&j.unwrap()) {
                 result[[*result_row, *result_col]] += 1;
