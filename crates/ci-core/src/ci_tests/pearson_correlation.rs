@@ -1,17 +1,49 @@
 use std::ops::Mul;
 
+use crate::registry::Registry;
+use crate::strategy::CITest;
 use crate::strategy::TestResult;
 use scirs2::stats::pearsonr;
-use scirs2_core::Array2D;
 use scirs2_core::array;
 use scirs2_core::ndarray::Array1;
 use scirs2_core::ndarray::Array2;
+use scirs2_core::Array2D;
 use scirs2_linalg::lstsq;
 use scirs2_neural::utils;
-use crate::registry::Registry;
-use crate::strategy::CITest;
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
+
+///     Compute Pearson correlation coefficient and p-value for testing non-correlation.
+
+///     Should be used only on continuous data. In case when :math:`Z \\neq \\emptyset` uses
+///     linear regression and computes pearson coefficient on residuals.
+
+///     # Parameters
+///     ----------
+///     - x_values : Array1<f64>
+///         The first variable for testing the independence condition X \u27c2 Y | Z.
+
+///     - y_values : Array1<f64>
+///         The second variable for testing the independence condition X \u27c2 Y | Z.
+
+///     - array : lArray2<f64>
+///         A list of conditional variables for testing the condition X \u27c2 Y | Z.
+
+///     - boolean : bool, default=True
+///         If True, returns a boolean indicating independence (based on `significance_level`).
+///         If False, returns the test statistic and p-value.
+
+///     # Returns
+///     -------
+///     - result : bool or tuple
+///         If boolean=True, returns True if p-value >= significance_level, else False.
+///         If boolean=False, returns a tuple of (Pearson's correlation Coefficient, p-value).
+
+///     # References
+///     ----------
+///     [1] https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
+///
+///     [2] https://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression
 
 pub struct PearsonCorrelation {
     // Object traits
@@ -25,6 +57,7 @@ impl CITest for PearsonCorrelation {
         y_values: Array1<f64>,
         boolean: bool,
     ) -> anyhow::Result<TestResult> {
+        // Step 1: If array is non-empty, use linear regression to compute residuals and test independence on it.
         if array.len() == 0 {
             let (coefficient, p_value) = pearsonr(&x_values.view(), &y_values.view(), "two-sided")?;
             Ok(result(boolean, p_value, coefficient)?)
@@ -33,25 +66,38 @@ impl CITest for PearsonCorrelation {
             let y_coefficient = lstsq(&array.view(), &y_values.view(), None)?.x;
             let residual_x = x_values - array.dot(&x_coefficient);
             let residual_y = y_values - array.dot(&y_coefficient);
-            let (coefficient, p_value) = pearsonr(&residual_x.view(), &residual_y.view(), "two-sided")?;
+            let (coefficient, p_value) =
+                pearsonr(&residual_x.view(), &residual_y.view(), "two-sided")?;
             Ok(result(boolean, p_value, coefficient)?)
         }
     }
 }
 
+///     Compute final result
+///     # Parameters
+///     - boolean : bool, default=True
+///         If True, returns a boolean indicating independence (based on `significance_level`).
+///         If False, returns the test statistic and p-value.
+///     - coeeficient: f64
+///         Pearson's correlation Coefficient
+///     # Returns
+///     -------
+///     - result : bool or tuple
+///         If boolean=True, returns True if p-value >= significance_level, else False.
+///         If boolean=False, returns a tuple of (Pearson's correlation Coefficient, p-value).
 fn result(boolean: bool, p_value: f64, coefficient: f64) -> anyhow::Result<TestResult> {
     if boolean {
-            return Ok(TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL)));
-        } else {
-            return Ok(TestResult::Correlated(Ok((p_value, coefficient))));
-        }
+        return Ok(TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL)));
+    } else {
+        return Ok(TestResult::Correlated(Ok((p_value, coefficient))));
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use scirs2_core::ndarray::{Array1, Array2, Axis};
-    use scirs2_core::random::{Distribution, Normal, SeedableRng, rngs::SmallRng};
+    use scirs2_core::random::{rngs::SmallRng, Distribution, Normal, SeedableRng};
 
     const N: usize = 1000;
 
@@ -95,8 +141,14 @@ mod tests {
         let result = pearson().run_test(empty_array(), x, y, false).unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
-                assert!(p_value > SIGNIFICANCE_LEVEL, "p_value {p_value} should be > 0.05 for independent data");
-                assert!(coefficient.abs() < 0.1, "coefficient {coefficient} should be near 0 for independent data");
+                assert!(
+                    p_value > SIGNIFICANCE_LEVEL,
+                    "p_value {p_value} should be > 0.05 for independent data"
+                );
+                assert!(
+                    coefficient.abs() < 0.1,
+                    "coefficient {coefficient} should be near 0 for independent data"
+                );
             }
             _ => panic!("Expected TestResult::Correlated"),
         }
@@ -132,8 +184,14 @@ mod tests {
         let result = pearson().run_test(empty_array(), x, y, false).unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
-                assert!(p_value < SIGNIFICANCE_LEVEL, "p_value {p_value} should be < 0.05 for correlated data");
-                assert!(coefficient.abs() > 0.9, "coefficient {coefficient} should be high for correlated data");
+                assert!(
+                    p_value < SIGNIFICANCE_LEVEL,
+                    "p_value {p_value} should be < 0.05 for correlated data"
+                );
+                assert!(
+                    coefficient.abs() > 0.9,
+                    "coefficient {coefficient} should be high for correlated data"
+                );
             }
             _ => panic!("Expected TestResult::Correlated"),
         }
@@ -174,8 +232,14 @@ mod tests {
         let result = pearson().run_test(array, x, y, false).unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
-                assert!(p_value > SIGNIFICANCE_LEVEL, "p_value {p_value} should be > 0.05 after conditioning");
-                assert!(coefficient.abs() < 0.1, "coefficient {coefficient} should be near 0 after conditioning");
+                assert!(
+                    p_value > SIGNIFICANCE_LEVEL,
+                    "p_value {p_value} should be > 0.05 after conditioning"
+                );
+                assert!(
+                    coefficient.abs() < 0.1,
+                    "coefficient {coefficient} should be near 0 after conditioning"
+                );
             }
             _ => panic!("Expected TestResult::Correlated"),
         }
@@ -196,7 +260,10 @@ mod tests {
         let result = pearson().run_test(array, x, y, true).unwrap();
         match result {
             TestResult::Boolean(Ok(independent)) => {
-                assert!(independent, "Conditionally independent data should return true");
+                assert!(
+                    independent,
+                    "Conditionally independent data should return true"
+                );
             }
             _ => panic!("Expected TestResult::Boolean"),
         }
@@ -218,8 +285,14 @@ mod tests {
         let result = pearson().run_test(array, x, y, false).unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
-                assert!(p_value < SIGNIFICANCE_LEVEL, "p_value {p_value} should be < 0.05 for v-structure");
-                assert!(coefficient.abs() > 0.5, "coefficient {coefficient} should be high for v-structure");
+                assert!(
+                    p_value < SIGNIFICANCE_LEVEL,
+                    "p_value {p_value} should be < 0.05 for v-structure"
+                );
+                assert!(
+                    coefficient.abs() > 0.5,
+                    "coefficient {coefficient} should be high for v-structure"
+                );
             }
             _ => panic!("Expected TestResult::Correlated"),
         }
@@ -239,7 +312,10 @@ mod tests {
         let result = pearson().run_test(array, x, y, true).unwrap();
         match result {
             TestResult::Boolean(Ok(independent)) => {
-                assert!(!independent, "V-structure conditioned on collider should return false");
+                assert!(
+                    !independent,
+                    "V-structure conditioned on collider should return false"
+                );
             }
             _ => panic!("Expected TestResult::Boolean"),
         }
