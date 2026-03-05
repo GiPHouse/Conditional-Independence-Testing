@@ -14,7 +14,11 @@ serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
 anyhow = "1"
 ndarray = "0.15"
-statrs = "0.16"
+ndarray-linalg = "0.18.1"
+scirs2-core = { version = "0.2.0"}
+scirs2-linalg = { version = "0.2.0"}
+scirs2-stats = { version = "0.2.0"}
+scirs2 = { version = "0.2.0"}
 
 pyo3 = { version = "0.28", features = ["extension-module"] }
 

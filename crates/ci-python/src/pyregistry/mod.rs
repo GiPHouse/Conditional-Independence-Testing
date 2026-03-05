@@ -1,5 +1,6 @@
-use ci_core::{registry::Registry, strategy::CITest};
+use ci_core::{registry::Registry, strategy::CITest, strategy::TestResult};
 use pyo3::prelude::*;
+use numpy::{PyReadonlyArray1, PyReadonlyArray2};
 
 #[pyclass(frozen, name = "_RustRegistry")]
 pub struct PyRegistry(Registry);
@@ -20,8 +21,11 @@ impl PyRegistry {
         })
     }
 
-    fn list_all(&self) -> PyResult<Vec<String>>{
-        let tests = self.0.list_all_tests().map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+    fn list_all(&self) -> PyResult<Vec<String>> {
+        let tests = self
+            .0
+            .list_all_tests()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
         Ok(tests.into_iter().cloned().collect())
     }
 }
@@ -34,9 +38,30 @@ struct PyCITest {
 #[pymethods]
 impl PyCITest {
     pub fn __call__(
-        &self, // TODO: Add additional parameters (DataFrame, etc.) required for running the tests.
-    ) -> PyResult<()> {
-        self.test.run_test();
-        Ok(())
+        &self,
+        py: Python,
+        array: PyReadonlyArray2<f64>,
+        x_value: PyReadonlyArray1<f64>,
+        y_value: PyReadonlyArray1<f64>,
+        boolean: bool,
+    ) -> PyResult<Py<PyAny>> {
+        let arr = array.as_array().to_owned();
+        let x = x_value.as_array().to_owned();
+        let y = y_value.as_array().to_owned();
+
+        let result = self
+            .test
+            .run_test(arr, x, y, boolean)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        match result {
+            TestResult::Correlated(Ok(t)) => {
+                Ok(t.into_pyobject(py)?.into_any().unbind())
+            }
+            TestResult::Boolean(Ok(b)) => Ok(b.into_pyobject(py)?.to_owned().into_any().unbind()),
+            TestResult::Boolean(Err(e)) | TestResult::Correlated(Err(e)) => Err(
+                PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()),
+            ),
+        }
     }
 }
