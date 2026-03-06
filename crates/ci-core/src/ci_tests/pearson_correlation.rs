@@ -8,36 +8,36 @@ use scirs2_linalg::lstsq;
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
 ///Compute Pearson correlation coefficient and p-value for testing non-correlation.
-
+/// 
 ///Should be used only on continuous data. In case when :math:`Z \\neq \\emptyset` uses
 ///linear regression and computes pearson coefficient on residuals.
-
+/// 
 ///# Parameters
 ///----------
-///- x_values : Array1<f64>
-///The first variable for testing the independence condition X \u27c2 Y | Z.
-
-///     - y_values : Array1<f64>
-///         The second variable for testing the independence condition X \u27c2 Y | Z.
-
-///     - array : lArray2<f64>
-///         A list of conditional variables for testing the condition X \u27c2 Y | Z.
-
-///     - boolean : bool, default=True
-///         If True, returns a boolean indicating independence (based on `significance_level`).
-///         If False, returns the test statistic and p-value.
-
-///     # Returns
-///     -------
-///     - result : bool or tuple
-///         If boolean=True, returns True if p-value >= significance_level, else False.
-///         If boolean=False, returns a tuple of (Pearson's correlation Coefficient, p-value).
-
-///     # References
-///     ----------
-///     [1] https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
+///- `x_values` : Array1<f64>
+///     The first variable for testing the independence condition X \u27c2 Y | Z.
+/// 
+///- `y_values` : Array1<f64>
+///     The second variable for testing the independence condition X \u27c2 Y | Z.
+/// 
+///- `array` : lArray2<f64>
+///     A list of conditional variables for testing the condition X \u27c2 Y | Z.
+/// 
+///- `boolean` : bool, default=True
+///     If True, returns a boolean indicating independence (based on `significance_level`).
+///     If False, returns the test statistic and p-value.
+/// 
+///# Returns
+///-------
+///- result : bool or tuple
+///     If boolean=True, returns True if p-value >= significance_level, else False.
+///     If boolean=False, returns a tuple of (Pearson's correlation Coefficient, p-value).
+/// 
+///# References
+///----------
+///[1] https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
 ///
-///     [2] https://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression
+///[2] https://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression
 pub struct PearsonCorrelation {
     // Object traits
 }
@@ -68,10 +68,10 @@ impl CITest for PearsonCorrelation {
 
 ///     Compute final result
 ///     # Parameters
-///     - boolean : bool, default=True
+///     - `boolean` : bool, default=True
 ///         If True, returns a boolean indicating independence (based on `significance_level`).
 ///         If False, returns the test statistic and p-value.
-///     - coeeficient: f64
+///     - `coeeficient`: f64
 ///         Pearson's correlation Coefficient
 ///     # Returns
 ///     -------
@@ -81,9 +81,9 @@ impl CITest for PearsonCorrelation {
 fn result(boolean: bool, p_value: f64, coefficient: f64) -> anyhow::Result<TestResult> {
     if boolean {
         return Ok(TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL)));
-    } else {
-        return Ok(TestResult::Correlated(Ok((p_value, coefficient))));
-    }
+    } 
+    return Ok(TestResult::Correlated(Ok((p_value, coefficient))));
+    
 }
 
 #[cfg(test)]
