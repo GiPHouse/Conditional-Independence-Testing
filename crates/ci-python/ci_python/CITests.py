@@ -1,4 +1,4 @@
-from collections.abc import Callable  # noqa: D100
+from collections.abc import Callable, Hashable  # noqa: D100
 
 import pandas as pd
 
@@ -10,6 +10,7 @@ class CITestRegistry:
 
     Allows looking up tests by name or inferring suitable tests based on data type.
     """
+
     _rust_registry: _RustRegistry
 
     def __init__(self) -> None:
@@ -35,7 +36,19 @@ class CITestRegistry:
 
         raise NotImplementedError
 
-    def get_test(self, test: str | None | Callable, data: pd.DataFrame | None = None) -> Callable:
+    def get_test(
+        self, test: str | None | Callable, data: pd.DataFrame | None = None
+    ) -> Callable[
+        [
+            int | str | Hashable,
+            int | str | Hashable,
+            list[int | str | Hashable],
+            pd.DataFrame,
+            bool,
+            float,
+        ],
+        bool | tuple[float, float] | tuple[float, float, float],
+    ]:
         """Retrieve a CI test strategy.
 
         Parameters
@@ -69,6 +82,22 @@ class CITestRegistry:
 
         # Case 3: Test is a string name
         if isinstance(test, str):
-            return self._rust_registry.get_test(test)
+            rust_test = self._rust_registry.get_test(test)
+
+            def wrapper(
+                X: int | str | Hashable,
+                Y: int | str | Hashable,
+                Z: list[int | str | Hashable],
+                data: pd.DataFrame,
+                boolean: bool,
+                significance_level: float,  # TODO: How to handle this? In Rust or Python?
+            ) -> bool | tuple[float, float] | tuple[float, float, float]:
+                data_x = data[X].to_numpy()
+                data_y = data[Y].to_numpy()
+                data_z = data.loc[:, Z].to_numpy()
+                return rust_test(data_z, data_x, data_y, boolean)
+
+            return wrapper
+
 
 ci_registry = CITestRegistry()
