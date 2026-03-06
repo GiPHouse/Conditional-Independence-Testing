@@ -4,7 +4,6 @@ use scirs2_core::ndarray::Array2;
 ///
 /// All statistical tests for conditional independence must implement this trait
 /// to be compatible with the registry system.
-
 pub enum TestResult {
     Correlated(anyhow::Result<(f64, f64)>),
     Boolean(anyhow::Result<bool>),
