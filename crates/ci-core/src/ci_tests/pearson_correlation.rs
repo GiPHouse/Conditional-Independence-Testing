@@ -7,15 +7,15 @@ use scirs2_linalg::lstsq;
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
-///     Compute Pearson correlation coefficient and p-value for testing non-correlation.
+///Compute Pearson correlation coefficient and p-value for testing non-correlation.
 
-///     Should be used only on continuous data. In case when :math:`Z \\neq \\emptyset` uses
-///     linear regression and computes pearson coefficient on residuals.
+///Should be used only on continuous data. In case when :math:`Z \\neq \\emptyset` uses
+///linear regression and computes pearson coefficient on residuals.
 
-///     # Parameters
-///     ----------
-///     - x_values : Array1<f64>
-///         The first variable for testing the independence condition X \u27c2 Y | Z.
+///# Parameters
+///----------
+///- x_values : Array1<f64>
+///The first variable for testing the independence condition X \u27c2 Y | Z.
 
 ///     - y_values : Array1<f64>
 ///         The second variable for testing the independence condition X \u27c2 Y | Z.
@@ -38,7 +38,6 @@ const SIGNIFICANCE_LEVEL: f64 = 0.05;
 ///     [1] https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
 ///
 ///     [2] https://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression
-
 pub struct PearsonCorrelation {
     // Object traits
 }

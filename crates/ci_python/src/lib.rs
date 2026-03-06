@@ -66,12 +66,15 @@ impl PyCITest {
 
         match result {
             TestResult::Boolean(Ok(b)) => Ok(b.into_pyobject(py)?.to_owned().into_any().unbind()),
-            TestResult::Correlated(Ok((p_value, coefficient))) => {
-                Ok((p_value, coefficient).into_pyobject(py)?.into_any().unbind())
+            TestResult::Correlated(Ok((p_value, coefficient))) => Ok((p_value, coefficient)
+                .into_pyobject(py)?
+                .into_any()
+                .unbind()),
+            TestResult::Boolean(Err(e)) | TestResult::Correlated(Err(e)) => {
+                Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+                    e.to_string(),
+                ))
             }
-            TestResult::Boolean(Err(e)) | TestResult::Correlated(Err(e)) => Err(
-                PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()),
-            ),
         }
     }
 }
