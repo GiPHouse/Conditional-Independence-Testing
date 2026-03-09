@@ -1,4 +1,5 @@
 from collections.abc import Callable, Hashable  # noqa: D100
+from functools import wraps
 
 import pandas as pd
 
@@ -34,7 +35,7 @@ class CITestRegistry:
         if data_type is not None:
             raise NotImplementedError
 
-        raise NotImplementedError
+        return self._rust_registry.list_all()
 
     def get_test(
         self, test: str | None | Callable, data: pd.DataFrame | None = None
@@ -45,7 +46,7 @@ class CITestRegistry:
             list[int | str | Hashable],
             pd.DataFrame,
             bool,
-            float,
+            # float,
         ],
         bool | tuple[float, float] | tuple[float, float, float],
     ]:
@@ -90,7 +91,7 @@ class CITestRegistry:
                 Z: list[int | str | Hashable],
                 data: pd.DataFrame,
                 boolean: bool,
-                significance_level: float,  # TODO: How to handle this? In Rust or Python?
+                # significance_level: float,  # TODO: How to handle this? In Rust or Python?
             ) -> bool | tuple[float, float] | tuple[float, float, float]:
                 data_x = data[X].to_numpy()
                 data_y = data[Y].to_numpy()
@@ -101,3 +102,51 @@ class CITestRegistry:
 
 
 ci_registry = CITestRegistry()
+
+
+#################################################################
+### Wrapper functions for registry for backward compatibility ###
+#################################################################
+
+
+def _wrap_registry(test_name: str) -> Callable:
+    def registry_wrapper(f: Callable) -> Callable:
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            # TODO: Remove the condition when significance_level is implemented.
+            if "significance_level" in kwargs:
+                kwargs.pop("significance_level")
+            test = ci_registry.get_test(test_name)
+            return test(*args, **kwargs)
+
+        return wrapper
+
+    return registry_wrapper
+
+
+@_wrap_registry("pearson_correlation")
+def pearsonr(X, Y, Z, data, boolean=True, **kwargs): ...
+
+
+@_wrap_registry("power_divergence")
+def power_divergence(X, Y, Z, data, boolean=True, lambda_="cressie-read", **kwargs): ...
+
+
+@_wrap_registry("chi_square")
+def chi_square(X, Y, Z, data, boolean=True, **kwargs): ...
+
+
+@_wrap_registry("g_test")
+def g_sq(X, Y, Z, data, boolean=True, **kwargs): ...
+
+
+@_wrap_registry("likelihood_ratio")
+def log_likelihood(X, Y, Z, data, boolean=True, **kwargs): ...
+
+
+@_wrap_registry("modified_likelihood")
+def modified_log_likelihood(X, Y, Z, data, boolean=True, **kwargs): ...
+
+
+@_wrap_registry("pearson_equivalence")
+def pearsonr_equivalence(X, Y, Z, data, boolean=True, delta_threshold=0.1, **kwargs) -> tuple | bool: ...
