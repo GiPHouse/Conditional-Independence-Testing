@@ -1,4 +1,4 @@
-use crate::strategy::CITest;
+use crate::strategy::{CITest, TestResult};
 use polars::frame::DataFrame;
 use scirs2_core::Array1;
 pub struct PearsonEquivalence {
@@ -12,8 +12,9 @@ impl CITest for PearsonEquivalence {
         col_x: &str,
         col_y: &str,
         cols_z: Array1<&str>,
-    ) -> anyhow::Result<(), anyhow::Error> {
-        Ok(())
+        boolean: bool,
+    ) -> anyhow::Result<TestResult> {
+        todo!()
     }
     //Other necessary stuff
 }

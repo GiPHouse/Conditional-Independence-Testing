@@ -1,15 +1,21 @@
 use crate::strategy::CITest;
-use anyhow::Error;
+use crate::strategy::TestResult;
 use polars::prelude::*;
-use scirs2_core::ndarray::{Array2, DataOwned, Array, IndexLonger, Array1};
+use scirs2_core::ndarray::{Array, Array1, Array2};
 use scirs2_stats::contingency::chi2_contingency;
 use std::collections::HashMap;
+
+const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
 pub struct PowerDivergence {
     // Object traits
 }
 
-fn contingency_table(data: &DataFrame, col1: &str, col2: &str) -> Result<Array2<usize>, PolarsError> {
+fn contingency_table(
+    data: &DataFrame,
+    col1: &str,
+    col2: &str,
+) -> Result<Array2<usize>, PolarsError> {
     let column1 = data.column(col1)?.as_materialized_series();
     let column2 = data.column(col2)?.as_materialized_series();
     let mut col1_data_map = HashMap::new();
@@ -29,9 +35,8 @@ fn contingency_table(data: &DataFrame, col1: &str, col2: &str) -> Result<Array2<
         }
     }
     let mut result = Array::zeros((col1_size, col2_size));
-    let mut it1 = column1.iter();
     let mut it2 = column2.iter();
-    while let Some(i) = it1.next() {
+    for i in column1.iter() {
         if let Some(j) = it2.next() {
             if let Some(result_row) = col1_data_map.get(&i) {
                 if let Some(result_col) = col2_data_map.get(&j) {
@@ -43,6 +48,13 @@ fn contingency_table(data: &DataFrame, col1: &str, col2: &str) -> Result<Array2<
     Ok(result)
 }
 
+fn result(boolean: bool, p_value: f64, chi2: f64, dof: usize) -> TestResult {
+    if boolean {
+        return TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL));
+    }
+    return TestResult::Correlated(Ok((p_value, chi2, dof)));
+}
+
 impl CITest for PowerDivergence {
     fn run_test(
         &self,
@@ -50,7 +62,8 @@ impl CITest for PowerDivergence {
         col_x: &str,
         col_y: &str,
         cols_z: Array1<&str>,
-    ) -> anyhow::Result<(), anyhow::Error> {
+        boolean: bool,
+    ) -> anyhow::Result<TestResult> {
         // Step 1: Check if the arguments are valid
         if cols_z.iter().any(|&x| x == col_x || x == col_y) {
             anyhow::bail!("X and/or Y cannot be found in Z.");
@@ -60,16 +73,17 @@ impl CITest for PowerDivergence {
         if cols_z.is_empty() {
             let table = contingency_table(data, col_x, col_y)?;
             let table_f64 = table.mapv(|x| x as f64);
-            let (chi2, p_value, dof, expected) =
+            let (chi2, p_value, dof, _expected) =
                 chi2_contingency(&table_f64.view(), false, None).expect("Operation failed");
-            println!("{:?}", chi2);
+            Ok(result(boolean, p_value, chi2, dof))
         }
         // Step 3: If there are conditionals variables, iterate over unique states
         else {
+            let mut chi2: f64 = 0.;
+            let mut dof: usize = 0;
             let partitions = data.partition_by(cols_z, true)?; //shows duplicates as well
             for df in partitions {
                 let contingency = contingency_table(&df, col_x, col_y)?;
-                println!("{:?}", contingency);
                 let contingency_f64 = contingency.mapv(|x| x as f64);
 
                 /* Hypothesis: this code is never touched */
@@ -85,13 +99,16 @@ impl CITest for PowerDivergence {
                 //     let (chi2, p_value, dof, expected) = chi2_contingency(&contingency_f64.view(), false, None).expect("Operation failed");
                 //     println!("{:?}", chi2);
                 // }
-                let (chi2, p_value, dof, expected) =
+                let (c, _p_value, d, _expected) =
                     chi2_contingency(&contingency_f64.view(), false, None)
                         .expect("Operation failed");
-                println!("{:?}", chi2);
+                chi2 += c;
+                dof += d;
             }
+            // TODO: find chi^2 distribution
+            let p_value: f64 = 0.05;
+            Ok(result(boolean, p_value, chi2, dof))
         }
-        Ok(())
     }
     //Other necessary stuff
 }
