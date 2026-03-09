@@ -10,10 +10,10 @@ pub struct PearsonEquivalence {
 impl CITest for PearsonEquivalence {
     fn run_test(
         &self,
-        array: Array2<f64>,
-        x_values: Array1<f64>,
-        y_values: Array1<f64>,
-        boolean: bool,
+        _array: Array2<f64>,
+        _x_values: Array1<f64>,
+        _y_values: Array1<f64>,
+        _boolean: bool,
     ) -> anyhow::Result<TestResult> {
         todo!()
     }

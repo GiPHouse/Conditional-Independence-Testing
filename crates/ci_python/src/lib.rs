@@ -11,6 +11,8 @@ pub struct PyRegistry(Arc<Registry>);
 #[pymethods]
 impl PyRegistry {
     #[new]
+    #[must_use]
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self(Arc::new(Registry::new()))
     }
@@ -42,6 +44,12 @@ pub struct PyCITest {
 
 #[pymethods]
 impl PyCITest {
+    /// Run the conditional independence test on the given data.
+    ///
+    /// # Errors
+    ///
+    /// Returns `PyRuntimeError` if the test lookup fails or the test itself returns an error.
+    #[allow(clippy::needless_pass_by_value)]
     #[pyo3(signature = (array, x, y, boolean=true))]
     pub fn __call__(
         &self,

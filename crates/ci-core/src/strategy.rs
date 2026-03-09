@@ -10,8 +10,11 @@ pub enum TestResult {
 }
 
 pub trait CITest: Send + Sync {
-    //fn name(&self) -> &'static str;
-    //fn data_types(&self) -> &'static [&'static str];
+    /// Runs a conditional independence test on the given data.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the test computation fails (e.g., invalid input dimensions or numerical issues).
     fn run_test(
         &self,
         array: Array2<f64>,
