@@ -9,9 +9,9 @@ pub struct PowerDivergence {
     // Object traits
 }
 
-fn contingency_table(data: &DataFrame, col1: &str, col2: &str) -> Array2<usize> {
-    let column1 = data.column(col1).unwrap().as_materialized_series();
-    let column2 = data.column(col2).unwrap().as_materialized_series();
+fn contingency_table(data: &DataFrame, col1: &str, col2: &str) -> Result<Array2<usize>, PolarsError> {
+    let column1 = data.column(col1)?.as_materialized_series();
+    let column2 = data.column(col2)?.as_materialized_series();
     let mut col1_data_map = HashMap::new();
     let mut col1_size: usize = 0;
     for i in column1.iter() {
@@ -31,18 +31,16 @@ fn contingency_table(data: &DataFrame, col1: &str, col2: &str) -> Array2<usize> 
     let mut result = Array::zeros((col1_size, col2_size));
     let mut it1 = column1.iter();
     let mut it2 = column2.iter();
-    let mut i = it1.next();
-    let mut j = it2.next();
-    while i.is_some() && j.is_some() {
-        if let Some(result_row) = col1_data_map.get(&i.unwrap()) {
-            if let Some(result_col) = col2_data_map.get(&j.unwrap()) {
-                result[[*result_row, *result_col]] += 1;
+    while let Some(i) = it1.next() {
+        if let Some(j) = it2.next() {
+            if let Some(result_row) = col1_data_map.get(&i) {
+                if let Some(result_col) = col2_data_map.get(&j) {
+                    result[[*result_row, *result_col]] += 1;
+                }
             }
         }
-        i = it1.next();
-        j = it2.next();
     }
-    result
+    Ok(result)
 }
 
 impl CITest for PowerDivergence {
@@ -60,7 +58,7 @@ impl CITest for PowerDivergence {
 
         // Step 2: Do a simple contingency test if there are no conditional variables.
         if cols_z.is_empty() {
-            let table = contingency_table(data, col_x, col_y);
+            let table = contingency_table(data, col_x, col_y)?;
             let table_f64 = table.mapv(|x| x as f64);
             let (chi2, p_value, dof, expected) =
                 chi2_contingency(&table_f64.view(), false, None).expect("Operation failed");
@@ -70,7 +68,7 @@ impl CITest for PowerDivergence {
         else {
             let partitions = data.partition_by(cols_z, true)?; //shows duplicates as well
             for df in partitions {
-                let contingency = contingency_table(&df, col_x, col_y);
+                let contingency = contingency_table(&df, col_x, col_y)?;
                 println!("{:?}", contingency);
                 let contingency_f64 = contingency.mapv(|x| x as f64);
 
