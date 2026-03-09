@@ -66,11 +66,11 @@ impl CITest for PowerDivergence {
         data: &DataFrame,
         col_x: &str,
         col_y: &str,
-        cols_z: Array1<&str>,
+        cols_z: Array1<String>,
         boolean: bool,
     ) -> anyhow::Result<TestResult> {
         // Step 1: Check if the arguments are valid
-        if cols_z.iter().any(|&x| x == col_x || x == col_y) {
+        if cols_z.iter().any(|x| x == col_x || x == col_y) {
             anyhow::bail!("X and/or Y cannot be found in Z.");
         }
 
@@ -117,4 +117,27 @@ impl CITest for PowerDivergence {
         }
     }
     //Other necessary stuff
+}
+
+impl PowerDivergence{
+    fn test_wrapper(
+        &self,
+        array: Array2<f64>,
+        x_values: Array1<f64>,
+        y_values: Array1<f64>,
+        boolean: bool,
+    ) -> anyhow::Result<TestResult> {    
+        let mut data = df!{
+            "x" => x_values.to_vec(),
+            "y" => y_values.to_vec(),
+        }.unwrap();
+        let num_cols = array.len_of(Axis(1));
+        let mut col_names: Vec<String> = vec![];
+        for col in 0..num_cols {
+            let col_name = format!("Z_{}", col);
+            col_names.push(col_name);
+            data.with_column(Series::new(format!("Z_{}", col).into(), array.index_axis(Axis(1), col).to_vec())).unwrap();
+        }
+        self.run_test(&data, "x", "y", Array::from(col_names), boolean)
+    }
 }

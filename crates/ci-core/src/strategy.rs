@@ -12,7 +12,7 @@ pub trait CITest {
         data: &DataFrame,
         col_x: &str,
         col_y: &str,
-        cols_z: Array1<&str>,
+        cols_z: Array1<String>,
         boolean: bool,
     ) -> anyhow::Result<TestResult>;
 }
