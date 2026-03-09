@@ -4,6 +4,11 @@ use polars::prelude::*;
 use scirs2_core::ndarray::{Array, Array1, Array2};
 use scirs2_stats::contingency::chi2_contingency;
 use std::collections::HashMap;
+use polars::prelude::*;
+use scirs2_core::ndarray::*;
+use scirs2_stats::contingency::*;
+use statrs::distribution::{ChiSquared, ContinuousCDF};
+use scirs2_stats::distributions::*;
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
@@ -79,7 +84,7 @@ impl CITest for PowerDivergence {
         }
         // Step 3: If there are conditionals variables, iterate over unique states
         else {
-            let mut chi2: f64 = 0.;
+            let mut chi: f64 = 0.0;
             let mut dof: usize = 0;
             let partitions = data.partition_by(cols_z, true)?; //shows duplicates as well
             for df in partitions {
@@ -102,12 +107,13 @@ impl CITest for PowerDivergence {
                 let (c, _p_value, d, _expected) =
                     chi2_contingency(&contingency_f64.view(), false, None)
                         .expect("Operation failed");
-                chi2 += c;
+                chi += c;
                 dof += d;
             }
             // TODO: find chi^2 distribution
-            let p_value: f64 = 0.05;
-            Ok(result(boolean, p_value, chi2, dof))
+            let chi2 = ChiSquared::new(dof as f64)?;
+            let p_value = 1.0 - chi2.cdf(chi);
+            Ok(result(boolean, p_value, chi, dof))
         }
     }
     //Other necessary stuff
