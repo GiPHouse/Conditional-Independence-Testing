@@ -1,8 +1,6 @@
-use crate::strategy::CITest;
-use crate::strategy::TestResult;
+use crate::strategy::{CITest, TestResult};
 use scirs2::stats::pearsonr;
-use scirs2_core::ndarray::Array1;
-use scirs2_core::ndarray::Array2;
+use scirs2_core::ndarray::{Array1, Array2};
 use scirs2_linalg::lstsq;
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
@@ -15,29 +13,29 @@ const SIGNIFICANCE_LEVEL: f64 = 0.05;
 ///# Parameters
 ///----------
 ///- `x_values` : Array1<f64>
-///     The first variable for testing the independence condition X \u27c2 Y | Z.
+///  The first variable for testing the independence condition X \u27c2 Y | Z.
 /// 
 ///- `y_values` : Array1<f64>
-///     The second variable for testing the independence condition X \u27c2 Y | Z.
+///  The second variable for testing the independence condition X \u27c2 Y | Z.
 /// 
 ///- `array` : lArray2<f64>
-///     A list of conditional variables for testing the condition X \u27c2 Y | Z.
+///  A list of conditional variables for testing the condition X \u27c2 Y | Z.
 /// 
 ///- `boolean` : bool, default=True
-///     If True, returns a boolean indicating independence (based on `significance_level`).
-///     If False, returns the test statistic and p-value.
+///  If True, returns a boolean indicating independence (based on `significance_level`).
+///  If False, returns the test statistic and p-value.
 /// 
 ///# Returns
 ///-------
 ///- result : bool or tuple
-///     If boolean=True, returns True if p-value >= significance_level, else False.
-///     If boolean=False, returns a tuple of (Pearson's correlation Coefficient, p-value).
+///  If boolean=True, returns True if p-value >= `significance_level`, else False.
+///  If boolean=False, returns a tuple of (Pearson's correlation Coefficient, p-value).
 /// 
 ///# References
 ///----------
-///[1] https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
+///[1] <https://en.wikipedia.org/wiki/Pearson_correlation_coefficient>
 ///
-///[2] https://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression
+///[2] <https://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression>
 pub struct PearsonCorrelation {
     // Object traits
 }
@@ -51,9 +49,9 @@ impl CITest for PearsonCorrelation {
         boolean: bool,
     ) -> anyhow::Result<TestResult> {
         // Step 1: If array is non-empty, use linear regression to compute residuals and test independence on it.
-        if array.len() == 0 {
+        if array.is_empty() {
             let (coefficient, p_value) = pearsonr(&x_values.view(), &y_values.view(), "two-sided")?;
-            Ok(result(boolean, p_value, coefficient)?)
+            Ok(result(boolean, p_value, coefficient))
         } else {
             let x_coefficient = lstsq(&array.view(), &x_values.view(), None)?.x;
             let y_coefficient = lstsq(&array.view(), &y_values.view(), None)?.x;
@@ -61,35 +59,34 @@ impl CITest for PearsonCorrelation {
             let residual_y = y_values - array.dot(&y_coefficient);
             let (coefficient, p_value) =
                 pearsonr(&residual_x.view(), &residual_y.view(), "two-sided")?;
-            Ok(result(boolean, p_value, coefficient)?)
+            Ok(result(boolean, p_value, coefficient))
         }
     }
 }
 
-///     Compute final result
-///     # Parameters
-///     - `boolean` : bool, default=True
-///         If True, returns a boolean indicating independence (based on `significance_level`).
-///         If False, returns the test statistic and p-value.
-///     - `coeeficient`: f64
-///         Pearson's correlation Coefficient
-///     # Returns
-///     -------
-///     - result : bool or tuple
-///         If boolean=True, returns True if p-value >= significance_level, else False.
-///         If boolean=False, returns a tuple of (Pearson's correlation Coefficient, p-value).
-fn result(boolean: bool, p_value: f64, coefficient: f64) -> anyhow::Result<TestResult> {
+/// Compute final result
+/// # Parameters
+/// - `boolean` : bool, default=True
+///   If True, returns a boolean indicating independence (based on `significance_level`).
+///   If False, returns the test statistic and p-value.
+/// - `coeeficient`: f64
+///   Pearson's correlation Coefficient
+/// # Returns
+/// -------
+/// - result : bool or tuple
+///   If boolean=True, returns True if p-value >= `significance_level`, else False.
+///   If boolean=False, returns a tuple of (Pearson's correlation Coefficient, p-value).
+fn result(boolean: bool, p_value: f64, coefficient: f64) -> TestResult {
     if boolean {
-        return Ok(TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL)));
+        return TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL));
     } 
-    return Ok(TestResult::Correlated(Ok((p_value, coefficient))));
-    
+    TestResult::Correlated(Ok((p_value, coefficient)))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use scirs2_core::ndarray::{Array1, Array2, Axis};
+    use scirs2_core::ndarray::{stack, Array1, Array2, Axis};
     use scirs2_core::random::{rngs::SmallRng, Distribution, Normal, SeedableRng};
 
     const N: usize = 200; // Can't have N greater than or equal to 300 due to scirs2 bug
@@ -118,7 +115,7 @@ mod tests {
             let x = gen_normal(n, 0.0, 1.0, &mut rng);
             let y = gen_normal(n, 0.0, 1.0, &mut rng);
             let raw = pearsonr(&x.view(), &y.view(), "two-sided");
-            eprintln!("N={}: {:?}", n, raw);
+            eprintln!("N={n}: {raw:?}");
         }
     }
 
@@ -313,7 +310,34 @@ mod tests {
             _ => panic!("Expected TestResult::Boolean"),
         }
     }
-}
+// --- 9.  X and Y are conditionally dependent given Z ---
+    // Expected: false (the residuals should be uncorrelated)
+    #[test]
+    fn test_multiple_conditioned_dependent_boolean_false() {
+        let mut rng = seeded_rng();
+        let z_1 = gen_normal(N, 0.0, 1.0, &mut rng);
+        let z_2 = gen_normal(N, 0.0, 1.0, &mut rng);
+        let z_3 = gen_normal(N, 0.0, 1.0, &mut rng);
+        let noise_x = gen_normal(N, 0.0, 0.1, &mut rng);
+        let noise_y = gen_normal(N, 0.0, 0.1, &mut rng);
+        let x = 0.5 * &z_1 + 0.5 * &z_2 + 0.5 * &z_3 + &noise_x;
+        let y = 0.5 * &z_1 + 0.5 * &z_2 + 0.5 * &z_3 + &noise_y;
 
-// Potential bug in scirs2 returns NaN for p_value when N>=300. Is this a library bug
-// in its t-distribution CDF calculation.
+        let array = stack(Axis(1), &[z_1.view(), z_2.view(), z_3.view()]).unwrap();
+
+        let result = pearson().run_test(array, x, y, false).unwrap();
+        match result {
+            TestResult::Correlated(Ok((p_value, coefficient))) => {
+                assert!(
+                    p_value >= 0.04,
+                    "p_value {p_value} should be greater than or equal to 0.04 for v-structure"
+                );
+                assert!(
+                    coefficient.abs() <= 0.1,
+                    "coefficient {coefficient} should be less than or equal to 0.1"
+                );
+            }
+            _ => panic!("Expected TestResult::Correlated"),
+        }
+    }
+}
