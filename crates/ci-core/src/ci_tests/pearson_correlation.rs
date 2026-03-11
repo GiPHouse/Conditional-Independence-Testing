@@ -1,62 +1,67 @@
 use crate::strategy::{CITest, TestResult};
+use ndarray_linalg::LeastSquaresSvd;
 use scirs2::stats::pearsonr;
 use scirs2_core::ndarray::{Array1, Array2};
-use scirs2_linalg::lstsq;
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
-///Compute Pearson correlation coefficient and p-value for testing non-correlation.
-/// 
-///Should be used only on continuous data. In case when :math:`Z \\neq \\emptyset` uses
-///linear regression and computes pearson coefficient on residuals.
-/// 
-///# Parameters
-///----------
-///- `x_values` : Array1<f64>
-///  The first variable for testing the independence condition X \u27c2 Y | Z.
-/// 
-///- `y_values` : Array1<f64>
-///  The second variable for testing the independence condition X \u27c2 Y | Z.
-/// 
-///- `array` : lArray2<f64>
-///  A list of conditional variables for testing the condition X \u27c2 Y | Z.
-/// 
-///- `boolean` : bool, default=True
-///  If True, returns a boolean indicating independence (based on `significance_level`).
-///  If False, returns the test statistic and p-value.
-/// 
-///# Returns
-///-------
-///- result : bool or tuple
-///  If boolean=True, returns True if p-value >= `significance_level`, else False.
-///  If boolean=False, returns a tuple of (Pearson's correlation Coefficient, p-value).
-/// 
-///# References
-///----------
-///[1] <https://en.wikipedia.org/wiki/Pearson_correlation_coefficient>
+/// Pearson correlation conditional independence test.
 ///
-///[2] <https://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression>
+/// Should be used only on continuous data. When the conditioning set is non-empty,
+/// uses linear regression to compute residuals and tests the Pearson correlation
+/// on those residuals (partial correlation).
+///
+/// # References
+///
+/// - [Pearson correlation coefficient](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient)
+/// - [Partial correlation using linear regression](https://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression)
 pub struct PearsonCorrelation {
     // Object traits
 }
 
 impl CITest for PearsonCorrelation {
+    /// Test the independence condition X ⊥ Y | Z using Pearson correlation.
+    ///
+    /// # Parameters
+    ///
+    /// - `conditioning_set` - Conditioning variables Z for testing X ⊥ Y | Z.
+    ///   Pass an empty array for unconditional testing.
+    /// - `x_values` - The first variable X.
+    /// - `y_values` - The second variable Y.
+    /// - `boolean` - If true, returns a boolean indicating independence
+    ///   (based on `SIGNIFICANCE_LEVEL`). If false, returns the (p-value, coefficient) tuple.
+    ///
+    /// # Returns
+    ///
+    /// - If `boolean=true`: `TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL))`
+    /// - If `boolean=false`: `TestResult::Correlated(Ok((p_value, coefficient)))`
     fn run_test(
         &self,
-        array: Array2<f64>,
+        conditioning_set: Array2<f64>,
         x_values: Array1<f64>,
         y_values: Array1<f64>,
         boolean: bool,
     ) -> anyhow::Result<TestResult> {
-        // Step 1: If array is non-empty, use linear regression to compute residuals and test independence on it.
-        if array.is_empty() {
+        if conditioning_set.is_empty() {
             let (coefficient, p_value) = pearsonr(&x_values.view(), &y_values.view(), "two-sided")?;
             Ok(result(boolean, p_value, coefficient))
         } else {
-            let x_coefficient = lstsq(&array.view(), &x_values.view(), None)?.x;
-            let y_coefficient = lstsq(&array.view(), &y_values.view(), None)?.x;
-            let residual_x = x_values - array.dot(&x_coefficient);
-            let residual_y = y_values - array.dot(&y_coefficient);
+            // If conditioning_set is non-empty, use linear regression to compute residuals and test independence on it.
+            let x_coefficient = &conditioning_set
+                .view()
+                .least_squares(&x_values.view())?
+                .solution;
+            let x_coefficient = Array1::from_vec(x_coefficient.to_vec());
+
+            let y_coefficient = &conditioning_set
+                .view()
+                .least_squares(&y_values.view())?
+                .solution;
+            let y_coefficient = Array1::from_vec(y_coefficient.to_vec());
+
+            let residual_x = x_values - conditioning_set.dot(&x_coefficient);
+            let residual_y = y_values - conditioning_set.dot(&y_coefficient);
+
             let (coefficient, p_value) =
                 pearsonr(&residual_x.view(), &residual_y.view(), "two-sided")?;
             Ok(result(boolean, p_value, coefficient))
@@ -64,22 +69,11 @@ impl CITest for PearsonCorrelation {
     }
 }
 
-/// Compute final result
-/// # Parameters
-/// - `boolean` : bool, default=True
-///   If True, returns a boolean indicating independence (based on `significance_level`).
-///   If False, returns the test statistic and p-value.
-/// - `coeeficient`: f64
-///   Pearson's correlation Coefficient
-/// # Returns
-/// -------
-/// - result : bool or tuple
-///   If boolean=True, returns True if p-value >= `significance_level`, else False.
-///   If boolean=False, returns a tuple of (Pearson's correlation Coefficient, p-value).
+/// Construct the appropriate [`TestResult`] variant based on the `boolean` flag.
 fn result(boolean: bool, p_value: f64, coefficient: f64) -> TestResult {
     if boolean {
         return TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL));
-    } 
+    }
     TestResult::Correlated(Ok((p_value, coefficient)))
 }
 
@@ -108,7 +102,9 @@ mod tests {
         PearsonCorrelation {}
     }
 
+    // Testing scirs2's pearsonr limitations/bugs.
     #[test]
+    #[ignore]
     fn debug_pearsonr_sizes() {
         let mut rng = seeded_rng();
         for n in [200, 300, 350, 400, 450, 500] {
@@ -310,10 +306,12 @@ mod tests {
             _ => panic!("Expected TestResult::Boolean"),
         }
     }
-// --- 9.  X and Y are conditionally dependent given Z ---
-    // Expected: false (the residuals should be uncorrelated)
+    // --- 9. Multiple conditioning variables + conditionally independent + boolean=false ---
+    // Z1, Z2, Z3 are confounders: X and Y both depend on them.
+    // After conditioning on all three, residuals should be independent.
+    // Expected: high p_value, low |coefficient|
     #[test]
-    fn test_multiple_conditioned_dependent_boolean_false() {
+    fn test_multiple_conditioned_independent_boolean_false() {
         let mut rng = seeded_rng();
         let z_1 = gen_normal(N, 0.0, 1.0, &mut rng);
         let z_2 = gen_normal(N, 0.0, 1.0, &mut rng);
@@ -329,12 +327,12 @@ mod tests {
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
                 assert!(
-                    p_value >= 0.04,
-                    "p_value {p_value} should be greater than or equal to 0.04 for v-structure"
+                    p_value >= SIGNIFICANCE_LEVEL,
+                    "p_value {p_value} should be >= 0.05 after conditioning on all confounders"
                 );
                 assert!(
                     coefficient.abs() <= 0.1,
-                    "coefficient {coefficient} should be less than or equal to 0.1"
+                    "coefficient {coefficient} should be near 0 after conditioning on all confounders"
                 );
             }
             _ => panic!("Expected TestResult::Correlated"),
