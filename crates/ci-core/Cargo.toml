@@ -23,7 +23,10 @@ scirs2-stats = { workspace = true }
 scirs2 = { workspace = true }
 rand = "0.10.0"
 scirs2-neural = "0.2.0"
+lapack = "0.19"
 
+[build-dependencies]
+lapack-src = { version = "0.10", features = ["openblas"] }
 
 [dev-dependencies]
 criterion = { workspace = true }

@@ -104,7 +104,7 @@ mod tests {
 
     // Testing scirs2's pearsonr limitations/bugs.
     #[test]
-    #[ignore]
+    #[ignore = "for future debugging"]
     fn debug_pearsonr_sizes() {
         let mut rng = seeded_rng();
         for n in [200, 300, 350, 400, 450, 500] {
