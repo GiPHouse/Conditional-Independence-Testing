@@ -10,7 +10,6 @@ pub struct Registry {
 }
 
 impl Registry {
-    #![allow(clippy::needless_pass_by_value)]
     /// Creates a new Registry with all `CITests` as elements.
     #[must_use = "creating a Registry without using it has no effect"]
     #[allow(clippy::new_without_default)]

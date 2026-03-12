@@ -9,8 +9,8 @@ repository = ""
 
 [dependencies]
 ci-core = { path = "../ci-core" }
-pyo3 = { workspace = true }
-numpy = { workspace = true }
+pyo3 = { version = "0.28", features = ["extension-module"] }
+numpy = { version = "0.28" }
 ndarray = { workspace = true }
 
 [lints]
