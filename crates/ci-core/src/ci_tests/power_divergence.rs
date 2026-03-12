@@ -1,14 +1,9 @@
-use crate::strategy::CITest;
-use crate::strategy::TestResult;
-use polars::prelude::*;
-use scirs2_core::ndarray::{Array, Array1, Array2};
+use crate::strategy::{CITest,TestResult};
+use polars::prelude::{DataFrame, PolarsError, Series, NamedFrom, df};
+use scirs2_core::ndarray::{Array, Array1, Array2, Axis};
 use scirs2_stats::contingency::chi2_contingency;
 use std::collections::HashMap;
-use polars::prelude::*;
-use scirs2_core::ndarray::*;
-use scirs2_stats::contingency::*;
 use statrs::distribution::{ChiSquared, ContinuousCDF};
-use scirs2_stats::distributions::*;
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
@@ -16,13 +11,17 @@ pub struct PowerDivergence {
     // Object traits
 }
 
+//Computation of contingency_table
 fn contingency_table(
     data: &DataFrame,
     col1: &str,
     col2: &str,
 ) -> Result<Array2<usize>, PolarsError> {
+    //extract the two columns we want to apply contingency table to. 
     let column1 = data.column(col1)?.as_materialized_series();
     let column2 = data.column(col2)?.as_materialized_series();
+
+    //create unique value map for column1. 
     let mut col1_data_map = HashMap::new();
     let mut col1_size: usize = 0;
     for i in column1.iter() {
@@ -31,6 +30,8 @@ fn contingency_table(
             col1_size += 1;
         }
     }
+
+    //create unique value map for column2. 
     let mut col2_data_map = HashMap::new();
     let mut col2_size: usize = 0;
     for i in column2.iter() {
@@ -39,7 +40,11 @@ fn contingency_table(
             col2_size += 1;
         }
     }
+
+    //allocate contingency table
     let mut result = Array::zeros((col1_size, col2_size));
+
+    //compute contingency table
     let mut it2 = column2.iter();
     for i in column1.iter() {
         if let Some(j) = it2.next() {
@@ -69,6 +74,7 @@ impl CITest for PowerDivergence {
         cols_z: Array1<String>,
         boolean: bool,
     ) -> anyhow::Result<TestResult> {
+
         // Step 1: Check if the arguments are valid
         if cols_z.iter().any(|x| x == col_x || x == col_y) {
             anyhow::bail!("X and/or Y cannot be found in Z.");
@@ -91,7 +97,7 @@ impl CITest for PowerDivergence {
                 let contingency = contingency_table(&df, col_x, col_y)?;
                 let contingency_f64 = contingency.mapv(|x| x as f64);
 
-                /* Hypothesis: this code is never touched */
+                /* Hypothesis: The code never enters this if statement, even if it is present in the actual pgmpy package */
                 // if contingency_f64.sum_axis(Axis(0)).iter().any(|&x| x==0.0) || contingency_f64.sum_axis(Axis(1)).iter().any(|&x| x==0.0){
                 //     let mut z_state = Vec::new();
                 //     for col in cols_z {
@@ -126,7 +132,10 @@ impl PowerDivergence{
         x_values: Array1<f64>,
         y_values: Array1<f64>,
         boolean: bool,
-    ) -> anyhow::Result<TestResult> {    
+    ) -> anyhow::Result<TestResult> {   
+
+        //Code starts with conversion into dataframe, allowing application of polars partition by. 
+        //Performance increase is possible by custom partition by implementation for ndarrays.  
         let mut data = df!{
             "x" => x_values.to_vec(),
             "y" => y_values.to_vec(),
