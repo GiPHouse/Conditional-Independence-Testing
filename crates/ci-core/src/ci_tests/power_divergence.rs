@@ -9,6 +9,8 @@ use scirs2_core::ndarray::*;
 use scirs2_stats::contingency::*;
 use statrs::distribution::{ChiSquared, ContinuousCDF};
 use scirs2_stats::distributions::*;
+use rand::distr::Distribution;
+use rand_distr::Normal;
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
@@ -114,7 +116,7 @@ impl CITest for PowerDivergence {
             let chi2 = ChiSquared::new(dof as f64)?;
             let p_value = 1.0 - chi2.cdf(chi);
             Ok(result(boolean, p_value, chi, dof))
-        }
+        }   
     }
     //Other necessary stuff
 }
@@ -139,5 +141,68 @@ impl PowerDivergence{
             data.with_column(Series::new(format!("Z_{}", col).into(), array.index_axis(Axis(1), col).to_vec())).unwrap();
         }
         self.run_test(&data, "x", "y", Array::from(col_names), boolean)
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ci_core::ci_tests::power_divergence::PowerDivergence;
+    use scirs2_core::ndarray::{Array1, Array2, Axis};
+    use scirs2_core::random::{rngs::SmallRng, Distribution, Normal, SeedableRng};
+
+    const N: usize = 200; // Can't have N greater than or equal to 300 due to scirs2 bug
+
+    fn seeded_rng() -> SmallRng {
+        SmallRng::seed_from_u64(42)
+    }
+
+    fn gen_normal(n: usize, mean: f64, std_dev: f64, rng: &mut SmallRng) -> Array1<f64> {
+        let dist = Normal::new(mean, std_dev).unwrap();
+        Array1::fromvec((0..n).map(|| dist.sample(rng)).collect())
+    }
+
+    fn gen_nxn_table(n: usize, mean: f64, std_dev: f64, rng: &mut SmallRng) -> Array2<f64> {
+        let dist = Normal::new(mean, std_dev).unwrap();
+        let arr2 = Array2::from_shapefn((n, n), || {dist.sample(rng)});
+        println!("{:?}", arr2);
+        return arr2;
+    } 
+
+
+    fn empty_array() -> Array2<f64> {
+        Array2::zeros((0, 0))
+    }
+
+    fn empty_dataframe() -> DataFrame{
+        DataFrame::empty()
+    }
+
+    fn power_divergence() -> PowerDivergence {
+        PowerDivergence {}
+    }
+
+    #[test]
+    fn test_empty_array() {
+        let mut rng = seeded_rng();
+        let x = gen_normal(N, 0.0, 1.0, &mut rng);
+        let y = gen_normal(N, 0.0, 1.0, &mut rng);
+        let z = gen_nxn_table(N, 0.0, 1.0, &mut rng);
+
+        let result = power_divergence().run_test(empty_dataframe(), x, y, z, [], false).unwrap();
+        match result {
+            TestResult::Correlated(Ok((p_value, coefficient))) => {
+                assert!(
+                    p_value > SIGNIFICANCE_LEVEL,
+                    "p_value {pvalue} should be > 0.05 for independent data"
+                );
+                assert!(
+                    coefficient.abs() < 0.1,
+                    "coefficient {coefficient} should be near 0 for independent data"
+                );
+            }
+             => panic!("Expected TestResult::Correlated"),
+        }
     }
 }

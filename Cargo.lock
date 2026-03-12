@@ -369,8 +369,10 @@ dependencies = [
  "ndarray-linalg",
  "polars",
  "proptest",
- "rand 0.8.5",
- "scirs2-core 0.2.0",
+ "rand 0.9.2",
+ "rand_distr 0.5.1",
+ "scirs2-core",
+ "scirs2-linalg",
  "scirs2-stats",
  "serde",
  "statrs 0.16.1",
@@ -3197,31 +3199,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "scirs2-core"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ec33247ad68da286a2bc3c5022c851512e7baf5092f9d75994c5fc4ca84cdb7"
-dependencies = [
- "cc",
- "chrono",
- "ndarray 0.17.2",
- "ndarray-rand",
- "num-complex",
- "num-integer",
- "num-traits",
- "once_cell",
- "parking_lot",
- "rand 0.9.2",
- "rand_chacha 0.9.0",
- "rand_distr 0.5.1",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "uuid",
- "windows-sys 0.52.0",
-]
-
-[[package]]
 name = "scirs2-linalg"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3231,7 +3208,7 @@ dependencies = [
  "half",
  "num_cpus",
  "oxicode",
- "scirs2-core 0.1.5",
+ "scirs2-core",
  "serde",
  "thiserror 2.0.18",
 ]
@@ -3248,7 +3225,7 @@ dependencies = [
  "memmap2",
  "num_cpus",
  "quickcheck",
- "scirs2-core 0.1.5",
+ "scirs2-core",
  "scirs2-linalg",
  "serde",
  "serde_json",
