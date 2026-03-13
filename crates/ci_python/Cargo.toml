@@ -1,5 +1,5 @@
 [package]
-name = "ci-python"
+name = "ci_python"
 version = "0.1.0"
 edition = "2021"
 authors = ["Your Team <team@example.com>"]
@@ -9,7 +9,9 @@ repository = ""
 
 [dependencies]
 ci-core = { path = "../ci-core" }
-pyo3 = { workspace = true }
+pyo3 = { version = "0.28", features = ["extension-module"] }
+numpy = { version = "0.28" }
+ndarray = { workspace = true }
 
 [lints]
 workspace = true
