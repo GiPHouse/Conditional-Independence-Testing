@@ -1,7 +1,10 @@
 use crate::strategy::{CITest, TestResult};
+use anyhow::Context;
 use ndarray::{Array1, Array2, ArrayBase, Dim, ViewRepr};
 use ndarray_linalg::LeastSquaresSvd;
-use statrs;
+use scirs2_core::ToPrimitive;
+use statrs::distribution::{ContinuousCDF, StudentsT};
+use statrs::statistics::Statistics;
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
@@ -75,10 +78,23 @@ fn result(boolean: bool, p_value: f64, coefficient: f64) -> TestResult {
 }
 
 fn pearsonr(
-    residual_x: &ArrayBase<ViewRepr<&f64>, Dim<[usize; 1]>, f64>,
-    residual_y: &ArrayBase<ViewRepr<&f64>, Dim<[usize; 1]>, f64>,
+    x_values: &ArrayBase<ViewRepr<&f64>, Dim<[usize; 1]>, f64>,
+    y_values: &ArrayBase<ViewRepr<&f64>, Dim<[usize; 1]>, f64>,
 ) -> anyhow::Result<(f64, f64)> {
-    Ok((1.0, 1.0))
+    let number_of_elements = x_values
+        .len()
+        .to_f64()
+        .context("Failed to convert length to f64")?;
+    let covariance = x_values.covariance(&y_values);
+    let x_stdev = x_values.std_dev();
+    let y_stdev = y_values.std_dev();
+    let coefficient = covariance / (x_stdev * y_stdev);
+
+    let t_statistic =
+        coefficient * (number_of_elements - 2.0).sqrt() / ((1.0 - coefficient.powf(2.0)).sqrt());
+    let t_distribution = StudentsT::new(0.0, 1.0, number_of_elements - 2.0)?;
+    let p_value = 2.0 * (1.0 - t_distribution.cdf(t_statistic.abs()));
+    Ok((p_value, coefficient))
 }
 
 #[cfg(test)]
@@ -114,7 +130,7 @@ mod tests {
         for n in [200, 300, 350, 400, 450, 500] {
             let x = gen_normal(n, 0.0, 1.0, &mut rng);
             let y = gen_normal(n, 0.0, 1.0, &mut rng);
-            let raw = pearsonr(&x.view(), &y.view(), "two-sided");
+            let raw = pearsonr(&x.view(), &y.view());
             eprintln!("N={n}: {raw:?}");
         }
     }

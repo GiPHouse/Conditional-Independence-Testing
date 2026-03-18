@@ -26,8 +26,12 @@ rand = "0.10.0"
 scirs2-neural = "0.2.0"
 lapack = "0.19"
 
-[target.'cfg(unix)'.dependencies]
+[target.'cfg(target_os = "linux")'.dependencies]
 lapack-src = { version = "0.10", features = ["openblas"] }
+openblas-src = { version = "0.10", features = ["system"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+lapack-src = { version = "0.10", features = ["accelerate"] }
 
 [target.'cfg(windows)'.dependencies]
 lapack-src = { version = "0.10", features = ["intel-mkl"] }
