@@ -1,7 +1,6 @@
 use crate::strategy::{CITest, TestResult};
-use ndarray;
+use ndarray::{Array1, Array2, ArrayBase, Dim, ViewRepr};
 use ndarray_linalg::LeastSquaresSvd;
-//use scirs2::stats::pearsonr;
 use statrs;
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
@@ -48,12 +47,12 @@ impl CITest for PearsonCorrelation {
             Ok(result(boolean, p_value, coefficient))
         } else {
             // If conditioning_set is non-empty, use linear regression to compute residuals and test independence on it.
-            let x_coefficient = &conditioning_set
+            let x_coefficient = conditioning_set
                 .view()
                 .least_squares(&x_values.view())?
                 .solution;
 
-            let y_coefficient = &conditioning_set
+            let y_coefficient = conditioning_set
                 .view()
                 .least_squares(&y_values.view())?
                 .solution;
@@ -75,9 +74,12 @@ fn result(boolean: bool, p_value: f64, coefficient: f64) -> TestResult {
     TestResult::Correlated(Ok((p_value, coefficient)))
 }
 
-//fn pearsonr(residual_x: Array1, residual_y: Array1) -> anyhow::Result<(f64, f64)> {
-//    Ok((1.0, 1.0))
-//}
+fn pearsonr(
+    residual_x: &ArrayBase<ViewRepr<&f64>, Dim<[usize; 1]>, f64>,
+    residual_y: &ArrayBase<ViewRepr<&f64>, Dim<[usize; 1]>, f64>,
+) -> anyhow::Result<(f64, f64)> {
+    Ok((1.0, 1.0))
+}
 
 #[cfg(test)]
 mod tests {
