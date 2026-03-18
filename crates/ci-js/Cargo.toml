@@ -1,5 +1,5 @@
 [package]
-name = "ci-js"
+name = "ci_js"
 version = "0.1.0"
 edition = "2021"
 authors = ["Your Team <team@example.com>"]
@@ -8,7 +8,7 @@ description = "wasm-pack bindings for Conditional Independence Testing"
 repository = ""
 
 [dependencies]
-ci-core = { path = "../ci-core" }
+ci_core = { path = "../ci-core" }
 
 [lints]
 workspace = true

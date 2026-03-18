@@ -14,7 +14,6 @@ serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
 anyhow = "1"
 ndarray = "0.17"
-ndarray-linalg = "0.18.1"
 scirs2-core = { version = "0.2.0"}
 scirs2-linalg = { version = "0.2.0"}
 scirs2-stats = { version = "0.2.0"}
