@@ -90,6 +90,10 @@ fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::R
         x_values.len() == y_values.len() && x_values.len() >= 3,
         "pearsonr requires equal-length inputs with n >= 3"
     );
+    #[allow(
+        clippy::cast_precision_loss,
+        reason = "array length most likely won't exceed 2^53"
+    )]
     let number_of_elements = x_values.len() as f64;
 
     let x_slice = x_values.as_slice().context("invalid array layout")?;
