@@ -1,8 +1,7 @@
 use crate::strategy::{CITest, TestResult};
-use anyhow::Context;
-use ndarray::{Array1, Array2, ArrayBase, Dim, ViewRepr};
+use anyhow::{ensure, Context};
+use ndarray::{Array1, Array2, ArrayView1};
 use ndarray_linalg::LeastSquaresSvd;
-use scirs2_core::ToPrimitive;
 use statrs::distribution::{ContinuousCDF, StudentsT};
 use statrs::statistics::Statistics;
 
@@ -18,9 +17,7 @@ const SIGNIFICANCE_LEVEL: f64 = 0.05;
 ///
 /// - [Pearson correlation coefficient](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient)
 /// - [Partial correlation using linear regression](https://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression)
-pub struct PearsonCorrelation {
-    // Object traits
-}
+pub struct PearsonCorrelation {}
 
 impl CITest for PearsonCorrelation {
     /// Test the independence condition X ⊥ Y | Z using Pearson correlation.
@@ -49,7 +46,7 @@ impl CITest for PearsonCorrelation {
             let (coefficient, p_value) = pearsonr(&x_values.view(), &y_values.view())?;
             Ok(result(boolean, p_value, coefficient))
         } else {
-            // If conditioning_set is non-empty, use linear regression to compute residuals and test independence on it.
+            // Use linear regression to compute residuals and test independence on it.
             let x_coefficient = conditioning_set
                 .view()
                 .least_squares(&x_values.view())?
@@ -77,33 +74,50 @@ fn result(boolean: bool, p_value: f64, coefficient: f64) -> TestResult {
     TestResult::Correlated(Ok((p_value, coefficient)))
 }
 
-fn pearsonr(
-    x_values: &ArrayBase<ViewRepr<&f64>, Dim<[usize; 1]>, f64>,
-    y_values: &ArrayBase<ViewRepr<&f64>, Dim<[usize; 1]>, f64>,
-) -> anyhow::Result<(f64, f64)> {
-    let number_of_elements = x_values
-        .len()
-        .to_f64()
-        .context("Failed to convert length to f64")?;
-    let covariance = x_values.covariance(&y_values);
-    let x_stdev = x_values.std_dev();
-    let y_stdev = y_values.std_dev();
+/// Compute the Pearson correlation coefficient and its two-tailed p-value.
+///
+/// The coefficient measures linear dependence between `x_values` and `y_values`,
+/// ranging from -1 (perfect negative) to +1 (perfect positive). The p-value tests
+/// H₀: ρ = 0 using the t-distribution with n − 2 degrees of freedom.
+///
+/// Returns `(coefficient, p_value)`.
+///
+/// # Errors
+///
+/// Returns an error if the input has fewer than 3 elements (degrees of freedom < 1).
+fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::Result<(f64, f64)> {
+    ensure!(
+        x_values.len() == y_values.len() && x_values.len() >= 3,
+        "pearsonr requires equal-length inputs with n >= 3"
+    );
+    let number_of_elements = x_values.len() as f64;
+
+    let x_slice = x_values.as_slice().context("invalid array layout")?;
+    let y_slice = y_values.as_slice().context("invalid array layout")?;
+
+    let covariance = x_slice.covariance(y_slice);
+
+    let x_stdev = x_slice.std_dev();
+    let y_stdev = y_slice.std_dev();
+
     let coefficient = covariance / (x_stdev * y_stdev);
 
     let t_statistic =
-        coefficient * (number_of_elements - 2.0).sqrt() / ((1.0 - coefficient.powf(2.0)).sqrt());
+        coefficient * (number_of_elements - 2.0).sqrt() / ((1.0 - coefficient.powi(2)).sqrt());
     let t_distribution = StudentsT::new(0.0, 1.0, number_of_elements - 2.0)?;
     let p_value = 2.0 * (1.0 - t_distribution.cdf(t_statistic.abs()));
-    Ok((p_value, coefficient))
+    Ok((coefficient, p_value))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use scirs2_core::ndarray::{stack, Array1, Array2, Axis};
-    use scirs2_core::random::{rngs::SmallRng, Distribution, Normal, SeedableRng};
+    use ndarray::{stack, Array1, Array2, Axis};
+    use rand::rngs::SmallRng;
+    use rand::SeedableRng;
+    use rand_distr::{Distribution, Normal};
 
-    const N: usize = 200; // Can't have N greater than or equal to 300 due to scirs2 bug
+    const N: usize = 1000;
 
     fn seeded_rng() -> SmallRng {
         SmallRng::seed_from_u64(42)
@@ -120,19 +134,6 @@ mod tests {
 
     fn pearson() -> PearsonCorrelation {
         PearsonCorrelation {}
-    }
-
-    // Testing scirs2's pearsonr limitations/bugs.
-    #[test]
-    #[ignore = "for future debugging"]
-    fn debug_pearsonr_sizes() {
-        let mut rng = seeded_rng();
-        for n in [200, 300, 350, 400, 450, 500] {
-            let x = gen_normal(n, 0.0, 1.0, &mut rng);
-            let y = gen_normal(n, 0.0, 1.0, &mut rng);
-            let raw = pearsonr(&x.view(), &y.view());
-            eprintln!("N={n}: {raw:?}");
-        }
     }
 
     // --- 1. Empty array + independent X, Y + boolean=false ---
@@ -357,5 +358,38 @@ mod tests {
             }
             _ => panic!("Expected TestResult::Correlated"),
         }
+    }
+
+    #[test]
+    fn test_pearsonr_errors_on_empty_input() {
+        let x: Array1<f64> = Array1::zeros(0);
+        let y: Array1<f64> = Array1::zeros(0);
+        assert!(pearsonr(&x.view(), &y.view()).is_err());
+    }
+
+    #[test]
+    fn test_pearsonr_errors_on_too_few_elements() {
+        let x = Array1::from_vec(vec![1.0, 2.0]);
+        let y = Array1::from_vec(vec![3.0, 4.0]);
+        assert!(pearsonr(&x.view(), &y.view()).is_err());
+    }
+
+    #[test]
+    fn test_pearsonr_errors_on_mismatched_lengths() {
+        let x = Array1::from_vec(vec![1.0, 2.0, 3.0]);
+        let y = Array1::from_vec(vec![1.0, 2.0]);
+        assert!(pearsonr(&x.view(), &y.view()).is_err());
+    }
+
+    #[test]
+    fn test_pearsonr_succeeds_with_minimum_input() {
+        let x = Array1::from_vec(vec![1.0, 2.0, 3.0]);
+        let y = Array1::from_vec(vec![1.0, 2.0, 3.0]);
+        let (coefficient, p_value) = pearsonr(&x.view(), &y.view()).unwrap();
+        assert!(
+            (coefficient - 1.0).abs() < 1e-10,
+            "perfect positive correlation"
+        );
+        assert!(p_value < 0.05, "should be significant");
     }
 }

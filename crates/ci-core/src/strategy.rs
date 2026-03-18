@@ -1,5 +1,4 @@
-use scirs2_core::ndarray::Array1;
-use scirs2_core::ndarray::Array2;
+use ndarray::{Array1, Array2};
 /// Trait defining the interface for conditional independence tests.
 ///
 /// All statistical tests for conditional independence must implement this trait
