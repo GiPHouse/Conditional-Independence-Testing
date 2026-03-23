@@ -109,7 +109,7 @@ fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::R
     let t_statistic =
         coefficient * (number_of_elements - 2.0).sqrt() / ((1.0 - coefficient.powi(2)).sqrt());
     let t_distribution = StudentsT::new(0.0, 1.0, number_of_elements - 2.0)?;
-    let p_value = 2.0 * (1.0 - t_distribution.cdf(t_statistic.abs()));
+    let p_value = 2.0 * t_distribution.sf(t_statistic.abs());
     Ok((coefficient, p_value))
 }
 
