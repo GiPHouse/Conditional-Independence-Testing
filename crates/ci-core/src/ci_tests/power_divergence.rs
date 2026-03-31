@@ -12,13 +12,11 @@ pub struct PowerDivergence {
     // Object traits
 }
 
-fn build_unique_value_map(arr: &Array1<f64>) -> (HashMap<OrderedFloat<f64>, usize>, usize) {
-    let mut sorted_arr = arr.mapv(|i| OrderedFloat(i)).to_vec();
-    sorted_arr.sort();
+fn build_unique_value_map(arr: &Vec<OrderedFloat<f64>>) -> (HashMap<OrderedFloat<f64>, usize>, usize) {
     let mut result_map: HashMap<OrderedFloat<f64>, usize> = HashMap::new();
     let mut unique_values: usize = 0;
-    for i in sorted_arr {
-        if let std::collections::hash_map::Entry::Vacant(e) = result_map.entry(i) {
+    for i in arr {
+        if let std::collections::hash_map::Entry::Vacant(e) = result_map.entry(*i) {
             e.insert(unique_values);
             unique_values += 1;
         }
@@ -31,10 +29,15 @@ fn contingency_table(
     col1: &Array1<f64>,
     col2: &Array1<f64>,
 ) -> Result<Array2<f64>, PolarsError> {
+    // sort the arrays (into vectors) to make the contingency table independent of order
+    let mut sorted_col1: Vec<OrderedFloat<f64>> = col1.mapv(|i| OrderedFloat(i)).to_vec();
+    sorted_col1.sort();
+    let mut sorted_col2: Vec<OrderedFloat<f64>> = col2.mapv(|i| OrderedFloat(i)).to_vec();
+    sorted_col2.sort();
 
     //create unique value map for column1 and column2. 
-    let (col1_data_map, col1_size) = build_unique_value_map(col1);
-    let (col2_data_map, col2_size) = build_unique_value_map(col2);
+    let (col1_data_map, col1_size) = build_unique_value_map(&sorted_col1);
+    let (col2_data_map, col2_size) = build_unique_value_map(&sorted_col2);
 
     //allocate contingency table
     let mut result = Array::zeros((col1_size, col2_size));
