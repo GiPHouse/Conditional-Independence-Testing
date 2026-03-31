@@ -4,6 +4,7 @@ use scirs2_core::ndarray::{Array, Array1, Array2, Axis};
 use scirs2_stats::contingency::chi2_contingency;
 use std::collections::HashMap;
 use statrs::distribution::{ChiSquared, ContinuousCDF};
+use ordered_float::OrderedFloat;
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
@@ -11,47 +12,38 @@ pub struct PowerDivergence {
     // Object traits
 }
 
+fn build_unique_value_map(arr: &Array1<f64>) -> (HashMap<OrderedFloat<f64>, usize>, usize) {
+    let mut sorted_arr = arr.mapv(|i| OrderedFloat(i)).to_vec();
+    sorted_arr.sort();
+    let mut result_map: HashMap<OrderedFloat<f64>, usize> = HashMap::new();
+    let mut unique_values: usize = 0;
+    for i in sorted_arr {
+        if let std::collections::hash_map::Entry::Vacant(e) = result_map.entry(i) {
+            e.insert(unique_values);
+            unique_values += 1;
+        }
+    }
+    (result_map, unique_values)
+}
+
 //Computation of contingency_table
 fn contingency_table(
-    data: &DataFrame,
-    col1: &str,
-    col2: &str,
-) -> Result<Array2<usize>, PolarsError> {
-    //extract the two columns we want to apply contingency table to. 
-    let column1 = data.column(col1)?.as_materialized_series();
-    let column2 = data.column(col2)?.as_materialized_series();
+    col1: &Array1<f64>,
+    col2: &Array1<f64>,
+) -> Result<Array2<f64>, PolarsError> {
 
-    //create unique value map for column1. 
-    let mut col1_data_map = HashMap::new();
-    let mut col1_size: usize = 0;
-    for i in column1.iter() {
-        if let std::collections::hash_map::Entry::Vacant(e) = col1_data_map.entry(i) {
-            e.insert(col1_size);
-            col1_size += 1;
-        }
-    }
-
-    //create unique value map for column2. 
-    let mut col2_data_map = HashMap::new();
-    let mut col2_size: usize = 0;
-    for i in column2.iter() {
-        if let std::collections::hash_map::Entry::Vacant(e) = col2_data_map.entry(i) {
-            e.insert(col2_size);
-            col2_size += 1;
-        }
-    }
+    //create unique value map for column1 and column2. 
+    let (col1_data_map, col1_size) = build_unique_value_map(col1);
+    let (col2_data_map, col2_size) = build_unique_value_map(col2);
 
     //allocate contingency table
     let mut result = Array::zeros((col1_size, col2_size));
 
     //compute contingency table
-    let mut it2 = column2.iter();
-    for i in column1.iter() {
-        if let Some(j) = it2.next() {
-            if let Some(result_row) = col1_data_map.get(&i) {
-                if let Some(result_col) = col2_data_map.get(&j) {
-                    result[[*result_row, *result_col]] += 1;
-                }
+    for i in 0..col1.len() {
+        if let Some(result_row) = col1_data_map.get(&OrderedFloat(col1[i])) {
+            if let Some(result_col) = col2_data_map.get(&OrderedFloat(col2[i])) {
+                result[[*result_row, *result_col]] += 1.;
             }
         }
     }
