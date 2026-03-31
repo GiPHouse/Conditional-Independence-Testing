@@ -13,8 +13,11 @@ pub struct PowerDivergence {
 }
 
 fn build_unique_value_map(arr: &Vec<OrderedFloat<f64>>) -> (HashMap<OrderedFloat<f64>, usize>, usize) {
+    // create resulting map and length
     let mut result_map: HashMap<OrderedFloat<f64>, usize> = HashMap::new();
     let mut unique_values: usize = 0;
+
+    // add all unique values to the map, and map them to the order in which they appear
     for i in arr {
         if let std::collections::hash_map::Entry::Vacant(e) = result_map.entry(*i) {
             e.insert(unique_values);
@@ -35,7 +38,7 @@ fn contingency_table(
     let mut sorted_col2: Vec<OrderedFloat<f64>> = col2.mapv(|i| OrderedFloat(i)).to_vec();
     sorted_col2.sort();
 
-    //create unique value map for column1 and column2. 
+    // create unique value map and compute number of unique values for column1 and column2. 
     let (col1_data_map, col1_size) = build_unique_value_map(&sorted_col1);
     let (col2_data_map, col2_size) = build_unique_value_map(&sorted_col2);
 
