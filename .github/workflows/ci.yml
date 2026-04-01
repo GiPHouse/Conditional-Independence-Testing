@@ -51,6 +51,7 @@ jobs:
 
   test:
     name: Test Suite
+    needs: [fmt, clippy]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
