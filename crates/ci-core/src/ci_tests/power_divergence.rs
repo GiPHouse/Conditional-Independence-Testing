@@ -1,6 +1,6 @@
 use crate::strategy::{CITest,TestResult};
 use polars::prelude::{DataFrame, PolarsError, Series, NamedFrom, df};
-use scirs2_core::ndarray::{Array, Array1, Array2, Axis};
+use ndarray::{Array, Array1, Array2, array};
 use scirs2_stats::contingency::chi2_contingency;
 use std::collections::HashMap;
 use statrs::distribution::{ChiSquared, ContinuousCDF};
@@ -31,7 +31,7 @@ fn build_unique_value_map(arr: &Vec<OrderedFloat<f64>>) -> (HashMap<OrderedFloat
 fn contingency_table(
     col1: &Array1<f64>,
     col2: &Array1<f64>,
-) -> Result<Array2<f64>, PolarsError> {
+) -> Array2<f64> {
     // sort the arrays (into vectors) to make the contingency table independent of order
     let mut sorted_col1: Vec<OrderedFloat<f64>> = col1.mapv(|i| OrderedFloat(i)).to_vec();
     sorted_col1.sort();
@@ -53,7 +53,7 @@ fn contingency_table(
             }
         }
     }
-    Ok(result)
+    result
 }
 
 fn result(boolean: bool, p_value: f64, chi2: f64, dof: usize) -> TestResult {
@@ -146,5 +146,31 @@ impl PowerDivergence{
             data.with_column(Series::new(format!("Z_{}", col).into(), array.index_axis(Axis(1), col).to_vec())).unwrap();
         }
         self.run_test(&data, "x", "y", Array::from(col_names), boolean)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_contingency_table() {
+        // basic test
+        let test1_x: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = array![1.,2.,3.,1.,1.];
+        let test1_y: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = array![1.,2.,3.,1.,2.];
+        let test1_expected: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 2]>> = array![[1.,1.,0.],[0.,1.,0.],[0.,0.,1.]];
+        assert_eq!(test1_expected, contingency_table(&test1_x, &test1_y));
+
+        // order independence
+        let test2_x: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = array![2.,1.,1.,3.,1.];
+        let test2_y: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = array![2.,1.,2.,3.,1.];
+        assert_eq!(test1_expected, contingency_table(&test2_x, &test2_y));
+
+        // single value
+        let test3_x = array![1., 1., 1.];
+        let test3_y = array![2., 2., 2.];
+        let test3_expected = array![[3.]];
+        assert_eq!(test3_expected, contingency_table(&test3_x, &test3_y));
+
     }
 }
