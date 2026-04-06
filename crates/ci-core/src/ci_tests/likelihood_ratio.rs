@@ -1,7 +1,6 @@
 use crate::strategy::CITest;
 use crate::strategy::TestResult;
-use scirs2_core::ndarray::Array1;
-use scirs2_core::ndarray::Array2;
+use ndarray::{Array1, Array2};
 
 pub struct LikelihoodRatio {
     // Object traits

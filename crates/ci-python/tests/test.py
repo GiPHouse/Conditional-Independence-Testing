@@ -1,6 +1,4 @@
-from pgmpy.estimators.CITests import (
-   pearsonr
-)
+from pgmpy.estimators.CITests import pearsonr
 import numpy as np
 from ci_python import PyRegistry
 import time
@@ -11,6 +9,7 @@ registry = PyRegistry()
 test = registry.get_test("pearson_correlation")
 
 N_ITER = 50
+
 
 def make_data(size, rng):
     df_ind = pd.DataFrame(rng.standard_normal((size, 3)), columns=["X", "Y", "Z"])
@@ -29,9 +28,12 @@ def make_data(size, rng):
 
     return df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond
 
+
 def bench(size):
     rng = np.random.default_rng(seed=42)
-    df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond = make_data(size, rng)
+    df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond = make_data(
+        size, rng
+    )
 
     # Warmup
     test(array_empty, x_ind, y_ind, boolean=False)
@@ -66,10 +68,15 @@ def bench(size):
         pearsonr(X="X", Y="Y", Z=["Z1", "Z2"], data=df_cind, boolean=False)
     pgmpy_z = (time.perf_counter() - t0) / N_ITER
 
-    print(f"  Empty Z:  Rust={rust_empty*1000:.4f}ms  pgmpy={pgmpy_empty*1000:.4f}ms  speedup={pgmpy_empty/rust_empty:.2f}x")
-    print(f"  With  Z:  Rust={rust_z*1000:.4f}ms  pgmpy={pgmpy_z*1000:.4f}ms  speedup={pgmpy_z/rust_z:.2f}x")
+    print(
+        f"  Empty Z:  Rust={rust_empty*1000:.4f}ms  pgmpy={pgmpy_empty*1000:.4f}ms  speedup={pgmpy_empty/rust_empty:.2f}x"
+    )
+    print(
+        f"  With  Z:  Rust={rust_z*1000:.4f}ms  pgmpy={pgmpy_z*1000:.4f}ms  speedup={pgmpy_z/rust_z:.2f}x"
+    )
 
-for size in [100, 200]:
+
+for size in [1_000, 10_000]:
     print(f"\n{'='*60}")
     print(f"N={size:,}  ({N_ITER} iterations)")
     print(f"{'='*60}")
