@@ -3,7 +3,7 @@ from functools import wraps
 
 import pandas as pd
 
-from . import _RustRegistry  # type: ignore[reportAttributeAccessIssue]
+from . import _RustRegistry
 
 
 class CITestRegistry:
