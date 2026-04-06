@@ -5,7 +5,6 @@ use ndarray_linalg::LeastSquaresSvd;
 use statrs::distribution::{ContinuousCDF, StudentsT};
 use statrs::statistics::Statistics;
 
-const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
 /// Pearson correlation conditional independence test.
 ///
@@ -41,10 +40,11 @@ impl CITest for PearsonCorrelation {
         x_values: Array1<f64>,
         y_values: Array1<f64>,
         boolean: bool,
+        significance_level: f64,
     ) -> anyhow::Result<TestResult> {
         if conditioning_set.is_empty() {
             let (coefficient, p_value) = pearsonr(&x_values.view(), &y_values.view())?;
-            Ok(result(boolean, p_value, coefficient))
+            Ok(result(boolean, p_value, coefficient, significance_level))
         } else {
             // Use linear regression to compute residuals and test independence on it.
             let x_coefficient = conditioning_set
@@ -61,15 +61,15 @@ impl CITest for PearsonCorrelation {
             let residual_y = y_values - conditioning_set.dot(&y_coefficient);
 
             let (coefficient, p_value) = pearsonr(&residual_x.view(), &residual_y.view())?;
-            Ok(result(boolean, p_value, coefficient))
+            Ok(result(boolean, p_value, coefficient, significance_level))
         }
     }
 }
 
 /// Construct the appropriate [`TestResult`] variant based on the `boolean` flag.
-fn result(boolean: bool, p_value: f64, coefficient: f64) -> TestResult {
+fn result(boolean: bool, p_value: f64, coefficient: f64, significance_level: f64) -> TestResult {
     if boolean {
-        return TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL));
+        return TestResult::Boolean(Ok(p_value >= significance_level));
     }
     TestResult::Correlated(Ok((p_value, coefficient)))
 }
@@ -148,12 +148,13 @@ mod tests {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
+        let significance_level = 0.0;
 
-        let result = pearson().run_test(empty_array(), x, y, false).unwrap();
+        let result = pearson().run_test(empty_array(), x, y, false, significance_level).unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
                 assert!(
-                    p_value > SIGNIFICANCE_LEVEL,
+                    p_value > 0.05,
                     "p_value {p_value} should be > 0.05 for independent data"
                 );
                 assert!(
@@ -172,8 +173,9 @@ mod tests {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
+        let significance_level = 0.05;
 
-        let result = pearson().run_test(empty_array(), x, y, true).unwrap();
+        let result = pearson().run_test(empty_array(), x, y, true, significance_level).unwrap();
         match result {
             TestResult::Boolean(Ok(independent)) => {
                 assert!(independent, "Independent data should return true");
@@ -191,12 +193,13 @@ mod tests {
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let noise = gen_normal(N, 0.0, 0.1, &mut rng);
         let y = &x * 3.0 + &noise;
+        let significance_level = 0.0;
 
-        let result = pearson().run_test(empty_array(), x, y, false).unwrap();
+        let result = pearson().run_test(empty_array(), x, y, false, significance_level).unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
                 assert!(
-                    p_value < SIGNIFICANCE_LEVEL,
+                    p_value < 0.05,
                     "p_value {p_value} should be < 0.05 for correlated data"
                 );
                 assert!(
@@ -216,8 +219,9 @@ mod tests {
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let noise = gen_normal(N, 0.0, 0.1, &mut rng);
         let y = &x * 3.0 + &noise;
+        let significance_level = 0.05;
 
-        let result = pearson().run_test(empty_array(), x, y, true).unwrap();
+        let result = pearson().run_test(empty_array(), x, y, true, significance_level).unwrap();
         match result {
             TestResult::Boolean(Ok(independent)) => {
                 assert!(!independent, "Correlated data should return false");
@@ -239,12 +243,13 @@ mod tests {
         let x = &z * 3.0 + &noise_x;
         let y = &z * 2.0 + &noise_y;
         let array = z.insert_axis(Axis(1));
+        let significance_level = 0.0;
 
-        let result = pearson().run_test(array, x, y, false).unwrap();
+        let result = pearson().run_test(array, x, y, false, significance_level).unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
                 assert!(
-                    p_value > SIGNIFICANCE_LEVEL,
+                    p_value > 0.05,
                     "p_value {p_value} should be > 0.05 after conditioning"
                 );
                 assert!(
@@ -267,8 +272,9 @@ mod tests {
         let x = &z * 3.0 + &noise_x;
         let y = &z * 2.0 + &noise_y;
         let array = z.insert_axis(Axis(1));
+        let significance_level = 0.05;
 
-        let result = pearson().run_test(array, x, y, true).unwrap();
+        let result = pearson().run_test(array, x, y, true, significance_level).unwrap();
         match result {
             TestResult::Boolean(Ok(independent)) => {
                 assert!(
@@ -292,12 +298,13 @@ mod tests {
         let noise = gen_normal(N, 0.0, 0.1, &mut rng);
         let z = &x * 2.0 + &y * 2.0 + &noise;
         let array = z.insert_axis(Axis(1));
+        let significance_level = 0.0;
 
-        let result = pearson().run_test(array, x, y, false).unwrap();
+        let result = pearson().run_test(array, x, y, false, significance_level).unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
                 assert!(
-                    p_value < SIGNIFICANCE_LEVEL,
+                    p_value < 0.05,
                     "p_value {p_value} should be < 0.05 for v-structure"
                 );
                 assert!(
@@ -319,8 +326,9 @@ mod tests {
         let noise = gen_normal(N, 0.0, 0.1, &mut rng);
         let z = &x * 2.0 + &y * 2.0 + &noise;
         let array = z.insert_axis(Axis(1));
+        let significance_level = 0.05;
 
-        let result = pearson().run_test(array, x, y, true).unwrap();
+        let result = pearson().run_test(array, x, y, true, significance_level).unwrap();
         match result {
             TestResult::Boolean(Ok(independent)) => {
                 assert!(
@@ -345,14 +353,15 @@ mod tests {
         let noise_y = gen_normal(N, 0.0, 0.1, &mut rng);
         let x = 0.5 * &z_1 + 0.5 * &z_2 + 0.5 * &z_3 + &noise_x;
         let y = 0.5 * &z_1 + 0.5 * &z_2 + 0.5 * &z_3 + &noise_y;
+        let significance_level = 0.0;
 
         let array = stack(Axis(1), &[z_1.view(), z_2.view(), z_3.view()]).unwrap();
 
-        let result = pearson().run_test(array, x, y, false).unwrap();
+        let result = pearson().run_test(array, x, y, false, significance_level).unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
                 assert!(
-                    p_value >= SIGNIFICANCE_LEVEL,
+                    p_value >= 0.05,
                     "p_value {p_value} should be >= 0.05 after conditioning on all confounders"
                 );
                 assert!(

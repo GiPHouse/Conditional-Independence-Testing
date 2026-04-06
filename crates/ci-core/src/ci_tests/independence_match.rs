@@ -13,6 +13,7 @@ impl CITest for IndependenceMatch {
         _x_values: Array1<f64>,
         _y_values: Array1<f64>,
         _boolean: bool,
+        significance_level: f64,
     ) -> anyhow::Result<TestResult> {
         todo!()
     }

@@ -20,5 +20,6 @@ pub trait CITest: Send + Sync {
         x_value: Array1<f64>,
         y_value: Array1<f64>,
         boolean: bool,
+        significance_level: f64,
     ) -> anyhow::Result<TestResult>;
 }
