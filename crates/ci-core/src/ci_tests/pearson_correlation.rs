@@ -5,7 +5,6 @@ use ndarray_linalg::LeastSquaresSvd;
 use statrs::distribution::{ContinuousCDF, StudentsT};
 use statrs::statistics::Statistics;
 
-
 /// Pearson correlation conditional independence test.
 ///
 /// Should be used only on continuous data. When the conditioning set is non-empty,
@@ -150,7 +149,9 @@ mod tests {
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
         let significance_level = 0.0;
 
-        let result = pearson().run_test(empty_array(), x, y, false, significance_level).unwrap();
+        let result = pearson()
+            .run_test(empty_array(), x, y, false, significance_level)
+            .unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
                 assert!(
@@ -175,7 +176,9 @@ mod tests {
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
         let significance_level = 0.05;
 
-        let result = pearson().run_test(empty_array(), x, y, true, significance_level).unwrap();
+        let result = pearson()
+            .run_test(empty_array(), x, y, true, significance_level)
+            .unwrap();
         match result {
             TestResult::Boolean(Ok(independent)) => {
                 assert!(independent, "Independent data should return true");
@@ -195,7 +198,9 @@ mod tests {
         let y = &x * 3.0 + &noise;
         let significance_level = 0.0;
 
-        let result = pearson().run_test(empty_array(), x, y, false, significance_level).unwrap();
+        let result = pearson()
+            .run_test(empty_array(), x, y, false, significance_level)
+            .unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
                 assert!(
@@ -221,7 +226,9 @@ mod tests {
         let y = &x * 3.0 + &noise;
         let significance_level = 0.05;
 
-        let result = pearson().run_test(empty_array(), x, y, true, significance_level).unwrap();
+        let result = pearson()
+            .run_test(empty_array(), x, y, true, significance_level)
+            .unwrap();
         match result {
             TestResult::Boolean(Ok(independent)) => {
                 assert!(!independent, "Correlated data should return false");
@@ -245,7 +252,9 @@ mod tests {
         let array = z.insert_axis(Axis(1));
         let significance_level = 0.0;
 
-        let result = pearson().run_test(array, x, y, false, significance_level).unwrap();
+        let result = pearson()
+            .run_test(array, x, y, false, significance_level)
+            .unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
                 assert!(
@@ -274,7 +283,9 @@ mod tests {
         let array = z.insert_axis(Axis(1));
         let significance_level = 0.05;
 
-        let result = pearson().run_test(array, x, y, true, significance_level).unwrap();
+        let result = pearson()
+            .run_test(array, x, y, true, significance_level)
+            .unwrap();
         match result {
             TestResult::Boolean(Ok(independent)) => {
                 assert!(
@@ -300,7 +311,9 @@ mod tests {
         let array = z.insert_axis(Axis(1));
         let significance_level = 0.0;
 
-        let result = pearson().run_test(array, x, y, false, significance_level).unwrap();
+        let result = pearson()
+            .run_test(array, x, y, false, significance_level)
+            .unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
                 assert!(
@@ -328,7 +341,9 @@ mod tests {
         let array = z.insert_axis(Axis(1));
         let significance_level = 0.05;
 
-        let result = pearson().run_test(array, x, y, true, significance_level).unwrap();
+        let result = pearson()
+            .run_test(array, x, y, true, significance_level)
+            .unwrap();
         match result {
             TestResult::Boolean(Ok(independent)) => {
                 assert!(
@@ -357,7 +372,9 @@ mod tests {
 
         let array = stack(Axis(1), &[z_1.view(), z_2.view(), z_3.view()]).unwrap();
 
-        let result = pearson().run_test(array, x, y, false, significance_level).unwrap();
+        let result = pearson()
+            .run_test(array, x, y, false, significance_level)
+            .unwrap();
         match result {
             TestResult::Correlated(Ok((p_value, coefficient))) => {
                 assert!(
