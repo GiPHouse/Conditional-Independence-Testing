@@ -4,9 +4,6 @@ use polars::prelude::*;
 use scirs2_core::ndarray::{Array, Array1, Array2, Axis};
 use scirs2_stats::contingency::chi2_contingency;
 use std::collections::HashMap;
-use polars::prelude::*;
-use scirs2_core::ndarray::*;
-use scirs2_stats::contingency::*;
 use statrs::distribution::{ChiSquared, ContinuousCDF};
 use scirs2_stats::distributions::*;
 use rand::distr::Distribution;
@@ -21,41 +18,48 @@ pub struct PowerDivergence {
     // Object traits
 }
 
+fn build_unique_value_map(arr: &Vec<OrderedFloat<f64>>) -> (HashMap<OrderedFloat<f64>, usize>, usize) {
+    // create resulting map and length
+    let mut result_map: HashMap<OrderedFloat<f64>, usize> = HashMap::new();
+    let mut unique_values: usize = 0;
+
+    // add all unique values to the map, and map them to the order in which they appear
+    for i in arr {
+        if let std::collections::hash_map::Entry::Vacant(e) = result_map.entry(*i) {
+            e.insert(unique_values);
+            unique_values += 1;
+        }
+    }
+    (result_map, unique_values)
+}
+
+//Computation of contingency_table
 fn contingency_table(
-    data: &DataFrame,
-    col1: &str,
-    col2: &str,
-) -> Result<Array2<usize>, PolarsError> {
-    let column1 = data.column(col1)?.as_materialized_series();
-    let column2 = data.column(col2)?.as_materialized_series();
-    let mut col1_data_map = HashMap::new();
-    let mut col1_size: usize = 0;
-    for i in column1.iter() {
-        if let std::collections::hash_map::Entry::Vacant(e) = col1_data_map.entry(i) {
-            e.insert(col1_size);
-            col1_size += 1;
-        }
-    }
-    let mut col2_data_map = HashMap::new();
-    let mut col2_size: usize = 0;
-    for i in column2.iter() {
-        if let std::collections::hash_map::Entry::Vacant(e) = col2_data_map.entry(i) {
-            e.insert(col2_size);
-            col2_size += 1;
-        }
-    }
+    col1: &Array1<f64>,
+    col2: &Array1<f64>,
+) -> Array2<f64> {
+    // sort the arrays (into vectors) to make the contingency table independent of order
+    let mut sorted_col1: Vec<OrderedFloat<f64>> = col1.mapv(|i| OrderedFloat(i)).to_vec();
+    sorted_col1.sort();
+    let mut sorted_col2: Vec<OrderedFloat<f64>> = col2.mapv(|i| OrderedFloat(i)).to_vec();
+    sorted_col2.sort();
+
+    // create unique value map and compute number of unique values for column1 and column2. 
+    let (col1_data_map, col1_size) = build_unique_value_map(&sorted_col1);
+    let (col2_data_map, col2_size) = build_unique_value_map(&sorted_col2);
+
+    //allocate contingency table
     let mut result = Array::zeros((col1_size, col2_size));
-    let mut it2 = column2.iter();
-    for i in column1.iter() {
-        if let Some(j) = it2.next() {
-            if let Some(result_row) = col1_data_map.get(&i) {
-                if let Some(result_col) = col2_data_map.get(&j) {
-                    result[[*result_row, *result_col]] += 1;
-                }
+
+    //compute contingency table
+    for i in 0..col1.len() {
+        if let Some(result_row) = col1_data_map.get(&OrderedFloat(col1[i])) {
+            if let Some(result_col) = col2_data_map.get(&OrderedFloat(col2[i])) {
+                result[[*result_row, *result_col]] += 1.;
             }
         }
     }
-    Ok(result)
+    result
 }
 
 fn result(boolean: bool, p_value: f64, chi2: f64, dof: usize) -> TestResult {
@@ -212,6 +216,7 @@ impl CITest for PowerDivergence {
         cols_z: Array1<String>,
         boolean: bool,
     ) -> anyhow::Result<TestResult> {
+
         // Step 1: Check if the arguments are valid
         if cols_z.iter().any(|x| x == col_x || x == col_y) {
             anyhow::bail!("X and/or Y cannot be found in Z.");
@@ -234,7 +239,7 @@ impl CITest for PowerDivergence {
                 let contingency = contingency_table(&df, col_x, col_y)?;
                 let contingency_f64 = contingency.mapv(|x| x as f64);
 
-                /* Hypothesis: this code is never touched */
+                /* Hypothesis: The code never enters this if statement, even if it is present in the actual pgmpy package */
                 // if contingency_f64.sum_axis(Axis(0)).iter().any(|&x| x==0.0) || contingency_f64.sum_axis(Axis(1)).iter().any(|&x| x==0.0){
                 //     let mut z_state = Vec::new();
                 //     for col in cols_z {
@@ -269,7 +274,10 @@ impl PowerDivergence{
         x_values: Array1<f64>,
         y_values: Array1<f64>,
         boolean: bool,
-    ) -> anyhow::Result<TestResult> {    
+    ) -> anyhow::Result<TestResult> {   
+
+        //Code starts with conversion into dataframe, allowing application of polars partition by. 
+        //Performance increase is possible by custom partition by implementation for ndarrays.  
         let mut data = df!{
             "x" => x_values.to_vec(),
             "y" => y_values.to_vec(),
