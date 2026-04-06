@@ -22,6 +22,7 @@ anyhow = "1"
 scirs2-stats = "0.1.5"
 scirs2-core = "0.1.5"
 scirs2-linalg = "0.1.5"
+ordered-float = "4"
 
 rand = "0.9"
 rand_distr = "0.5"

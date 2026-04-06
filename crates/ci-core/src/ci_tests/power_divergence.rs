@@ -1,7 +1,7 @@
 use crate::strategy::CITest;
 use crate::strategy::TestResult;
 use polars::prelude::*;
-use scirs2_core::ndarray::{Array, Array1, Array2};
+use scirs2_core::ndarray::{Array, Array1, Array2, Axis};
 use scirs2_stats::contingency::chi2_contingency;
 use std::collections::HashMap;
 use polars::prelude::*;
@@ -11,6 +11,9 @@ use statrs::distribution::{ChiSquared, ContinuousCDF};
 use scirs2_stats::distributions::*;
 use rand::distr::Distribution;
 use rand_distr::Normal;
+use ndarray::array;
+use ordered_float::OrderedFloat;
+
 
 const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
@@ -60,6 +63,144 @@ fn result(boolean: bool, p_value: f64, chi2: f64, dof: usize) -> TestResult {
         return TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL));
     }
     return TestResult::Correlated(Ok((p_value, chi2, dof)));
+}
+
+fn partition_by(
+    data: &Array2<f64>,
+    by_cols: &[usize],
+) -> HashMap<Vec<OrderedFloat<f64>>, Array2<f64>> {
+    let mut partition: HashMap<Vec<OrderedFloat<f64>>, Vec<Array1<f64>>> = HashMap::new();
+
+    for row in data.axis_iter(Axis(0)) {
+        // Build key from selected columns
+        let key: Vec<OrderedFloat<f64>> = by_cols.iter().map(|&i| OrderedFloat(row[i])).collect();
+
+        // Insert row into group
+        partition    
+            .entry(key)
+            .or_insert_with(Vec::new)
+            .push(row.to_owned());
+    }
+
+    // Convert Vec<Vec<f64>> into Array2<f64>
+    partition
+        .into_iter()
+        .map(|(key, rows)| {
+            let n_rows = rows.len();
+            let n_cols = rows[0].len();
+
+            let mut array = Array2::<f64>::zeros((n_rows, n_cols));
+
+            for (i, row) in rows.into_iter().enumerate() {
+                array.row_mut(i).assign(&row);
+            }
+
+            (key, array)
+        })
+        .collect()
+}
+
+
+fn print_partitions_pretty(partitions: &HashMap<Vec<OrderedFloat<f64>>, Array2<f64>>, custom_headers: Option<Vec<String>>) {
+    for (_key, array) in partitions {
+        let (rows, cols) = array.dim();
+        println!("shape: ({}, {})", rows, cols);
+
+        // Computes column names if necessary
+        // Will use X,Y, Z_i as default if empty or None given, if Some(vec!["example1".into(), "example2".into()])
+        // is used, it will use those as column names
+        let headers: Vec<String> = if let Some(hdrs) = &custom_headers {
+                if !hdrs.is_empty() {
+                    hdrs.clone()
+                } else {
+                    (0..cols)
+                        .map(|i| match i {
+                            0 => "X".to_string(),
+                            1 => "Y".to_string(),
+                            _ => format!("Z{}", i - 2),
+                        })
+                        .collect()
+                }
+                } else {
+                (0..cols)
+                    .map(|i| match i {
+                        0 => "X".to_string(),
+                        1 => "Y".to_string(),
+                        _ => format!("Z{}", i - 2),
+                    })
+                    .collect()
+                };
+
+        // Computes maximal decimal numbers per partition to keep accuracy
+        let max_decimals_per_col: Vec<usize> = (0..cols)
+            .map(|c| {
+                array.column(c)
+                    .iter()
+                    .map(|&v| {
+                        let s = format!("{:?}", v);
+                        if let Some(pos) = s.find('.') {
+                            s.len() - pos - 1
+                        } else {
+                            0
+                        }
+                    })
+                    .max()
+                    .unwrap_or(0)
+            })
+            .collect();
+
+        // Computes column width to create pretty columns
+        let mut col_widths = vec![0; cols];
+        for c in 0..cols {
+            col_widths[c] = headers[c].len();
+            for r in 0..rows {
+                let val = format!("{:.*}", max_decimals_per_col[c], array[[r, c]]);
+                col_widths[c] = col_widths[c].max(val.len());
+            }
+        }
+
+        // For printing the borders of the tables
+        let print_border = |left: &str, mid: &str, right: &str| {
+            print!("{}", left);
+            for (i, w) in col_widths.iter().enumerate() {
+                print!("{}", "─".repeat(*w + 2));
+                if i < cols - 1 {
+                    print!("{}", mid);
+                }
+            }
+            println!("{}", right);
+        };
+
+        // Top border
+        print_border("┌", "┬", "┐");
+
+        // Header
+        print!("│");
+        for (i, name) in headers.iter().enumerate() {
+            print!(" {:<width$} ", name, width = col_widths[i]);
+            print!("│");
+        }
+        println!();
+
+        // Seperator between lines
+        print_border("├", "┼", "┤");
+
+        // Rows
+        for r in 0..rows {
+            print!("│");
+            for c in 0..cols {
+                let val = format!("{:.*}", max_decimals_per_col[c], array[[r, c]]);
+                print!(" {:<width$} ", val, width = col_widths[c]);
+                print!("│");
+            }
+            println!();
+        }
+
+        // Bottom order
+        print_border("└", "┴", "┘");
+
+        println!();
+    }
 }
 
 impl CITest for PowerDivergence {
@@ -148,7 +289,7 @@ impl PowerDivergence{
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ci_core::ci_tests::power_divergence::PowerDivergence;
+    use crate::ci_tests::power_divergence::PowerDivergence;
     use scirs2_core::ndarray::{Array1, Array2, Axis};
     use scirs2_core::random::{rngs::SmallRng, Distribution, Normal, SeedableRng};
 
@@ -190,17 +331,17 @@ mod tests {
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
         let z = gen_nxn_table(N, 0.0, 1.0, &mut rng);
 
-        let result = power_divergence().run_test(empty_dataframe(), x, y, z, [], false).unwrap();
+        let result = power_divergence().run_test(&empty_dataframe(), "X", "Y", Array1::from_vec(vec![]), false).unwrap();
         match result {
-            TestResult::Correlated(Ok((p_value, coefficient))) => {
+            TestResult::Correlated(Ok((p_value, chi, dof))) => {
                 assert!(
                     p_value > SIGNIFICANCE_LEVEL,
                     "p_value {pvalue} should be > 0.05 for independent data"
                 );
-                assert!(
-                    coefficient.abs() < 0.1,
-                    "coefficient {coefficient} should be near 0 for independent data"
-                );
+                //assert!(
+                  //  coefficient.abs() < 0.1,
+                    //"coefficient {coefficient} should be near 0 for independent data"
+                //);
             }
              => panic!("Expected TestResult::Correlated"),
         }
