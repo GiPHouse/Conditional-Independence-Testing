@@ -207,6 +207,7 @@ fn print_partitions_pretty(partitions: &HashMap<Vec<OrderedFloat<f64>>, Array2<f
     }
 }
 
+//Needs to be re-rewritten based on the changes on contingency_table and partition_by
 impl CITest for PowerDivergence {
     fn run_test(
         &self,
@@ -302,6 +303,7 @@ mod tests {
     use scirs2_core::random::{rngs::SmallRng, Distribution, Normal, SeedableRng};
 
     const N: usize = 200; // Can't have N greater than or equal to 300 due to scirs2 bug
+    const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
     fn seeded_rng() -> SmallRng {
         SmallRng::seed_from_u64(42)
@@ -309,23 +311,16 @@ mod tests {
 
     fn gen_normal(n: usize, mean: f64, std_dev: f64, rng: &mut SmallRng) -> Array1<f64> {
         let dist = Normal::new(mean, std_dev).unwrap();
-        Array1::fromvec((0..n).map(|| dist.sample(rng)).collect())
+        Array1::from_vec((0..n).map(|_| dist.sample(rng)).collect())
     }
 
-    fn gen_nxn_table(n: usize, mean: f64, std_dev: f64, rng: &mut SmallRng) -> Array2<f64> {
-        let dist = Normal::new(mean, std_dev).unwrap();
-        let arr2 = Array2::from_shapefn((n, n), || {dist.sample(rng)});
-        println!("{:?}", arr2);
-        return arr2;
-    } 
-
+    fn gen_matrix(rows: usize, cols: usize, rng: &mut SmallRng) -> Array2<f64> {
+        let dist = Normal::new(0.0, 1.0).unwrap();
+        Array2::from_shape_fn((rows, cols), |_| dist.sample(rng))
+    }
 
     fn empty_array() -> Array2<f64> {
         Array2::zeros((0, 0))
-    }
-
-    fn empty_dataframe() -> DataFrame{
-        DataFrame::empty()
     }
 
     fn power_divergence() -> PowerDivergence {
@@ -333,25 +328,100 @@ mod tests {
     }
 
     #[test]
-    fn test_empty_array() {
-        let mut rng = seeded_rng();
-        let x = gen_normal(N, 0.0, 1.0, &mut rng);
-        let y = gen_normal(N, 0.0, 1.0, &mut rng);
-        let z = gen_nxn_table(N, 0.0, 1.0, &mut rng);
+    fn simple_grouping() {
+        let data = Array1![
+            [1.0, 10.0],
+            [1.0, 20.0],
+            [2.0, 30.0],];
 
-        let result = power_divergence().run_test(&empty_dataframe(), "X", "Y", Array1::from_vec(vec![]), false).unwrap();
-        match result {
-            TestResult::Correlated(Ok((p_value, chi, dof))) => {
-                assert!(
-                    p_value > SIGNIFICANCE_LEVEL,
-                    "p_value {pvalue} should be > 0.05 for independent data"
-                );
-                //assert!(
-                  //  coefficient.abs() < 0.1,
-                    //"coefficient {coefficient} should be near 0 for independent data"
-                //);
-            }
-             => panic!("Expected TestResult::Correlated"),
-        }
+        let result = partition_by(&data, &[0]);
+
+        assert_eq!(result.len(), 2);
+
+        let key = vec![OrderedFloat(1.0)];
+        assert_eq!(result[&key].nrows(), 2);
     }
+
+    #[test]
+    fn test_empty_array() {
+        let data: Array2<f64> = Array2::zeros((0, 2));
+        let result = partition_by(&data, &[0]);
+
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_singleton_groups() {
+        let data = Array1![
+            [1.0, 10.0],
+            [2.0, 20.0],
+            [3.0, 30.0],
+        ];
+
+        let result = partition_by(&data, &[0]);
+
+        assert_eq!(result.len(), 3);
+        assert!(result.values().all(|g| g.nrows() == 1));
+    }
+
+    //All values are in a single group
+    #[test]
+    fn test_single_partition() {
+        let data = Array1![
+            [1.0, 10.0],
+            [1.0, 20.0],
+            [1.0, 30.0],
+        ];
+
+        let result = partition_by(&data, &[0]);
+
+        assert_eq!(result.len(), 1);
+        assert_eq!(result.values().next()?.nrows(), 3);
+    }
+
+    #[test]
+    fn float_rounding () {
+        let data = Array1![
+            [1.0, 10.0],
+            [1.0000000001, 20.0],
+        ];
+
+        let result = partition_by(&data, &[0]);
+
+        //To test whether it rounds it up
+        assert_eq!(result.len(), 2);
+    }
+
+    //Multiple columns
+    #[test]
+    fn multiple_columns () {
+        let data = Array1![
+            [1.0, 2.0, 10.0],
+            [1.0, 2.0, 20.0],
+            [1.0, 3.0, 30.0],
+            [2.0, 2.0, 40.0],
+        ];
+
+        let result = partition_by(&data, &[0, 1]);
+        assert_eq!(result.len(), 3);
+
+        let key = vec![OrderedFloat(1.0), OrderedFloat(2.0)];
+        assert_eq!(result[&key].nrows(), 2);
+    }
+
+    //Do we need to write a test case where column order matter?,
+    //[Apple, 1] and [1, Apple] do they need to be in separate groups or one?
+
+    //Invalid index
+    #[test]
+    fn test_invalid_index() {
+        let data = Array1![
+            [1.0, 2.0],];
+
+        partition_by(&data, &[2]);
+        assert!(result.is_err());
+    }
+
+    //Do we need tests for negative values?
+
 }
