@@ -6,7 +6,23 @@ use std::collections::HashMap;
 /// The registry maintains a collection of test implementations that can be retrieved
 /// by name.
 pub struct Registry {
-    pub tests: HashMap<String, Box<dyn CITest>>,
+    tests: HashMap<String, CITestContainer>,
+}
+
+/// Data types that a `CITest` can be performed on.
+///
+/// Used by `Registry`.
+#[derive(PartialEq)]
+pub enum CITestDataType {
+    Continuous,
+    Discrete,
+    Mixed,
+}
+
+/// Container that contains both a `CITest` and its supported data types.
+struct CITestContainer {
+    test: Box<dyn CITest>,
+    data_types: Box<[CITestDataType]>,
 }
 
 impl Registry {
@@ -36,7 +52,7 @@ impl Registry {
         let test_name = test_name.to_lowercase();
         self.tests
             .get(&test_name)
-            .map(std::convert::AsRef::as_ref)
+            .map(|t| t.test.as_ref())
             .ok_or_else(|| anyhow::anyhow!("Test '{test_name}' not found!"))
     }
 
@@ -60,6 +76,31 @@ impl Registry {
         Ok(all_tests)
     }
 
+    /// Returns a list of the registered test names that support the given `data_type`.
+    ///
+    /// # Returns
+    /// A vector containing references to the test names in the registry.
+    ///
+    /// # Errors
+    /// Returns an error if the registry is empty.
+    pub fn list_tests_with_data_type(
+        &self,
+        data_type: &CITestDataType,
+    ) -> anyhow::Result<Vec<&String>> {
+        if self.tests.is_empty() {
+            anyhow::bail!("No tests found!");
+        }
+
+        let array_size = self.tests.len();
+        let mut all_tests = Vec::with_capacity(array_size);
+        for (name, test) in &self.tests {
+            if test.data_types.contains(data_type) {
+                all_tests.push(name);
+            }
+        }
+        Ok(all_tests)
+    }
+
     /// Adds a new test implementation to the registry.
     ///
     /// # Parameters
@@ -72,13 +113,20 @@ impl Registry {
         &mut self,
         test_name: &str,
         test: impl CITest + 'static,
+        data_types: Box<[CITestDataType]>,
     ) -> anyhow::Result<()> {
         let test_name = test_name.to_lowercase();
         if self.tests.contains_key(&test_name) {
             anyhow::bail!("Test already exists in registry!");
         }
         let ci_test = Box::new(test);
-        self.tests.insert(test_name, ci_test);
+        self.tests.insert(
+            test_name,
+            CITestContainer {
+                test: ci_test,
+                data_types,
+            },
+        );
         Ok(())
     }
 }
@@ -88,6 +136,7 @@ impl Registry {
 
 #[cfg(test)]
 mod tests {
+    use super::CITestDataType::{Continuous, Discrete, Mixed};
     use super::*;
 
     #[test]
@@ -114,6 +163,60 @@ mod tests {
         // Please note, that private functions can be tested too!
         let registry = Registry::new();
         assert!(!registry.list_all_tests()?.is_empty());
+        Ok(())
+    }
+
+    #[test]
+    // Test to check listing all tests supporting a specific data type.
+    fn test_list_tests_with_data_type_continuous() -> anyhow::Result<()> {
+        // This assert would fire and test will fail.
+        // Please note, that private functions can be tested too!
+        let registry = Registry::new();
+        for test in [
+            "independence_match",
+            "pearson_correlation",
+            "pearson_equivalence",
+        ] {
+            assert!(registry
+                .list_tests_with_data_type(&Continuous)?
+                .iter()
+                .any(|t| t.as_str() == test));
+        }
+        Ok(())
+    }
+
+    #[test]
+    // Test to check listing all tests supporting a specific data type.
+    fn test_list_tests_with_data_type_discrete() -> anyhow::Result<()> {
+        // This assert would fire and test will fail.
+        // Please note, that private functions can be tested too!
+        let registry = Registry::new();
+        for test in [
+            "chi_square",
+            "g_test",
+            "independence_match",
+            "likelihood_ratio",
+            "modified_likelihood",
+            "power_divergence",
+        ] {
+            assert!(registry
+                .list_tests_with_data_type(&Discrete)?
+                .iter()
+                .any(|t| t.as_str() == test));
+        }
+        Ok(())
+    }
+
+    #[test]
+    // Test to check listing all tests supporting a specific data type.
+    fn test_list_tests_with_data_type_mixed() -> anyhow::Result<()> {
+        // This assert would fire and test will fail.
+        // Please note, that private functions can be tested too!
+        let registry = Registry::new();
+        assert!(registry
+            .list_tests_with_data_type(&Mixed)?
+            .iter()
+            .any(|t| t.as_str() == "independence_match"));
         Ok(())
     }
 }
