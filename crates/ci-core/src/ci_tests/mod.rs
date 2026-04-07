@@ -16,55 +16,38 @@ use pearson_correlation::PearsonCorrelation;
 use pearson_equivalence::PearsonEquivalence;
 use power_divergence::PowerDivergence;
 
-use crate::registry::CITestDataType::{Continuous, Discrete, Mixed};
 use crate::registry::Registry;
 
 pub fn register_all_tests(registry: &mut Registry) {
     registry
-        .add_to_registry("chi_square", ChiSquared {}, Box::new([Discrete]))
+        .add_to_registry("chi_square", ChiSquared {})
         .expect("Failed to register Chi Square test!");
 
     registry
-        .add_to_registry("g_test", GTest {}, Box::new([Discrete]))
+        .add_to_registry("g_test", GTest {})
         .expect("Failed to register GTest!");
 
     registry
-        .add_to_registry(
-            "independence_match",
-            IndependenceMatch {},
-            Box::new([Continuous, Discrete, Mixed]),
-        )
+        .add_to_registry("independence_match", IndependenceMatch {})
         .expect("Failed to register Independence Match test!");
 
     registry
-        .add_to_registry("likelihood_ratio", LikelihoodRatio {}, Box::new([Discrete]))
+        .add_to_registry("likelihood_ratio", LikelihoodRatio {})
         .expect("Failed to register Likelihood Ratio test!");
 
     registry
-        .add_to_registry(
-            "modified_likelihood",
-            ModifiedLikelihood {},
-            Box::new([Discrete]),
-        )
+        .add_to_registry("modified_likelihood", ModifiedLikelihood {})
         .expect("Failed to register Modified Likelihood tTest!");
 
     registry
-        .add_to_registry(
-            "pearson_correlation",
-            PearsonCorrelation {},
-            Box::new([Continuous]),
-        )
+        .add_to_registry("pearson_correlation", PearsonCorrelation {})
         .expect("Failed to register Pearson Correlation test!");
 
     registry
-        .add_to_registry(
-            "pearson_equivalence",
-            PearsonEquivalence {},
-            Box::new([Continuous]),
-        )
+        .add_to_registry("pearson_equivalence", PearsonEquivalence {})
         .expect("Failed to register Pearson Equivalence test!");
 
     registry
-        .add_to_registry("power_divergence", PowerDivergence {}, Box::new([Discrete]))
+        .add_to_registry("power_divergence", PowerDivergence {})
         .expect("Failed to register Power Divergence test!");
 }
