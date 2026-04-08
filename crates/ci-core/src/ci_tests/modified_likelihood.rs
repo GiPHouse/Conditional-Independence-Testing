@@ -16,7 +16,6 @@ impl CITest for ModifiedLikelihood {
     ) -> anyhow::Result<TestResult> {
         todo!()
     }
-    //Other necessary stuff
 
     fn data_types(&self) -> &'static [CITestDataType] {
         &[CITestDataType::Discrete]

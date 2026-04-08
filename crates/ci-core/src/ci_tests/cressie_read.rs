@@ -23,19 +23,6 @@ impl PowerDivergence {
     }
 }
 
-fn wrap_result(
-    boolean: bool,
-    p_value: f64,
-    statistic: f64,
-    degrees_of_freedom: usize,
-    significance_level: f64,
-) -> TestResult {
-    if boolean {
-        return TestResult::Boolean(Ok(p_value >= significance_level));
-    }
-    TestResult::Correlated(Ok((p_value, statistic, degrees_of_freedom)))
-}
-
 impl CITest for PowerDivergence {
     fn run_test(
         &self,
