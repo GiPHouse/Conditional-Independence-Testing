@@ -36,21 +36,21 @@ def bench(size):
     )
 
     # Warmup
-    test(array_empty, x_ind, y_ind, boolean=False)
-    test(array_z, x_cond, y_cond, boolean=False)
+    test(array_empty, x_ind, y_ind, boolean=False, significance_level=0.0)
+    test(array_z, x_cond, y_cond, boolean=False, significance_level=0.0)
     pearsonr(X="X", Y="Y", Z=[], data=df_ind, boolean=False)
     pearsonr(X="X", Y="Y", Z=["Z1", "Z2"], data=df_cind, boolean=False)
 
     # Correctness check (single run)
-    print(f"  Rust  empty Z: {test(array_empty, x_ind, y_ind, boolean=False)}")
-    print(f"  Rust  with Z:  {test(array_z, x_cond, y_cond, boolean=False)}")
+    print(f"  Rust  empty Z: {test(array_empty, x_ind, y_ind, boolean=False, significance_level=0.0)}")
+    print(f"  Rust  with Z:  {test(array_z, x_cond, y_cond, boolean=False, significance_level=0.0)}")
     coef, pval = pearsonr(X="X", Y="Y", Z=["Z1", "Z2"], data=df_cind, boolean=False)
     print(f"  pgmpy with Z:  ({pval}, {coef})")
 
     # Benchmark
     t0 = time.perf_counter()
     for _ in range(N_ITER):
-        test(array_empty, x_ind, y_ind, boolean=False)
+        test(array_empty, x_ind, y_ind, boolean=False, significance_level=0.0)
     rust_empty = (time.perf_counter() - t0) / N_ITER
 
     t0 = time.perf_counter()
@@ -60,7 +60,7 @@ def bench(size):
 
     t0 = time.perf_counter()
     for _ in range(N_ITER):
-        test(array_z, x_cond, y_cond, boolean=False)
+        test(array_z, x_cond, y_cond, boolean=False, significance_level=0.0)
     rust_z = (time.perf_counter() - t0) / N_ITER
 
     t0 = time.perf_counter()
