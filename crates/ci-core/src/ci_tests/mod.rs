@@ -1,10 +1,16 @@
+#[allow(dead_code)]
 mod chi_squared;
+#[allow(dead_code)]
 mod g_test;
 mod independence_match;
+#[allow(dead_code)]
 mod likelihood_ratio;
+#[allow(dead_code)]
 mod modified_likelihood;
 mod pearson_correlation;
+#[allow(dead_code)]
 mod pearson_equivalence;
+#[allow(dead_code)]
 mod power_divergence;
 
 use chi_squared::ChiSquared;
