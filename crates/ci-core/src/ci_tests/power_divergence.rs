@@ -18,6 +18,7 @@ pub struct PowerDivergence {
     // Object traits
 }
 
+// helper function for cintingency_table
 fn build_unique_value_map(arr: &Vec<OrderedFloat<f64>>) -> (HashMap<OrderedFloat<f64>, usize>, usize) {
     // create resulting map and length
     let mut result_map: HashMap<OrderedFloat<f64>, usize> = HashMap::new();
@@ -423,5 +424,27 @@ mod tests {
     }
 
     //Do we need tests for negative values?
+
+    //test for contingency_table
+    #[test]
+    fn test_contingency_table() {
+        // basic test
+        let test1_x: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = array![1.,2.,3.,1.,1.];
+        let test1_y: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = array![1.,2.,3.,1.,2.];
+        let test1_expected: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 2]>> = array![[1.,1.,0.],[0.,1.,0.],[0.,0.,1.]];
+        assert_eq!(test1_expected, contingency_table(&test1_x, &test1_y));
+
+        // order independence
+        let test2_x: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = array![2.,1.,1.,3.,1.];
+        let test2_y: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = array![2.,1.,2.,3.,1.];
+        assert_eq!(test1_expected, contingency_table(&test2_x, &test2_y));
+
+        // single value
+        let test3_x = array![1., 1., 1.];
+        let test3_y = array![2., 2., 2.];
+        let test3_expected = array![[3.]];
+        assert_eq!(test3_expected, contingency_table(&test3_x, &test3_y));
+
+    }
 
 }
