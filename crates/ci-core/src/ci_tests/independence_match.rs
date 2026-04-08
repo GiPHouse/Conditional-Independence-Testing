@@ -8,12 +8,12 @@ pub struct IndependenceMatch {
 impl CITest for IndependenceMatch {
     fn run_test(
         &self,
-        _array: Array2<f64>,
-        _x_values: Array1<f64>,
-        _y_values: Array1<f64>,
-        _boolean: bool,
-        _significance_level: f64,
+        conditioning_set: Array2<f64>,
+        x_values: Array1<f64>,
+        y_values: Array1<f64>,
+        boolean: bool,
+        significance_level: f64,
     ) -> anyhow::Result<TestResult> {
-        todo!()
+        Ok(power_divergence(conditioning_set, x_values, y_values, boolean, significance_level, LAMBDA))
     }
 }

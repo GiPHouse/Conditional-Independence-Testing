@@ -1,4 +1,5 @@
 use crate::strategy::{CITest, TestResult};
+use crate::utils::power_divergence::power_divergence;
 use crate::utils::{
     contingency_table::{
         build_global_category_map, contingency_table, contingency_table_with_categories,
@@ -9,14 +10,16 @@ use crate::utils::{
 use ndarray::{Array1, Array2};
 use statrs::distribution::{ChiSquared, ContinuousCDF};
 
+const CRESSIE_READ_LAMBDA: f64 = 2.0 / 3.0;
+
+
 pub struct PowerDivergence {
-    lambda: f64,
 }
 
 impl PowerDivergence {
     #[must_use]
-    pub fn new(lambda: f64) -> Self {
-        Self { lambda }
+    pub fn new() -> Self {
+        Self {}
     }
 }
 
@@ -42,48 +45,7 @@ impl CITest for PowerDivergence {
         boolean: bool,
         significance_level: f64,
     ) -> anyhow::Result<TestResult> {
-        if conditioning_set.ncols() == 0 {
-            let table = contingency_table(&x_values, &y_values);
-            let (statistic, p_value, degrees_of_freedom) = contingency_test(&table, self.lambda);
-            Ok(wrap_result(
-                boolean,
-                p_value,
-                statistic,
-                degrees_of_freedom,
-                significance_level,
-            ))
-        } else {
-            let x_categories = build_global_category_map(&x_values);
-            let y_categories = build_global_category_map(&y_values);
-
-            let mut statistic = 0.0;
-            let mut degrees_of_freedom = 0;
-            for indices in partition_by(&conditioning_set) {
-                let x_sub: Array1<f64> = indices.iter().map(|&i| x_values[i]).collect();
-                let y_sub: Array1<f64> = indices.iter().map(|&i| y_values[i]).collect();
-                let table =
-                    contingency_table_with_categories(&x_sub, &y_sub, &x_categories, &y_categories);
-                let (stat, _p, dof) = contingency_test(&table, self.lambda);
-                if dof == 0 {
-                    continue;
-                }
-                statistic += stat;
-                degrees_of_freedom += dof;
-            }
-            let p_value = if degrees_of_freedom == 0 {
-                1.0
-            } else {
-                #[allow(clippy::cast_precision_loss)]
-                ChiSquared::new(degrees_of_freedom as f64)?.sf(statistic)
-            };
-            Ok(wrap_result(
-                boolean,
-                p_value,
-                statistic,
-                degrees_of_freedom,
-                significance_level,
-            ))
-        }
+        Ok(power_divergence(conditioning_set, x_values, y_values, boolean, significance_level, LAMBDA))
     }
 }
 
