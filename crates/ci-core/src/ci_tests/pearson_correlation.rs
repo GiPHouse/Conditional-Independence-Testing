@@ -43,7 +43,12 @@ impl CITest for PearsonCorrelation {
     ) -> anyhow::Result<TestResult> {
         if conditioning_set.is_empty() {
             let (coefficient, p_value) = pearsonr(&x_values.view(), &y_values.view())?;
-            Ok(result(boolean, p_value, coefficient, significance_level))
+            Ok(wrap_result(
+                boolean,
+                p_value,
+                coefficient,
+                significance_level,
+            ))
         } else {
             // Use linear regression to compute residuals and test independence on it.
             let x_coefficient = conditioning_set
@@ -60,13 +65,23 @@ impl CITest for PearsonCorrelation {
             let residual_y = y_values - conditioning_set.dot(&y_coefficient);
 
             let (coefficient, p_value) = pearsonr(&residual_x.view(), &residual_y.view())?;
-            Ok(result(boolean, p_value, coefficient, significance_level))
+            Ok(wrap_result(
+                boolean,
+                p_value,
+                coefficient,
+                significance_level,
+            ))
         }
     }
 }
 
 /// Construct the appropriate [`TestResult`] variant based on the `boolean` flag.
-fn result(boolean: bool, p_value: f64, coefficient: f64, significance_level: f64) -> TestResult {
+fn wrap_result(
+    boolean: bool,
+    p_value: f64,
+    coefficient: f64,
+    significance_level: f64,
+) -> TestResult {
     if boolean {
         return TestResult::Boolean(Ok(p_value >= significance_level));
     }
