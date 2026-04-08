@@ -386,18 +386,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "ci-python"
-version = "0.1.0"
-dependencies = [
- "ci-core",
- "pyo3",
-]
-
-[[package]]
 name = "ci-r"
 version = "0.1.0"
 dependencies = [
  "ci-core",
+]
+
+[[package]]
+name = "ci_python"
+version = "0.1.0"
+dependencies = [
+ "ci-core",
+ "pyo3",
 ]
 
 [[package]]
