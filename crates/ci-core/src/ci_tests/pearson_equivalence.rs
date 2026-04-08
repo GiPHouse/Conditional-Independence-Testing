@@ -16,7 +16,6 @@ impl CITest for PearsonEquivalence {
     ) -> anyhow::Result<TestResult> {
         todo!()
     }
-    //Other necessary stuff
 
     fn data_types(&self) -> &'static [CITestDataType] {
         &[CITestDataType::Continuous]
