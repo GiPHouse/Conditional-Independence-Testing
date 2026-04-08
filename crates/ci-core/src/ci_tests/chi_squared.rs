@@ -1,6 +1,5 @@
+use crate::strategy::{CITest, CITestDataType, TestResult};
 use ndarray::{Array1, Array2};
-
-use crate::strategy::{CITest, TestResult};
 
 pub struct ChiSquared {
     // Object traits
@@ -16,5 +15,10 @@ impl CITest for ChiSquared {
         significance_level: f64,
     ) -> anyhow::Result<TestResult> {
         Ok(power_divergence(conditioning_set, x_values, y_values, boolean, significance_level, LAMBDA))
+    }
+    //Other necessary stuff
+
+    fn data_types(&self) -> &'static [CITestDataType] {
+        &[CITestDataType::Discrete]
     }
 }

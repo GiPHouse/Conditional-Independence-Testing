@@ -8,16 +8,10 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
+anyhow = "1"
+ndarray = "0.17"
+statrs = { version = "0.18.0"}
 
-
-serde = { version = "1.0", features = ["derive"] }
-thiserror = "1.0"
-
-ndarray = "0.15"
-ndarray-linalg = "0.18.1"
-statrs = "0.16"
-
-pyo3 = { version = "0.28", features = ["extension-module"] }
 
 # Development dependencies (testing, benchmarking)
 criterion = "0.5"

@@ -1,4 +1,4 @@
-use crate::strategy::{CITest, TestResult};
+use crate::strategy::{CITest, CITestDataType, TestResult};
 use ndarray::{Array1, Array2};
 
 pub struct ModifiedLikelihood {
@@ -15,5 +15,10 @@ impl CITest for ModifiedLikelihood {
         _significance_level: f64,
     ) -> anyhow::Result<TestResult> {
         todo!()
+    }
+    //Other necessary stuff
+
+    fn data_types(&self) -> &'static [CITestDataType] {
+        &[CITestDataType::Discrete]
     }
 }
