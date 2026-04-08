@@ -1,6 +1,6 @@
 use crate::strategy::{CITest, TestResult};
-use polars::frame::DataFrame;
-use scirs2_core::Array1;
+use ndarray::{Array1, Array2};
+
 pub struct PearsonCorrelation {
     // Object traits
 }
@@ -8,13 +8,11 @@ pub struct PearsonCorrelation {
 impl CITest for PearsonCorrelation {
     fn run_test(
         &self,
-        data: &DataFrame,
-        col_x: &str,
-        col_y: &str,
-        cols_z: Array1<String>,
-        boolean: bool,
+        _conditioning_set: Array2<f64>,
+        _x_values: Array1<f64>,
+        _y_values: Array1<f64>,
+        _boolean: bool,
     ) -> anyhow::Result<TestResult> {
         todo!()
     }
-    //Other necessary stuff
 }

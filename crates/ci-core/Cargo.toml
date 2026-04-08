@@ -18,11 +18,8 @@ ndarray = { workspace = true }
 ndarray-linalg = { workspace = true }
 statrs = { workspace = true }
 polars = { version = "0.52.0", features = ["partition_by", "ndarray"] }
-anyhow = "1"
 scirs2-stats = "0.1.5"
-scirs2-core = "0.1.5"
-scirs2-linalg = "0.1.5"
-ordered-float = "4"
+anyhow = "1"
 
 rand = "0.8"
 scirs2-core = "0.2.0"

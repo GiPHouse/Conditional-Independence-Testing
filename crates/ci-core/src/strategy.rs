@@ -1,5 +1,4 @@
-use polars::frame::DataFrame;
-use scirs2_core::Array1;
+use ndarray::{Array1, Array2};
 
 pub enum TestResult {
     Correlated(anyhow::Result<(f64, f64, usize)>),
@@ -9,10 +8,9 @@ pub enum TestResult {
 pub trait CITest {
     fn run_test(
         &self,
-        data: &DataFrame,
-        col_x: &str,
-        col_y: &str,
-        cols_z: Array1<String>,
+        conditioning_set: Array2<f64>,
+        x_values: Array1<f64>,
+        y_values: Array1<f64>,
         boolean: bool,
     ) -> anyhow::Result<TestResult>;
 }
