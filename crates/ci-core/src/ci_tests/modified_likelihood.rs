@@ -1,20 +1,21 @@
 use crate::strategy::{CITest, CITestDataType, TestResult};
+use crate::utils::power_divergence::power_divergence;
 use ndarray::{Array1, Array2};
 
-pub struct ModifiedLikelihood {
-    // Object traits
-}
+const MODIFIED_LIKELIHOOD_LAMBDA: f64 = -1.0;
 
-impl CITest for ModifiedLikelihood {
+pub struct ModifiedLikelihood {}
+
+impl CITest for ModifiedLikelihood{
     fn run_test(
         &self,
-        _array: Array2<f64>,
-        _x_values: Array1<f64>,
-        _y_values: Array1<f64>,
-        _boolean: bool,
-        _significance_level: f64,
+        conditioning_set: Array2<f64>,
+        x_values: Array1<f64>,
+        y_values: Array1<f64>,
+        boolean: bool,
+        significance_level: f64,
     ) -> anyhow::Result<TestResult> {
-        todo!()
+        Ok(power_divergence(conditioning_set, x_values, y_values, boolean, significance_level, MODIFIED_LIKELIHOOD_LAMBDA)?)
     }
 
     fn data_types(&self) -> &'static [CITestDataType] {

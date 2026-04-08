@@ -5,6 +5,7 @@ use ndarray::{Array1, Array2};
 /// to be compatible with the registry system.
 pub enum TestResult {
     Correlated(anyhow::Result<(f64, f64)>),
+    Correlated2(anyhow::Result<(f64, f64, usize)>),
     Boolean(anyhow::Result<bool>),
 }
 

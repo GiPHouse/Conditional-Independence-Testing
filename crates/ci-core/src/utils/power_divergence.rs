@@ -1,3 +1,12 @@
+use crate::strategy::TestResult;
+use crate::utils::contingency_table::{
+    build_global_category_map, contingency_table, contingency_table_with_categories,
+};
+use crate::utils::contingency_test::contingency_test;
+use crate::utils::partition_by::partition_by;
+use ndarray::{Array1, Array2};
+use statrs::distribution::{ChiSquared, ContinuousCDF};
+
 pub fn power_divergence(
     conditioning_set: Array2<f64>,
     x_values: Array1<f64>,
@@ -5,10 +14,10 @@ pub fn power_divergence(
     boolean: bool,
     significance_level: f64,
     lambda: f64,
-    ) -> anyhow::Result<()>{
+    ) -> anyhow::Result<TestResult> {
     if conditioning_set.ncols() == 0 {
             let table = contingency_table(&x_values, &y_values);
-            let (statistic, p_value, degrees_of_freedom) = contingency_test(&table, lambda);
+            let (statistic, p_value, degrees_of_freedom) = contingency_test(&table, lambda)?;
             Ok(wrap_result(
                 boolean,
                 p_value,
@@ -27,7 +36,7 @@ pub fn power_divergence(
                 let y_sub: Array1<f64> = indices.iter().map(|&i| y_values[i]).collect();
                 let table =
                     contingency_table_with_categories(&x_sub, &y_sub, &x_categories, &y_categories);
-                let (stat, _p, dof) = contingency_test(&table, lambda);
+                let (stat, _p, dof) = contingency_test(&table, lambda)?;
                 if dof == 0 {
                     continue;
                 }
@@ -49,3 +58,10 @@ pub fn power_divergence(
             ))
         }
     }
+    
+    fn wrap_result(boolean: bool, p_value: f64, coefficient: f64, _degrees_of_freedom: usize, significance_level: f64) -> TestResult {
+    if boolean {
+        return TestResult::Boolean(Ok(p_value >= significance_level));
+    }
+    TestResult::Correlated2(Ok((p_value, coefficient, _degrees_of_freedom)))
+}
