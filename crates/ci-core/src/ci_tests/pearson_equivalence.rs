@@ -4,6 +4,13 @@ use ndarray::{Array1, Array2};
 
 pub struct PearsonEquivalence {
     // Object traits
+    delta_threshold: f64,
+}
+
+impl PearsonEquivalence {
+    pub fn new(delta_threshold: f64) -> Self {
+        Self { delta_threshold }
+    }
 }
 
 impl CITest for PearsonEquivalence {

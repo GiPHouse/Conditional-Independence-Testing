@@ -4,6 +4,13 @@ use ndarray::{Array1, Array2};
 
 pub struct LikelihoodRatio {
     // Object traits
+    lambda: f64,
+}
+
+impl LikelihoodRatio {
+    pub fn new(lambda: f64) -> Self {
+        Self { lambda }
+    }
 }
 
 impl CITest for LikelihoodRatio {
