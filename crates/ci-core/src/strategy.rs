@@ -8,6 +8,16 @@ pub enum TestResult {
     Boolean(anyhow::Result<bool>),
 }
 
+/// Data types that a `CITest` can be performed on.
+///
+/// Used by `Registry`.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum CITestDataType {
+    Continuous,
+    Discrete,
+    Mixed,
+}
+
 pub trait CITest: Send + Sync {
     /// Runs a conditional independence test on the given data.
     ///
@@ -21,4 +31,7 @@ pub trait CITest: Send + Sync {
         y_value: Array1<f64>,
         boolean: bool,
     ) -> anyhow::Result<TestResult>;
+
+    /// Data types that a test supports.
+    fn data_types(&self) -> &'static [CITestDataType];
 }
