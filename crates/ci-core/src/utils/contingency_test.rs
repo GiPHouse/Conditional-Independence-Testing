@@ -53,7 +53,9 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> (f64, f64, usize
     let p_value = if degrees_of_freedom == 0 {
         1.0
     } else {
-        ChiSquared::new(degrees_of_freedom as f64).unwrap().sf(statistic)
+        ChiSquared::new(degrees_of_freedom as f64)
+            .unwrap()
+            .sf(statistic)
     };
 
     (statistic, p_value, degrees_of_freedom)
