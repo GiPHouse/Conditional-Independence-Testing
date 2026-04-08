@@ -17,12 +17,12 @@ impl PyRegistry {
         Self(Arc::new(Registry::new()))
     }
 
-    fn list_all_tests(&self) -> PyResult<Vec<String>> {
+    fn list_all_tests(&self) -> PyResult<Vec<&str>> {
         let tests = self
             .0
-            .list_all_tests()
+            .all_tests()
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-        Ok(tests.into_iter().cloned().collect())
+        Ok(tests.collect())
     }
 
     fn get_test(&self, test_name: &str) -> PyResult<PyCITest> {

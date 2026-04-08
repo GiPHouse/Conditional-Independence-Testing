@@ -1,4 +1,4 @@
-use crate::strategy::{CITest, TestResult};
+use crate::strategy::{CITest, CITestDataType, TestResult};
 use anyhow::{ensure, Context};
 use ndarray::{Array1, Array2, ArrayView1};
 use ndarray_linalg::LeastSquaresSvd;
@@ -63,6 +63,10 @@ impl CITest for PearsonCorrelation {
             let (coefficient, p_value) = pearsonr(&residual_x.view(), &residual_y.view())?;
             Ok(result(boolean, p_value, coefficient))
         }
+    }
+
+    fn data_types(&self) -> &'static [CITestDataType] {
+        &[CITestDataType::Continuous]
     }
 }
 

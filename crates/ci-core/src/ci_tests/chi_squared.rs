@@ -1,5 +1,4 @@
-use crate::strategy::CITest;
-use crate::strategy::TestResult;
+use crate::strategy::{CITest, CITestDataType, TestResult};
 use ndarray::{Array1, Array2};
 
 pub struct ChiSquared {
@@ -17,4 +16,8 @@ impl CITest for ChiSquared {
         todo!()
     }
     //Other necessary stuff
+
+    fn data_types(&self) -> &'static [CITestDataType] {
+        &[CITestDataType::Discrete]
+    }
 }
