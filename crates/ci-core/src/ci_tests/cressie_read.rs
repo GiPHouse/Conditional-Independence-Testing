@@ -1,29 +1,12 @@
-use crate::strategy::{CITest, TestResult};
+use crate::strategy::{CITest, CITestDataType, TestResult};
 use crate::utils::power_divergence::power_divergence;
-use crate::utils::{
-    contingency_table::{
-        build_global_category_map, contingency_table, contingency_table_with_categories,
-    },
-    contingency_test::contingency_test,
-    partition_by::partition_by,
-};
 use ndarray::{Array1, Array2};
-use statrs::distribution::{ChiSquared, ContinuousCDF};
 
 const CRESSIE_READ_LAMBDA: f64 = 2.0 / 3.0;
 
+pub struct CressieRead {}
 
-pub struct PowerDivergence {
-}
-
-impl PowerDivergence {
-    #[must_use]
-    pub fn new() -> Self {
-        Self {}
-    }
-}
-
-impl CITest for PowerDivergence {
+impl CITest for CressieRead {
     fn run_test(
         &self,
         conditioning_set: Array2<f64>,
@@ -32,7 +15,10 @@ impl CITest for PowerDivergence {
         boolean: bool,
         significance_level: f64,
     ) -> anyhow::Result<TestResult> {
-        Ok(power_divergence(conditioning_set, x_values, y_values, boolean, significance_level, LAMBDA))
+        Ok(power_divergence(conditioning_set, x_values, y_values, boolean, significance_level, CRESSIE_READ_LAMBDA)?)
+    }
+    fn data_types(&self) -> &'static [CITestDataType] {
+        &[CITestDataType::Discrete]
     }
 }
 
@@ -42,41 +28,10 @@ mod tests {
     use ndarray::array;
     const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
-    #[test]
-    fn test_contingency_table() {
-        // basic test
-        let test1_x: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-            array![1., 2., 3., 1., 1.];
-        let test1_y: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-            array![1., 2., 3., 1., 2.];
-        let test1_expected: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 2]>> =
-            array![[2., 1., 0.], [0., 1., 0.], [0., 0., 1.]];
-        assert_eq!(test1_expected, contingency_table(&test1_x, &test1_y));
-
-        // order independence
-        let test2_x: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-            array![2., 1., 1., 3., 1.];
-        let test2_y: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> =
-            array![2., 1., 2., 3., 1.];
-        assert_eq!(test1_expected, contingency_table(&test2_x, &test2_y));
-
-        // single value
-        let test3_x = array![1., 1., 1.];
-        let test3_y = array![2., 2., 2.];
-        let test3_expected = array![[3.]];
-        assert_eq!(test3_expected, contingency_table(&test3_x, &test3_y));
-    }
-
     fn unwrap_correlated(result: TestResult) -> (f64, f64, usize) {
         match result {
-            TestResult::Correlated(Ok(triple)) => triple,
-            other => panic!(
-                "expected Correlated(Ok), got {:?}",
-                match other {
-                    TestResult::Correlated(_) => "Correlated(Err)",
-                    TestResult::Boolean(_) => "Boolean",
-                }
-            ),
+            TestResult::Correlated2(Ok(triple)) => triple,
+            _ => panic!("expected Correlated2(Ok)"),
         }
     }
 
@@ -91,7 +46,7 @@ mod tests {
     // The chi-squared statistic should be 0 and the test should not reject independence.
     #[test]
     fn unconditional_independent_data_is_not_rejected() {
-        let test = PowerDivergence { lambda: 1.0 };
+        let test = CressieRead {};
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty_z = Array2::<f64>::zeros((0, 0));
@@ -125,7 +80,7 @@ mod tests {
     // The statistic should be large and the test should reject independence.
     #[test]
     fn unconditional_dependent_data_is_rejected() {
-        let test = PowerDivergence { lambda: 1.0 };
+        let test = CressieRead {};
         let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let empty_z = Array2::<f64>::zeros((0, 0));
@@ -160,7 +115,7 @@ mod tests {
     // Z=1: X=[1,1,2,2], Y=[1,2,1,2]  (independent)
     #[test]
     fn conditional_independence_holds_within_strata() {
-        let test = PowerDivergence { lambda: 1.0 };
+        let test = CressieRead {};
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let z = Array2::from_shape_vec((8, 1), vec![0., 0., 0., 0., 1., 1., 1., 1.]).unwrap();
@@ -186,7 +141,7 @@ mod tests {
     // Z=0: X=Y=[1,1,2,2]; Z=1: X=Y=[1,1,2,2]. Should reject.
     #[test]
     fn conditional_dependence_within_strata_is_rejected() {
-        let test = PowerDivergence { lambda: 1.0 };
+        let test = CressieRead {};
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let z = Array2::from_shape_vec((8, 1), vec![0., 0., 0., 0., 1., 1., 1., 1.]).unwrap();
