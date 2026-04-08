@@ -1,62 +1,74 @@
 use ndarray::{Array2, Axis};
-use scirs2_core::Pow;
 use statrs::distribution::{ChiSquared, ContinuousCDF};
+use anyhow::{Result, bail};
 
-/// Test whether the row and column variables of a count table look
-/// independent. Returns `(statistic, p_value, degrees_of_freedom)`:
-/// the statistic grows when the data look more dependent, and a small
-/// p-value means "probably not independent".
-///
-/// `lambda` picks a member of the Cressie-Read family: `0` is the
-/// G-test, `1` is the usual chi-squared test.
-pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> (f64, f64, usize) {
+pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64, usize)> {
+    let (nrows, ncols) = observed.dim();
     let row_sums = observed.sum_axis(Axis(1));
     let col_sums = observed.sum_axis(Axis(0));
     let total: f64 = row_sums.sum();
 
-    // Sum the per-cell contribution. Empty cells (and cells in an empty
-    // row or column) contribute zero, and skipping them avoids 0/0 when
-    // a table was padded to a shape shared with other groups.
-    let mut stat = 0.0;
-    for i in 0..observed.nrows() {
-        for j in 0..observed.ncols() {
-            let observed_count = observed[[i, j]];
-            if observed_count == 0.0 || row_sums[i] == 0.0 || col_sums[j] == 0.0 {
-                continue;
-            }
-            let expected_count = row_sums[i] * col_sums[j] / total;
-            let ratio = observed_count / expected_count;
-            stat += if lambda.abs() < 1e-12 {
-                observed_count * ratio.ln()
-            } else {
-                observed_count * (ratio.pow(lambda) - 1.0)
-            };
-        }
+    // Check whether contingency test is applicable 
+    if observed.is_empty() {
+        bail!("No data; `observed` has size 0.");
     }
-    let statistic = if lambda.abs() < 1e-12 {
-        2.0 * stat
+    if observed.iter().any(|&x| x < 0.0) {
+        bail!("All values in `observed` must be nonnegative.");
+    }
+    if total == 0.0 {
+        bail!("Total sum of observed frequencies must be > 0.");
+    }
+
+    let statistic: f64 = if lambda.abs() < 1e-12 {
+        // G-test
+        let mut temp_stat: f64 = 0.0;
+        for i in 0..nrows {
+            for j in 0..ncols {
+                let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
+                let temp_observed = observed[[i, j]];
+                if temp_expected == 0.0 {
+                    bail!(
+                        "Expected frequency is zero at position [{}, {}]",
+                        i,
+                        j
+                    );
+                }
+                temp_stat += temp_observed * (temp_observed / temp_expected).ln();
+            }
+        }
+        2.0 * temp_stat
     } else {
-        2.0 * stat / (lambda * (lambda + 1.0))
+        // Cressie-Read
+        let mut temp_stat: f64 = 0.0;
+        for i in 0..nrows {
+            for j in 0..ncols {
+                let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
+                let temp_observed = observed[[i, j]];
+                if temp_expected == 0.0 {
+                    bail!(
+                        "Expected frequency is zero at position [{}, {}]",
+                        i,
+                        j
+                    );
+                }
+                temp_stat += temp_observed
+                    * ((temp_observed / temp_expected).powf(lambda) - 1.0);
+            }
+        }
+        (2.0 * temp_stat) / (lambda * (lambda - 1.0))
     };
 
-    // Only rows and columns that actually contain data count toward the
-    // degrees of freedom. With fewer than two populated rows or columns
-    // there is nothing to compare, and we report no evidence against
-    // independence.
-    let populated_rows = row_sums.iter().filter(|&&s| s > 0.0).count();
-    let populated_cols = col_sums.iter().filter(|&&s| s > 0.0).count();
-    let degrees_of_freedom = if populated_rows < 2 || populated_cols < 2 {
+    let degrees_of_freedom = if nrows < 2 || ncols < 2 {
         0
     } else {
-        (populated_rows - 1) * (populated_cols - 1)
+        (nrows - 1) * (ncols - 1)
     };
+
     let p_value = if degrees_of_freedom == 0 {
         1.0
     } else {
-        ChiSquared::new(degrees_of_freedom as f64)
-            .unwrap()
-            .sf(statistic)
+        ChiSquared::new(degrees_of_freedom as f64)?.sf(statistic)
     };
 
-    (statistic, p_value, degrees_of_freedom)
+    Ok((statistic, p_value, degrees_of_freedom))
 }
