@@ -22,11 +22,7 @@ mod tests {
 
     #[test]
     fn simple_grouping() {
-        let data = array![
-            [1.0, 10.0],
-            [1.0, 10.0],
-            [2.0, 30.0],
-        ];
+        let data = array![[1.0, 10.0], [1.0, 10.0], [2.0, 30.0],];
 
         let result = partition_by(&data);
 
@@ -43,11 +39,7 @@ mod tests {
 
     #[test]
     fn test_singleton_groups() {
-        let data = array![
-            [1.0, 10.0],
-            [2.0, 20.0],
-            [3.0, 30.0],
-        ];
+        let data = array![[1.0, 10.0], [2.0, 20.0], [3.0, 30.0],];
 
         let result = partition_by(&data);
 
@@ -58,11 +50,7 @@ mod tests {
     //All values are in a single group
     #[test]
     fn test_single_partition() {
-        let data = array![
-            [1.0, 10.0],
-            [1.0, 10.0],
-            [1.0, 10.0],
-        ];
+        let data = array![[1.0, 10.0], [1.0, 10.0], [1.0, 10.0],];
 
         let result = partition_by(&data);
 
@@ -72,10 +60,7 @@ mod tests {
 
     #[test]
     fn float_rounding() {
-        let data = array![
-            [1.0, 10.0],
-            [1.0000000001, 10.0],
-        ];
+        let data = array![[1.0, 10.0], [1.000_000_000_1, 10.0],];
 
         let result = partition_by(&data);
 
