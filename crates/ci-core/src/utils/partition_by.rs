@@ -89,14 +89,8 @@ mod tests {
     //order should matter
     #[test]
     fn order_dependence() {
-        let data = array![
-            [1.0, 2.0],
-            [2.0, 1.0],
-            [2.0, 1.0],
-            [1.0, 2.0],
-        ];
-
-        let expected: HashSet<Vec<usize>> = [vec![0,3], vec![1,2]].into_iter().collect();
+        let data = array![[1.0, 2.0], [2.0, 1.0], [2.0, 1.0], [1.0, 2.0]];
+        let expected: HashSet<Vec<usize>> = [vec![0, 3], vec![1, 2]].into_iter().collect();
         let result: HashSet<Vec<usize>> = partition_by(&data).into_iter().collect();
 
         assert_eq!(expected, result);
@@ -104,15 +98,16 @@ mod tests {
 
     //negative values
     #[test]
-    fn negative_values(){ 
+    fn negative_values() {
         let data = array![
             [-1.0, 2.0],
             [0.0, -0.0],
+            [0.0, 0.0],
             [-1.0, 2.0],
             [-1.0, -2.0],
         ];
 
-        let expected: HashSet<Vec<usize>> = [vec![0,3], vec![1], vec![2]].into_iter().collect();
+        let expected: HashSet<Vec<usize>> = [vec![0, 3], vec![1, 2], vec![4]].into_iter().collect();
         let result: HashSet<Vec<usize>> = partition_by(&data).into_iter().collect();
 
         assert_eq!(expected, result);
