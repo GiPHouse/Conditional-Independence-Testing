@@ -132,7 +132,10 @@ mod tests {
     //
     // We check if *at least* all current CI tests supporting continuous data are returned so that
     // the addition of future tests doesn't necessitate updating the tests of the registry.
-    #[allow(clippy::single_element_loop, reason="tests should/could be expanded once other tests are implemeneted")]
+    #[allow(
+        clippy::single_element_loop,
+        reason = "tests should/could be expanded once other tests are implemeneted"
+    )]
     fn test_tests_with_data_type_continuous() -> anyhow::Result<()> {
         let registry = Registry::new();
         for test in ["pearson_correlation"] {
@@ -153,7 +156,6 @@ mod tests {
         for test in [
             "chi_square",
             "log_likelihood",
-            "independence_match",
             "modified_likelihood",
             "cressie_read",
             "freeman_tukey",
@@ -166,13 +168,14 @@ mod tests {
     #[test]
     // Test to check listing all tests supporting mixed data.
     //
-    // We check if *at least* all current CI tests supporting mixed data are returned so that
-    // the addition of future tests doesn't necessitate updating the tests of the registry.
+    // No tests currently support mixed data (independence_match is not yet implemented).
     fn test_tests_with_data_type_mixed() -> anyhow::Result<()> {
         let registry = Registry::new();
-        assert!(registry
-            .tests_with_data_type(&Mixed)?
-            .any(|t| t == "independence_match"));
+        assert_eq!(
+            registry.tests_with_data_type(&Mixed)?.count(),
+            0,
+            "no registered tests support Mixed yet"
+        );
         Ok(())
     }
 }

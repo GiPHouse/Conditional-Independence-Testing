@@ -25,7 +25,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
     }
 
     let statistic: f64 = if lambda.abs() < 1e-12 {
-        // G-test
+        // G-test: 2 * sum(O * ln(O / E))
         let mut temp_stat: f64 = 0.0;
         for i in 0..nrows {
             for j in 0..ncols {
@@ -37,7 +37,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 if temp_observed == 0. {
                     continue;
                 }
-                temp_stat += temp_expected * (temp_expected / temp_observed).ln();
+                temp_stat += temp_observed * (temp_observed / temp_expected).ln();
             }
         }
         2.0 * temp_stat

@@ -76,3 +76,103 @@ fn wrap_result(
     }
     TestResult::Statistic(p_value, coefficient, degrees_of_freedom)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ndarray::{array, Array2};
+
+    const LAMBDA: f64 = 1.0;
+    const SIGNIFICANCE_LEVEL: f64 = 0.05;
+
+    fn empty_z() -> Array2<f64> {
+        Array2::zeros((0, 0))
+    }
+
+    fn unwrap_statistic(r: &TestResult) -> (f64, f64, usize) {
+        match r {
+            TestResult::Statistic(a, b, c) => (*a, *b, *c),
+            _ => panic!("expected Statistic"),
+        }
+    }
+
+    // Mismatched x and y lengths — contingency_table indexes by the
+    // longer array, causing an out-of-bounds panic.
+    #[test]
+    #[should_panic(expected = "index 2 is out of bounds")]
+    fn unconditional_mismatched_lengths_panics() {
+        let x = array![1., 2., 3.];
+        let y = array![1., 2.];
+        let _ = power_divergence(&empty_z(), &x, &y, false, SIGNIFICANCE_LEVEL, LAMBDA);
+    }
+
+    // A single observation produces a 1x1 table with dof=0.
+    #[test]
+    fn unconditional_single_element_has_zero_dof() {
+        let x = array![1.];
+        let y = array![1.];
+        let result =
+            power_divergence(&empty_z(), &x, &y, false, SIGNIFICANCE_LEVEL, LAMBDA).unwrap();
+        let (p, stat, dof) = unwrap_statistic(&result);
+        assert_eq!(dof, 0);
+        assert!((p - 1.0).abs() < 1e-12);
+        assert!(stat.abs() < 1e-12);
+    }
+
+    // When X has only one distinct value the table has one row → dof=0.
+    #[test]
+    fn unconditional_single_category_in_x_has_zero_dof() {
+        let x = array![1., 1., 1., 1.];
+        let y = array![1., 2., 1., 2.];
+        let result =
+            power_divergence(&empty_z(), &x, &y, false, SIGNIFICANCE_LEVEL, LAMBDA).unwrap();
+        let (p, _stat, dof) = unwrap_statistic(&result);
+        assert_eq!(dof, 0);
+        assert!((p - 1.0).abs() < 1e-12);
+    }
+
+    // When Y has only one distinct value the table has one column → dof=0.
+    #[test]
+    fn unconditional_single_category_in_y_has_zero_dof() {
+        let x = array![1., 2., 1., 2.];
+        let y = array![1., 1., 1., 1.];
+        let result =
+            power_divergence(&empty_z(), &x, &y, false, SIGNIFICANCE_LEVEL, LAMBDA).unwrap();
+        let (p, _stat, dof) = unwrap_statistic(&result);
+        assert_eq!(dof, 0);
+        assert!((p - 1.0).abs() < 1e-12);
+    }
+
+    // NaN in x_values becomes its own category via OrderedFloat.
+    // The result is a valid (though likely meaningless) statistic, not a panic.
+    #[test]
+    fn unconditional_nan_in_x_does_not_panic() {
+        let x = array![1., f64::NAN, 2., 1.];
+        let y = array![1., 2., 1., 2.];
+        let result = power_divergence(&empty_z(), &x, &y, false, SIGNIFICANCE_LEVEL, LAMBDA);
+        assert!(result.is_ok());
+    }
+
+    // NaN in the conditioning set creates its own partition group.
+    // Global category maps include both X categories, so a singleton
+    // stratum gets a table with a zero-expected cell → error.
+    #[test]
+    fn conditional_nan_in_z_returns_error() {
+        let x = array![1., 1., 2., 2.];
+        let y = array![1., 2., 1., 2.];
+        let z = Array2::from_shape_vec((4, 1), vec![0., f64::NAN, 0., 1.]).unwrap();
+        let result = power_divergence(&z, &x, &y, false, SIGNIFICANCE_LEVEL, LAMBDA);
+        assert!(result.is_err());
+    }
+
+    // Each Z-group has only one X value. Global category maps force a 2x2
+    // table per stratum with a zero row → zero expected frequency → error.
+    #[test]
+    fn conditional_all_strata_single_category_returns_error() {
+        let x = array![1., 1., 2., 2.];
+        let y = array![1., 2., 1., 2.];
+        let z = Array2::from_shape_vec((4, 1), vec![0., 0., 1., 1.]).unwrap();
+        let result = power_divergence(&z, &x, &y, false, SIGNIFICANCE_LEVEL, LAMBDA);
+        assert!(result.is_err());
+    }
+}
