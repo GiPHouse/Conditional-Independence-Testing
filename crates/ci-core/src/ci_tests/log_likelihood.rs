@@ -2,7 +2,7 @@ use crate::strategy::{CITest, CITestDataType, TestResult};
 use crate::utils::power_divergence::power_divergence;
 use ndarray::{Array1, Array2};
 
-const G_TEST_LAMBDA: f64 = 0.0;
+const LOG_LIKELIHOOD_LAMBDA: f64 = 0.0;
 
 pub struct LogLikelihood {}
 
@@ -21,7 +21,7 @@ impl CITest for LogLikelihood {
             &y_values,
             boolean,
             significance_level,
-            G_TEST_LAMBDA,
+            LOG_LIKELIHOOD_LAMBDA,
         )
     }
 
