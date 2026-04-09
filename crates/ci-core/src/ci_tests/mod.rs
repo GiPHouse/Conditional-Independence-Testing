@@ -10,11 +10,11 @@ mod pearson_equivalence;
 use chi_squared::ChiSquared;
 use cressie_read::CressieRead;
 use freeman_tukey::FreemanTukey;
-use independence_match::IndependenceMatch;
+//use independence_match::IndependenceMatch;
 use log_likelihood::LogLikelihood;
 use modified_likelihood::ModifiedLikelihood;
 use pearson_correlation::PearsonCorrelation;
-use pearson_equivalence::PearsonEquivalence;
+//use pearson_equivalence::PearsonEquivalence;
 
 use crate::registry::Registry;
 
@@ -25,23 +25,23 @@ pub fn register_all_tests(registry: &mut Registry) {
 
     registry
         .add_to_registry("log_likelihood", LogLikelihood {})
-        .expect("Failed to register Log Likehood test!");
+        .expect("Failed to register Log Likelihood test!");
 
-    registry
-        .add_to_registry("independence_match", IndependenceMatch {})
-        .expect("Failed to register Independence Match test!");
+    //registry
+        //.add_to_registry("independence_match", IndependenceMatch {})
+        //.expect("Failed to register Independence Match test!");
 
     registry
         .add_to_registry("modified_likelihood", ModifiedLikelihood {})
-        .expect("Failed to register Modified Likelihood tTest!");
+        .expect("Failed to register Modified Likelihood Test!");
 
     registry
         .add_to_registry("pearson_correlation", PearsonCorrelation {})
         .expect("Failed to register Pearson Correlation test!");
 
-    registry
-        .add_to_registry("pearson_equivalence", PearsonEquivalence {})
-        .expect("Failed to register Pearson Equivalence test!");
+    //registry
+        //.add_to_registry("pearson_equivalence", PearsonEquivalence {})
+        //.expect("Failed to register Pearson Equivalence test!");
 
     registry
         .add_to_registry("cressie_read", CressieRead {})

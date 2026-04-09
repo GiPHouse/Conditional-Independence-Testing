@@ -2,9 +2,8 @@ use crate::strategy::CITestDataType::{Continuous, Discrete, Mixed};
 use crate::strategy::{CITest, CITestDataType, TestResult};
 use ndarray::{Array1, Array2};
 
-pub struct IndependenceMatch {
-    // Object traits
-}
+#[allow(dead_code)]
+pub struct IndependenceMatch {}
 
 impl CITest for IndependenceMatch {
     fn run_test(
@@ -17,7 +16,6 @@ impl CITest for IndependenceMatch {
     ) -> anyhow::Result<TestResult> {
         todo!()
     }
-    //Other necessary stuff
 
     fn data_types(&self) -> &'static [CITestDataType] {
         &[Continuous, Discrete, Mixed]
