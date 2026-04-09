@@ -1,6 +1,6 @@
+use anyhow::{bail, Result};
 use ndarray::{Array2, Axis};
 use statrs::distribution::{ChiSquared, ContinuousCDF};
-use anyhow::{Result, bail};
 
 /// Compute a Cressie-Read power-divergence statistic for a contingency table.
 ///
@@ -13,7 +13,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
     let col_sums = observed.sum_axis(Axis(0));
     let total: f64 = row_sums.sum();
 
-    // Check whether contingency test is applicable 
+    // Check whether contingency test is applicable
     if observed.is_empty() {
         bail!("No data; `observed` has size 0.");
     }
@@ -32,9 +32,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0. {
-                    bail!(
-                        "Expected frequency is zero at position [{}, {}]",i,j
-                    );
+                    bail!("Expected frequency is zero at position [{}, {}]", i, j);
                 }
                 if temp_observed == 0. {
                     continue;
@@ -43,8 +41,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
             }
         }
         2.0 * temp_stat
-    } 
-    else if lambda.abs()+1. < 1e-12 {
+    } else if lambda.abs() + 1. < 1e-12 {
         // Modified log-likelihood ratio test
         let mut temp_stat: f64 = 0.0;
         for i in 0..nrows {
@@ -55,16 +52,13 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                     continue;
                 }
                 if temp_observed == 0. {
-                    bail!(
-                        "Observed value is zero at position [{}, {}]",i,j
-                    );
+                    bail!("Observed value is zero at position [{}, {}]", i, j);
                 }
                 temp_stat += temp_expected * (temp_expected / temp_observed).ln();
             }
         }
         2.0 * temp_stat
-    }
-    else {
+    } else {
         // Cressie-Read
         let mut temp_stat: f64 = 0.0;
         for i in 0..nrows {
@@ -72,9 +66,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0.0 {
-                    bail!(
-                        "Expected frequency is zero at position [{}, {}]",i,j
-                    );
+                    bail!("Expected frequency is zero at position [{}, {}]", i, j);
                 }
                 temp_stat += temp_observed * ((temp_observed / temp_expected).powf(lambda) - 1.0);
             }
@@ -137,7 +129,10 @@ mod tests {
         let observed = array![[10.0, 0.0], [0.0, 0.0]];
         let result = contingency_test(&observed, 1.0);
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Expected frequency is zero"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Expected frequency is zero"));
     }
 
     /// 2. Test zero expected frequency specifically in G-test branch (lambda ~ 0)
@@ -146,7 +141,10 @@ mod tests {
         let observed = array![[5.0, 0.0], [0.0, 0.0]];
         let result = contingency_test(&observed, 0.0);
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Expected frequency is zero"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Expected frequency is zero"));
     }
 
     /// 3. Test zero observed value in Modified log-likelihood test (lambda = -1)
@@ -156,9 +154,9 @@ mod tests {
         let result = contingency_test(&observed, -1.0).unwrap(); // should succeed
 
         let (stat, p, dof) = result;
-        assert!(stat >= 0.0);              // statistic is non-negative
-        assert!(p >= 0.0 && p <= 1.0);    // p-value between 0 and 1
-        assert_eq!(dof, 1);               // degrees of freedom for 2x2 table
+        assert!(stat >= 0.0); // statistic is non-negative
+        assert!(p >= 0.0 && p <= 1.0); // p-value between 0 and 1
+        assert_eq!(dof, 1); // degrees of freedom for 2x2 table
     }
 
     /// 4a. Simple valid test for G-test (lambda = 0)

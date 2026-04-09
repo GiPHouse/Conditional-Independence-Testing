@@ -75,11 +75,11 @@ impl PyCITest {
 
         match result {
             TestResult::Boolean(b) => Ok(b.into_pyobject(py)?.to_owned().into_any().unbind()),
-            TestResult::Correlated((p_value, coefficient)) => Ok((p_value, coefficient)
+            TestResult::PValue(p_value, coefficient) => Ok((p_value, coefficient)
                 .into_pyobject(py)?
                 .into_any()
                 .unbind()),
-            TestResult::Correlated2((p_value, statistic, dof)) => Ok((p_value, statistic, dof)
+            TestResult::Statistic(p_value, statistic, dof) => Ok((p_value, statistic, dof)
                 .into_pyobject(py)?
                 .into_any()
                 .unbind()),

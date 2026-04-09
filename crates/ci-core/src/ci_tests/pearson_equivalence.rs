@@ -1,7 +1,6 @@
 use crate::strategy::{CITest, CITestDataType, TestResult};
 use ndarray::{Array1, Array2};
 
-
 #[allow(dead_code)]
 pub struct PearsonEquivalence {}
 
@@ -16,7 +15,6 @@ impl CITest for PearsonEquivalence {
     ) -> anyhow::Result<TestResult> {
         todo!()
     }
-
 
     fn data_types(&self) -> &'static [CITestDataType] {
         &[CITestDataType::Continuous]

@@ -74,5 +74,5 @@ fn wrap_result(
     if boolean {
         return TestResult::Boolean(p_value >= significance_level);
     }
-    TestResult::Correlated2((p_value, coefficient, degrees_of_freedom))
+    TestResult::Statistic(p_value, coefficient, degrees_of_freedom)
 }

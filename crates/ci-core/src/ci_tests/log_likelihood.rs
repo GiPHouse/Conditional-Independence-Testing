@@ -37,7 +37,7 @@ mod tests {
 
     fn unwrap_correlated(r: &TestResult) -> (f64, f64, usize) {
         match r {
-            TestResult::Correlated2(t) => *t,
+            TestResult::Statistic(a, b, c) => (*a, *b, *c),
             _ => panic!("expected Correlated2"),
         }
     }
