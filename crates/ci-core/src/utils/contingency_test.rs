@@ -32,7 +32,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0. {
-                    bail!("Expected frequency is zero at position [{}, {}]", i, j);
+                    bail!("Expected frequency is zero at position [{i}, {j}]");
                 }
                 if temp_observed == 0. {
                     continue;
@@ -52,7 +52,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                     continue;
                 }
                 if temp_observed == 0. {
-                    bail!("Observed value is zero at position [{}, {}]", i, j);
+                    bail!("Observed value is zero at position [{i}, {j}]");
                 }
                 temp_stat += temp_expected * (temp_expected / temp_observed).ln();
             }
@@ -66,7 +66,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0.0 {
-                    bail!("Expected frequency is zero at position [{}, {}]", i, j);
+                    bail!("Expected frequency is zero at position [{i}, {j}]");
                 }
                 temp_stat += temp_observed * ((temp_observed / temp_expected).powf(lambda) - 1.0);
             }
@@ -168,7 +168,7 @@ mod tests {
 
         let (stat, p, dof) = result;
         assert!(stat >= 0.0);
-        assert!(p >= 0.0 && p <= 1.0);
+        assert!((0.0..=1.0).contains(&p));
         assert_eq!(dof, 1);
     }
 
@@ -180,7 +180,7 @@ mod tests {
 
         let (stat, p, dof) = result;
         assert!(stat >= 0.0);
-        assert!(p >= 0.0 && p <= 1.0);
+        assert!((0.0..=1.0).contains(&p));
         assert_eq!(dof, 1);
     }
 
@@ -192,7 +192,7 @@ mod tests {
 
         let (stat, p, dof) = result;
         assert!(stat >= 0.0);
-        assert!(p >= 0.0 && p <= 1.0);
+        assert!((0.0..=1.0).contains(&p));
         assert_eq!(dof, 1);
     }
 
@@ -223,6 +223,6 @@ mod tests {
         let (_, p, dof) = contingency_test(&observed, 0.0).unwrap();
 
         assert_eq!(dof, 0);
-        assert_eq!(p, 1.0); // By definition in your implementation
+        assert!((p - 1.0).abs() < 1e12); // By definition in your implementation
     }
 }

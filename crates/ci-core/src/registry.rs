@@ -132,6 +132,7 @@ mod tests {
     //
     // We check if *at least* all current CI tests supporting continuous data are returned so that
     // the addition of future tests doesn't necessitate updating the tests of the registry.
+    #[allow(clippy::single_element_loop, reason="tests should/could be expanded once other tests are implemeneted")]
     fn test_tests_with_data_type_continuous() -> anyhow::Result<()> {
         let registry = Registry::new();
         for test in ["pearson_correlation"] {
