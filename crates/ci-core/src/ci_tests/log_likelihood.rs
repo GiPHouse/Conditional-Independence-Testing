@@ -15,7 +15,14 @@ impl CITest for LogLikelihood {
         boolean: bool,
         significance_level: f64,
     ) -> anyhow::Result<TestResult> {
-        Ok(power_divergence(conditioning_set, x_values, y_values, boolean, significance_level, G_TEST_LAMBDA)?)
+        power_divergence(
+            &conditioning_set,
+            &x_values,
+            &y_values,
+            boolean,
+            significance_level,
+            G_TEST_LAMBDA,
+        )
     }
 
     fn data_types(&self) -> &'static [CITestDataType] {

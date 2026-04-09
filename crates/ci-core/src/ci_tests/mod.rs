@@ -1,20 +1,20 @@
 mod chi_squared;
-mod log_likelihood;
+mod cressie_read;
+mod freeman_tukey;
 mod independence_match;
+mod log_likelihood;
 mod modified_likelihood;
 mod pearson_correlation;
 mod pearson_equivalence;
-mod cressie_read;
-mod freeman_tukey;
 
 use chi_squared::ChiSquared;
-use log_likelihood::LogLikelihood;
+use cressie_read::CressieRead;
+use freeman_tukey::FreemanTukey;
 use independence_match::IndependenceMatch;
+use log_likelihood::LogLikelihood;
 use modified_likelihood::ModifiedLikelihood;
 use pearson_correlation::PearsonCorrelation;
 use pearson_equivalence::PearsonEquivalence;
-use cressie_read::CressieRead;
-use freeman_tukey::FreemanTukey;
 
 use crate::registry::Registry;
 

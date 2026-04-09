@@ -37,4 +37,3 @@ pub trait CITest: Send + Sync {
     /// Data types that a test supports.
     fn data_types(&self) -> &'static [CITestDataType];
 }
-

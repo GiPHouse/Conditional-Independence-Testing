@@ -6,7 +6,7 @@ const MODIFIED_LIKELIHOOD_LAMBDA: f64 = -1.0;
 
 pub struct ModifiedLikelihood {}
 
-impl CITest for ModifiedLikelihood{
+impl CITest for ModifiedLikelihood {
     fn run_test(
         &self,
         conditioning_set: Array2<f64>,
@@ -15,7 +15,14 @@ impl CITest for ModifiedLikelihood{
         boolean: bool,
         significance_level: f64,
     ) -> anyhow::Result<TestResult> {
-        Ok(power_divergence(conditioning_set, x_values, y_values, boolean, significance_level, MODIFIED_LIKELIHOOD_LAMBDA)?)
+        power_divergence(
+            &conditioning_set,
+            &x_values,
+            &y_values,
+            boolean,
+            significance_level,
+            MODIFIED_LIKELIHOOD_LAMBDA,
+        )
     }
 
     fn data_types(&self) -> &'static [CITestDataType] {

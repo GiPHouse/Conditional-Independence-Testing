@@ -1,14 +1,19 @@
+use anyhow::{bail, Result};
 use ndarray::{Array2, Axis};
 use statrs::distribution::{ChiSquared, ContinuousCDF};
-use anyhow::{Result, bail};
 
+/// Compute a Cressie-Read power-divergence statistic for a contingency table.
+///
+/// # Errors
+/// Returns an error when the table is empty, contains negatives, sums to zero,
+/// or has a zero expected frequency.
 pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64, usize)> {
     let (nrows, ncols) = observed.dim();
     let row_sums = observed.sum_axis(Axis(1));
     let col_sums = observed.sum_axis(Axis(0));
     let total: f64 = row_sums.sum();
 
-    // Check whether contingency test is applicable 
+    // Check whether contingency test is applicable
     if observed.is_empty() {
         bail!("No data; `observed` has size 0.");
     }
@@ -27,11 +32,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0.0 {
-                    bail!(
-                        "Expected frequency is zero at position [{}, {}]",
-                        i,
-                        j
-                    );
+                    bail!("Expected frequency is zero at position [{i}, {j}]");
                 }
                 temp_stat += temp_observed * (temp_observed / temp_expected).ln();
             }
@@ -45,14 +46,9 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0.0 {
-                    bail!(
-                        "Expected frequency is zero at position [{}, {}]",
-                        i,
-                        j
-                    );
+                    bail!("Expected frequency is zero at position [{i}, {j}]");
                 }
-                temp_stat += temp_observed
-                    * ((temp_observed / temp_expected).powf(lambda) - 1.0);
+                temp_stat += temp_observed * ((temp_observed / temp_expected).powf(lambda) - 1.0);
             }
         }
         (2.0 * temp_stat) / (lambda * (lambda - 1.0))
@@ -67,6 +63,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
     let p_value = if degrees_of_freedom == 0 {
         1.0
     } else {
+        #[allow(clippy::cast_precision_loss)]
         ChiSquared::new(degrees_of_freedom as f64)?.sf(statistic)
     };
 
