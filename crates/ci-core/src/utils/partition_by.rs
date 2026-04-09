@@ -19,6 +19,7 @@ pub fn partition_by(data: &Array2<f64>) -> Vec<Vec<usize>> {
 mod tests {
     use super::*;
     use ndarray::array;
+    use std::collections::HashSet;
 
     #[test]
     fn simple_grouping() {
@@ -85,8 +86,35 @@ mod tests {
         assert!(result.iter().any(|g| g.len() == 2));
     }
 
-    //Do we need to write a test case where column order matter?,
-    //[Apple, 1] and [1, Apple] do they need to be in separate groups or one?
+    //order should matter
+    #[test]
+    fn order_dependence() {
+        let data = array![
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [2.0, 1.0],
+            [1.0, 2.0],
+        ];
 
-    //Do we need tests for negative values?
+        let expected: HashSet<Vec<usize>> = [vec![0,3], vec![1,2]].into_iter().collect();
+        let result: HashSet<Vec<usize>> = partition_by(&data).into_iter().collect();
+
+        assert_eq!(expected, result);
+    }
+
+    //negative values
+    #[test]
+    fn negative_values(){ 
+        let data = array![
+            [-1.0, 2.0],
+            [0.0, -0.0],
+            [-1.0, 2.0],
+            [-1.0, -2.0],
+        ];
+
+        let expected: HashSet<Vec<usize>> = [vec![0,3], vec![1], vec![2]].into_iter().collect();
+        let result: HashSet<Vec<usize>> = partition_by(&data).into_iter().collect();
+
+        assert_eq!(expected, result);
+    }
 }

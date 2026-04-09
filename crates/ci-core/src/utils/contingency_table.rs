@@ -49,3 +49,33 @@ pub fn contingency_table_with_categories<S1: BuildHasher, S2: BuildHasher>(
     }
     result
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ndarray::array;
+
+    #[test]
+    fn basic_test() {
+        let test1_x: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = array![1.,2.,3.,1.,1.];
+        let test1_y: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = array![1.,2.,3.,1.,2.];
+        let test1_expected: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 2]>> = array![[1.,1.,0.],[0.,1.,0.],[0.,0.,1.]];
+        assert_eq!(test1_expected, contingency_table(&test1_x, &test1_y));
+    }
+
+    #[test]
+    fn order_independence() {
+        let test2_x: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = array![2.,1.,1.,3.,1.];
+        let test2_y: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = array![2.,1.,2.,3.,1.];
+        let test1_expected: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 2]>> = array![[1.,1.,0.],[0.,1.,0.],[0.,0.,1.]];
+        assert_eq!(test1_expected, contingency_table(&test2_x, &test2_y));
+    }
+
+    #[test]
+    fn single_value() {
+        let test3_x = array![1., 1., 1.];
+        let test3_y = array![2., 2., 2.];
+        let test3_expected = array![[3.]];
+        assert_eq!(test3_expected, contingency_table(&test3_x, &test3_y));
+    }
+}
