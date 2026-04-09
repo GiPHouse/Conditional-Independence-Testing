@@ -52,9 +52,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0. {
-                    bail!(
-                        "Expected frequency is zero at position [{}, {}]",i,j
-                    );
+                    continue;
                 }
                 if temp_observed == 0. {
                     bail!(
@@ -98,4 +96,134 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
     };
 
     Ok((statistic, p_value, degrees_of_freedom))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ndarray::array;
+
+    /// 1a. Test error when the table is empty
+    #[test]
+    fn test_empty_table_error() {
+        let observed = Array2::<f64>::zeros((0, 0));
+        let result = contingency_test(&observed, 0.0);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("size 0"));
+    }
+
+    /// 1b. Test error when table contains negative values
+    #[test]
+    fn test_negative_values_error() {
+        let observed = array![[1.0, -1.0], [2.0, 3.0]];
+        let result = contingency_test(&observed, 0.0);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("nonnegative"));
+    }
+
+    /// 1c. Test error when total sum is zero
+    #[test]
+    fn test_zero_total_error() {
+        let observed = array![[0.0, 0.0], [0.0, 0.0]];
+        let result = contingency_test(&observed, 0.0);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("> 0"));
+    }
+
+    /// 1d. Test error when expected frequency is zero
+    /// This happens when an entire row or column is zero
+    #[test]
+    fn test_zero_expected_frequency_error() {
+        let observed = array![[10.0, 0.0], [0.0, 0.0]];
+        let result = contingency_test(&observed, 1.0);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Expected frequency is zero"));
+    }
+
+    /// 2. Test zero expected frequency specifically in G-test branch (lambda ~ 0)
+    #[test]
+    fn test_g_test_zero_expected_frequency() {
+        let observed = array![[5.0, 0.0], [0.0, 0.0]];
+        let result = contingency_test(&observed, 0.0);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Expected frequency is zero"));
+    }
+
+    /// 3. Test zero observed value in Modified log-likelihood test (lambda = -1)
+    #[test]
+    fn test_modified_log_likelihood_zero_observed() {
+        let observed = array![[5.0, 1.0], [2.0, 0.0]]; // zero observed allowed
+        let result = contingency_test(&observed, -1.0).unwrap(); // should succeed
+
+        let (stat, p, dof) = result;
+        assert!(stat >= 0.0);              // statistic is non-negative
+        assert!(p >= 0.0 && p <= 1.0);    // p-value between 0 and 1
+        assert_eq!(dof, 1);               // degrees of freedom for 2x2 table
+    }
+
+    /// 4a. Simple valid test for G-test (lambda = 0)
+    #[test]
+    fn test_g_test_valid() {
+        let observed = array![[10.0, 20.0], [20.0, 40.0]];
+        let result = contingency_test(&observed, 0.0).unwrap();
+
+        let (stat, p, dof) = result;
+        assert!(stat >= 0.0);
+        assert!(p >= 0.0 && p <= 1.0);
+        assert_eq!(dof, 1);
+    }
+
+    /// 4b. Simple valid test for Modified log-likelihood (lambda = -1)
+    #[test]
+    fn test_modified_log_likelihood_valid() {
+        let observed = array![[10.0, 20.0], [20.0, 40.0]];
+        let result = contingency_test(&observed, -1.0).unwrap();
+
+        let (stat, p, dof) = result;
+        assert!(stat >= 0.0);
+        assert!(p >= 0.0 && p <= 1.0);
+        assert_eq!(dof, 1);
+    }
+
+    /// 4c. Simple valid test for general Cressie-Read (lambda != 0, -1)
+    #[test]
+    fn test_cressie_read_valid() {
+        let observed = array![[10.0, 20.0], [20.0, 40.0]];
+        let result = contingency_test(&observed, 0.5).unwrap();
+
+        let (stat, p, dof) = result;
+        assert!(stat >= 0.0);
+        assert!(p >= 0.0 && p <= 1.0);
+        assert_eq!(dof, 1);
+    }
+
+    /// 5a. Test degrees of freedom for a 2x2 table
+    #[test]
+    fn test_degrees_of_freedom_2x2() {
+        let observed = array![[1.0, 2.0], [3.0, 4.0]];
+        let (_, _, dof) = contingency_test(&observed, 0.0).unwrap();
+        assert_eq!(dof, 1); // (2-1)*(2-1)
+    }
+
+    /// 5b. Test degrees of freedom for a 3x4 table
+    #[test]
+    fn test_degrees_of_freedom_3x4() {
+        let observed = array![
+            [1.0, 2.0, 3.0, 4.0],
+            [2.0, 3.0, 4.0, 5.0],
+            [3.0, 4.0, 5.0, 6.0]
+        ];
+        let (_, _, dof) = contingency_test(&observed, 0.0).unwrap();
+        assert_eq!(dof, (3 - 1) * (4 - 1)); // 2 * 3 = 6
+    }
+
+    /// 5c. Test degrees of freedom when one dimension < 2
+    #[test]
+    fn test_degrees_of_freedom_degenerate() {
+        let observed = array![[1.0, 2.0, 3.0]]; // 1x3
+        let (_, p, dof) = contingency_test(&observed, 0.0).unwrap();
+
+        assert_eq!(dof, 0);
+        assert_eq!(p, 1.0); // By definition in your implementation
+    }
 }
