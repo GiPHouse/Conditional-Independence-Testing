@@ -155,11 +155,11 @@ mod tests {
         let registry = Registry::new();
         for test in [
             "chi_square",
-            "g_test",
+            "log_likelihood",
             "independence_match",
-            "likelihood_ratio",
             "modified_likelihood",
-            "power_divergence",
+            "cressie_read",
+            "freeman_tukey",
         ] {
             assert!(registry.tests_with_data_type(&Discrete)?.any(|t| t == test));
         }
