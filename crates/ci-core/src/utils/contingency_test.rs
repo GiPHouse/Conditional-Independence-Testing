@@ -51,7 +51,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 temp_stat += temp_observed * ((temp_observed / temp_expected).powf(lambda) - 1.0);
             }
         }
-        (2.0 * temp_stat) / (lambda * (lambda - 1.0))
+        (2.0 * temp_stat) / (lambda * (lambda + 1.0))
     };
 
     let degrees_of_freedom = if nrows < 2 || ncols < 2 {
