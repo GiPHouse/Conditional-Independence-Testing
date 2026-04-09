@@ -1,4 +1,4 @@
-from pgmpy.estimators.CITests import pearsonr
+from pgmpy.estimators.CITests import pearsonr, power_divergence
 import numpy as np
 from ci_python import PyRegistry
 import time
@@ -81,3 +81,50 @@ for size in [1_000, 10_000]:
     print(f"N={size:,}  ({N_ITER} iterations)")
     print(f"{'='*60}")
     bench(size)
+
+
+# ---------------------------------------------------------------------------
+# Scaling benchmark: Cressie-Read with increasing discrete conditioning vars
+# ---------------------------------------------------------------------------
+cressie_test = registry.get_test("cressie_read")
+
+
+def bench_scaling(size, n_z_vars, n_iter=20):
+    rng = np.random.default_rng(seed=42)
+    z_cols = {f"Z{i}": rng.integers(0, 2, size) for i in range(n_z_vars)}
+    X = (sum(z_cols.values()) + rng.integers(0, 2, size)) % 3
+    Y = (sum(z_cols.values()) + rng.integers(0, 2, size)) % 3
+    df = pd.DataFrame({"X": X, "Y": Y, **z_cols})
+    array_z = np.column_stack(list(z_cols.values())).astype(float)
+    x = df["X"].to_numpy(dtype=float)
+    y = df["Y"].to_numpy(dtype=float)
+    z_names = list(z_cols.keys())
+
+    # Warmup
+    cressie_test(array_z, x, y, boolean=False)
+    power_divergence(
+        X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read"
+    )
+
+    t0 = time.perf_counter()
+    for _ in range(n_iter):
+        cressie_test(array_z, x, y, boolean=False)
+    rust_t = (time.perf_counter() - t0) / n_iter
+
+    t0 = time.perf_counter()
+    for _ in range(n_iter):
+        power_divergence(
+            X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read"
+        )
+    pgmpy_t = (time.perf_counter() - t0) / n_iter
+
+    print(
+        f"  |Z|={n_z_vars:2d}  Rust={rust_t*1000:8.4f}ms  pgmpy={pgmpy_t*1000:8.4f}ms  speedup={pgmpy_t/rust_t:6.2f}x"
+    )
+
+
+print(f"\n{'='*60}")
+print("Cressie-Read scaling benchmark: N=10,000, increasing |Z|")
+print(f"{'='*60}")
+for n_z in [2, 4, 6, 8, 10, 15]:
+    bench_scaling(10_000, n_z)
