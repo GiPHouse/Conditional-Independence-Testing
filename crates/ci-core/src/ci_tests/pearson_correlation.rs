@@ -31,8 +31,8 @@ impl CITest for PearsonCorrelation {
     ///
     /// # Returns
     ///
-    /// - If `boolean=true`: `TestResult::Boolean(Ok(p_value >= SIGNIFICANCE_LEVEL))`
-    /// - If `boolean=false`: `TestResult::Correlated(Ok((p_value, coefficient)))`
+    /// - If `boolean=true`: `TestResult::Boolean(p_value >= SIGNIFICANCE_LEVEL)`
+    /// - If `boolean=false`: `TestResult::Correlated((p_value, coefficient))`
     fn run_test(
         &self,
         conditioning_set: Array2<f64>,
@@ -87,9 +87,9 @@ fn wrap_result(
     significance_level: f64,
 ) -> TestResult {
     if boolean {
-        return TestResult::Boolean(Ok(p_value >= significance_level));
+        return TestResult::Boolean(p_value >= significance_level);
     }
-    TestResult::Correlated(Ok((p_value, coefficient)))
+    TestResult::Correlated((p_value, coefficient))
 }
 
 /// Compute the Pearson correlation coefficient and its two-tailed p-value.
@@ -173,7 +173,7 @@ mod tests {
             .run_test(empty_array(), x, y, false, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
-            TestResult::Correlated(Ok((p_value, coefficient))) => {
+            TestResult::Correlated((p_value, coefficient)) => {
                 assert!(
                     p_value > SIGNIFICANCE_LEVEL,
                     "p_value {p_value} should be > 0.05 for independent data"
@@ -199,7 +199,7 @@ mod tests {
             .run_test(empty_array(), x, y, true, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
-            TestResult::Boolean(Ok(independent)) => {
+            TestResult::Boolean(independent) => {
                 assert!(independent, "Independent data should return true");
             }
             _ => panic!("Expected TestResult::Boolean"),
@@ -220,7 +220,7 @@ mod tests {
             .run_test(empty_array(), x, y, false, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
-            TestResult::Correlated(Ok((p_value, coefficient))) => {
+            TestResult::Correlated((p_value, coefficient)) => {
                 assert!(
                     p_value < SIGNIFICANCE_LEVEL,
                     "p_value {p_value} should be < 0.05 for correlated data"
@@ -247,7 +247,7 @@ mod tests {
             .run_test(empty_array(), x, y, true, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
-            TestResult::Boolean(Ok(independent)) => {
+            TestResult::Boolean(independent) => {
                 assert!(!independent, "Correlated data should return false");
             }
             _ => panic!("Expected TestResult::Boolean"),
@@ -272,7 +272,7 @@ mod tests {
             .run_test(array, x, y, false, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
-            TestResult::Correlated(Ok((p_value, coefficient))) => {
+            TestResult::Correlated((p_value, coefficient)) => {
                 assert!(
                     p_value > SIGNIFICANCE_LEVEL,
                     "p_value {p_value} should be > 0.05 after conditioning"
@@ -302,7 +302,7 @@ mod tests {
             .run_test(array, x, y, true, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
-            TestResult::Boolean(Ok(independent)) => {
+            TestResult::Boolean(independent) => {
                 assert!(
                     independent,
                     "Conditionally independent data should return true"
@@ -329,7 +329,7 @@ mod tests {
             .run_test(array, x, y, false, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
-            TestResult::Correlated(Ok((p_value, coefficient))) => {
+            TestResult::Correlated((p_value, coefficient)) => {
                 assert!(
                     p_value < SIGNIFICANCE_LEVEL,
                     "p_value {p_value} should be < 0.05 for v-structure"
@@ -358,7 +358,7 @@ mod tests {
             .run_test(array, x, y, true, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
-            TestResult::Boolean(Ok(independent)) => {
+            TestResult::Boolean(independent) => {
                 assert!(
                     !independent,
                     "V-structure conditioned on collider should return false"
@@ -388,7 +388,7 @@ mod tests {
             .run_test(array, x, y, false, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
-            TestResult::Correlated(Ok((p_value, coefficient))) => {
+            TestResult::Correlated((p_value, coefficient)) => {
                 assert!(
                     p_value >= SIGNIFICANCE_LEVEL,
                     "p_value {p_value} should be >= 0.05 after conditioning on all confounders"

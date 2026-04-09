@@ -37,8 +37,8 @@ mod tests {
 
     fn unwrap_correlated(r: &TestResult) -> (f64, f64, usize) {
         match r {
-            TestResult::Correlated2(Ok(t)) => *t,
-            _ => panic!("expected Correlated2(Ok)"),
+            TestResult::Correlated2(t) => *t,
+            _ => panic!("expected Correlated2"),
         }
     }
 
@@ -76,6 +76,6 @@ mod tests {
         let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
         let r = t.run_test(empty, x, y, true, 0.05).unwrap();
-        assert!(matches!(r, TestResult::Boolean(Ok(false))));
+        assert!(matches!(r, TestResult::Boolean(false)));
     }
 }

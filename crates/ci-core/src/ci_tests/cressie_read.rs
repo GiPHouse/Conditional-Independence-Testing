@@ -37,15 +37,15 @@ mod tests {
 
     fn unwrap_correlated(result: &TestResult) -> (f64, f64, usize) {
         match result {
-            TestResult::Correlated2(Ok(triple)) => *triple,
-            _ => panic!("expected Correlated2(Ok)"),
+            TestResult::Correlated2(triple) => *triple,
+            _ => panic!("expected Correlated2"),
         }
     }
 
     fn unwrap_boolean(result: &TestResult) -> bool {
         match result {
-            TestResult::Boolean(Ok(b)) => *b,
-            _ => panic!("expected Boolean(Ok)"),
+            TestResult::Boolean(b) => *b,
+            _ => panic!("expected Boolean"),
         }
     }
 

@@ -74,21 +74,15 @@ impl PyCITest {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
         match result {
-            TestResult::Boolean(Ok(b)) => Ok(b.into_pyobject(py)?.to_owned().into_any().unbind()),
-            TestResult::Correlated(Ok((p_value, coefficient))) => Ok((p_value, coefficient)
+            TestResult::Boolean(b) => Ok(b.into_pyobject(py)?.to_owned().into_any().unbind()),
+            TestResult::Correlated((p_value, coefficient)) => Ok((p_value, coefficient)
                 .into_pyobject(py)?
                 .into_any()
                 .unbind()),
-            TestResult::Correlated2(Ok((p_value, statistic, dof))) => Ok((p_value, statistic, dof)
+            TestResult::Correlated2((p_value, statistic, dof)) => Ok((p_value, statistic, dof)
                 .into_pyobject(py)?
                 .into_any()
                 .unbind()),
-            TestResult::Boolean(Err(e))
-            | TestResult::Correlated(Err(e))
-            | TestResult::Correlated2(Err(e)) => Err(PyErr::new::<
-                pyo3::exceptions::PyRuntimeError,
-                _,
-            >(e.to_string())),
         }
     }
 }
