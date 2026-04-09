@@ -72,7 +72,7 @@ fn wrap_result(
     significance_level: f64,
 ) -> TestResult {
     if boolean {
-        return TestResult::Boolean(Ok(p_value >= significance_level));
+        return TestResult::Boolean(p_value >= significance_level);
     }
-    TestResult::Correlated2(Ok((p_value, coefficient, degrees_of_freedom)))
+    TestResult::Correlated2((p_value, coefficient, degrees_of_freedom))
 }

@@ -4,9 +4,9 @@ use ndarray::{Array1, Array2};
 /// All statistical tests for conditional independence must implement this trait
 /// to be compatible with the registry system.
 pub enum TestResult {
-    Correlated(anyhow::Result<(f64, f64)>),
-    Correlated2(anyhow::Result<(f64, f64, usize)>),
-    Boolean(anyhow::Result<bool>),
+    Correlated((f64, f64)),
+    Correlated2((f64, f64, usize)),
+    Boolean(bool),
 }
 
 /// Data types that a `CITest` can be performed on.
