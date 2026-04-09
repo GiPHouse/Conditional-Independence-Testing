@@ -1,11 +1,9 @@
 use ndarray::{Array1, Array2};
-/// Trait defining the interface for conditional independence tests.
-///
-/// All statistical tests for conditional independence must implement this trait
-/// to be compatible with the registry system.
+
+/// The outcome of a conditional independence test.
 pub enum TestResult {
-    Correlated((f64, f64)),
-    Correlated2((f64, f64, usize)),
+    PValue(f64, f64),
+    Statistic(f64, f64, usize),
     Boolean(bool),
 }
 
@@ -19,6 +17,10 @@ pub enum CITestDataType {
     Mixed,
 }
 
+/// Trait defining the interface for conditional independence tests.
+///
+/// All statistical tests for conditional independence must implement this trait
+/// to be compatible with the registry system.
 pub trait CITest: Send + Sync {
     /// Runs a conditional independence test on the given data.
     ///

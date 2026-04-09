@@ -28,8 +28,8 @@ pub fn register_all_tests(registry: &mut Registry) {
         .expect("Failed to register Log Likelihood test!");
 
     //registry
-        //.add_to_registry("independence_match", IndependenceMatch {})
-        //.expect("Failed to register Independence Match test!");
+    //.add_to_registry("independence_match", IndependenceMatch {})
+    //.expect("Failed to register Independence Match test!");
 
     registry
         .add_to_registry("modified_likelihood", ModifiedLikelihood {})
@@ -40,8 +40,8 @@ pub fn register_all_tests(registry: &mut Registry) {
         .expect("Failed to register Pearson Correlation test!");
 
     //registry
-        //.add_to_registry("pearson_equivalence", PearsonEquivalence {})
-        //.expect("Failed to register Pearson Equivalence test!");
+    //.add_to_registry("pearson_equivalence", PearsonEquivalence {})
+    //.expect("Failed to register Pearson Equivalence test!");
 
     registry
         .add_to_registry("cressie_read", CressieRead {})
