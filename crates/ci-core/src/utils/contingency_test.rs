@@ -1,6 +1,6 @@
-use anyhow::{bail, Result};
 use ndarray::{Array2, Axis};
 use statrs::distribution::{ChiSquared, ContinuousCDF};
+use anyhow::{Result, bail};
 
 /// Compute a Cressie-Read power-divergence statistic for a contingency table.
 ///
@@ -13,7 +13,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
     let col_sums = observed.sum_axis(Axis(0));
     let total: f64 = row_sums.sum();
 
-    // Check whether contingency test is applicable
+    // Check whether contingency test is applicable 
     if observed.is_empty() {
         bail!("No data; `observed` has size 0.");
     }
@@ -31,14 +31,42 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
             for j in 0..ncols {
                 let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
                 let temp_observed = observed[[i, j]];
-                if temp_expected == 0.0 {
-                    bail!("Expected frequency is zero at position [{i}, {j}]");
+                if temp_expected == 0. {
+                    bail!(
+                        "Expected frequency is zero at position [{}, {}]",i,j
+                    );
                 }
-                temp_stat += temp_observed * (temp_observed / temp_expected).ln();
+                if temp_observed == 0. {
+                    continue;
+                }
+                temp_stat += temp_expected * (temp_expected / temp_observed).ln();
             }
         }
         2.0 * temp_stat
-    } else {
+    } 
+    else if lambda.abs()+1. < 1e-12 {
+        // Modified log-likelihood ratio test
+        let mut temp_stat: f64 = 0.0;
+        for i in 0..nrows {
+            for j in 0..ncols {
+                let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
+                let temp_observed = observed[[i, j]];
+                if temp_expected == 0. {
+                    bail!(
+                        "Expected frequency is zero at position [{}, {}]",i,j
+                    );
+                }
+                if temp_observed == 0. {
+                    bail!(
+                        "Observed value is zero at position [{}, {}]",i,j
+                    );
+                }
+                temp_stat += temp_expected * (temp_expected / temp_observed).ln();
+            }
+        }
+        2.0 * temp_stat
+    }
+    else {
         // Cressie-Read
         let mut temp_stat: f64 = 0.0;
         for i in 0..nrows {
@@ -46,7 +74,9 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0.0 {
-                    bail!("Expected frequency is zero at position [{i}, {j}]");
+                    bail!(
+                        "Expected frequency is zero at position [{}, {}]",i,j
+                    );
                 }
                 temp_stat += temp_observed * ((temp_observed / temp_expected).powf(lambda) - 1.0);
             }
