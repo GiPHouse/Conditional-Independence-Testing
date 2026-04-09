@@ -164,7 +164,7 @@ mod tests {
     // X and Y are independently generated, no conditioning variables.
     // Expected: high p_value (> 0.05), low |coefficient| (< 0.1)
     #[test]
-    fn test_empty_array_independent_boolean_false() {
+    fn unconditional_independent_data_is_not_rejected() {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
@@ -190,7 +190,7 @@ mod tests {
     // --- 2. Empty array + independent X, Y + boolean=true ---
     // Expected: true (variables are independent)
     #[test]
-    fn test_empty_array_independent_boolean_true() {
+    fn unconditional_boolean_accepts_independent() {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
@@ -210,7 +210,7 @@ mod tests {
     // Y = 3*X + small noise, so they are strongly correlated.
     // Expected: low p_value (< 0.05), high |coefficient| (> 0.9)
     #[test]
-    fn test_empty_array_correlated_boolean_false() {
+    fn unconditional_dependent_data_is_rejected() {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let noise = gen_normal(N, 0.0, 0.1, &mut rng);
@@ -237,7 +237,7 @@ mod tests {
     // --- 4. Empty array + correlated X, Y + boolean=true ---
     // Expected: false (variables are NOT independent)
     #[test]
-    fn test_empty_array_correlated_boolean_true() {
+    fn unconditional_boolean_rejects_dependent() {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let noise = gen_normal(N, 0.0, 0.1, &mut rng);
@@ -259,7 +259,7 @@ mod tests {
     // After conditioning on Z, residuals should be independent.
     // Expected: high p_value (> 0.05), low |coefficient| (< 0.1)
     #[test]
-    fn test_conditioned_independent_boolean_false() {
+    fn conditional_independent_data_is_not_rejected() {
         let mut rng = seeded_rng();
         let z = gen_normal(N, 0.0, 1.0, &mut rng);
         let noise_x = gen_normal(N, 0.0, 0.1, &mut rng);
@@ -289,7 +289,7 @@ mod tests {
     // --- 6. Non-empty array + conditionally independent + boolean=true ---
     // Expected: true (conditionally independent given Z)
     #[test]
-    fn test_conditioned_independent_boolean_true() {
+    fn conditional_boolean_accepts_independent() {
         let mut rng = seeded_rng();
         let z = gen_normal(N, 0.0, 1.0, &mut rng);
         let noise_x = gen_normal(N, 0.0, 0.1, &mut rng);
@@ -317,7 +317,7 @@ mod tests {
     // Conditioning on Z makes X and Y dependent.
     // Expected: low p_value (< 0.05), high |coefficient|
     #[test]
-    fn test_conditioned_dependent_boolean_false() {
+    fn conditional_dependent_data_is_rejected() {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
@@ -346,7 +346,7 @@ mod tests {
     // --- 8. Non-empty array + conditionally dependent (v-structure) + boolean=true ---
     // Expected: false (NOT independent after conditioning on collider)
     #[test]
-    fn test_conditioned_dependent_boolean_true() {
+    fn conditional_boolean_rejects_dependent() {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
@@ -372,7 +372,7 @@ mod tests {
     // After conditioning on all three, residuals should be independent.
     // Expected: high p_value, low |coefficient|
     #[test]
-    fn test_multiple_conditioned_independent_boolean_false() {
+    fn conditional_multiple_vars_independent_is_not_rejected() {
         let mut rng = seeded_rng();
         let z_1 = gen_normal(N, 0.0, 1.0, &mut rng);
         let z_2 = gen_normal(N, 0.0, 1.0, &mut rng);
@@ -403,28 +403,28 @@ mod tests {
     }
 
     #[test]
-    fn test_pearsonr_errors_on_empty_input() {
+    fn pearsonr_errors_on_empty_input() {
         let x: Array1<f64> = Array1::zeros(0);
         let y: Array1<f64> = Array1::zeros(0);
         assert!(pearsonr(&x.view(), &y.view()).is_err());
     }
 
     #[test]
-    fn test_pearsonr_errors_on_too_few_elements() {
+    fn pearsonr_errors_on_too_few_elements() {
         let x = Array1::from_vec(vec![1.0, 2.0]);
         let y = Array1::from_vec(vec![3.0, 4.0]);
         assert!(pearsonr(&x.view(), &y.view()).is_err());
     }
 
     #[test]
-    fn test_pearsonr_errors_on_mismatched_lengths() {
+    fn pearsonr_errors_on_mismatched_lengths() {
         let x = Array1::from_vec(vec![1.0, 2.0, 3.0]);
         let y = Array1::from_vec(vec![1.0, 2.0]);
         assert!(pearsonr(&x.view(), &y.view()).is_err());
     }
 
     #[test]
-    fn test_pearsonr_succeeds_with_minimum_input() {
+    fn pearsonr_succeeds_with_minimum_input() {
         let x = Array1::from_vec(vec![1.0, 2.0, 3.0]);
         let y = Array1::from_vec(vec![1.0, 2.0, 3.0]);
         let (coefficient, p_value) = pearsonr(&x.view(), &y.view()).unwrap();

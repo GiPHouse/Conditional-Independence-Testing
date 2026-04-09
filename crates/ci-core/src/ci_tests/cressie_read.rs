@@ -118,12 +118,11 @@ mod tests {
         assert!(!independent, "expected reject (independent=false)");
     }
 
-    // Conditional case: within each Z stratum X and Y are independent.
-    // Marginally X and Y look correlated, but conditioning on Z makes them independent.
+    // Conditional case: within each Z group X and Y are independent.
     // Z=0: X=[1,1,2,2], Y=[1,2,1,2]  (independent)
     // Z=1: X=[1,1,2,2], Y=[1,2,1,2]  (independent)
     #[test]
-    fn conditional_independence_holds_within_strata() {
+    fn conditional_independent_per_group() {
         let test = CressieRead {};
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
@@ -139,7 +138,7 @@ mod tests {
             "expected statistic ~0, got {statistic}"
         );
         assert!(p_value > 0.99, "expected p ~1, got {p_value}");
-        // Two strata, each contributing dof = (2-1)*(2-1) = 1.
+        // Two groups, each contributing dof = (2-1)*(2-1) = 1.
         assert_eq!(dof, 2);
 
         let independent =
@@ -147,10 +146,10 @@ mod tests {
         assert!(independent);
     }
 
-    // Conditional case: within each Z stratum X and Y are perfectly dependent.
+    // Conditional case: within each Z group X and Y are perfectly dependent.
     // Z=0: X=Y=[1,1,2,2]; Z=1: X=Y=[1,1,2,2]. Should reject.
     #[test]
-    fn conditional_dependence_within_strata_is_rejected() {
+    fn conditional_dependent_per_group() {
         let test = CressieRead {};
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
