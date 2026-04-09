@@ -15,7 +15,14 @@ impl CITest for FreemanTukey {
         boolean: bool,
         significance_level: f64,
     ) -> anyhow::Result<TestResult> {
-        Ok(power_divergence(conditioning_set, x_values, y_values, boolean, significance_level, FREEMAN_TUKEY_LAMBDA)?)
+        power_divergence(
+            &conditioning_set,
+            &x_values,
+            &y_values,
+            boolean,
+            significance_level,
+            FREEMAN_TUKEY_LAMBDA,
+        )
     }
 
     fn data_types(&self) -> &'static [CITestDataType] {

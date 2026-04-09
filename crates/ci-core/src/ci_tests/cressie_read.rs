@@ -15,7 +15,14 @@ impl CITest for CressieRead {
         boolean: bool,
         significance_level: f64,
     ) -> anyhow::Result<TestResult> {
-        Ok(power_divergence(conditioning_set, x_values, y_values, boolean, significance_level, CRESSIE_READ_LAMBDA)?)
+        power_divergence(
+            &conditioning_set,
+            &x_values,
+            &y_values,
+            boolean,
+            significance_level,
+            CRESSIE_READ_LAMBDA,
+        )
     }
     fn data_types(&self) -> &'static [CITestDataType] {
         &[CITestDataType::Discrete]
@@ -28,9 +35,9 @@ mod tests {
     use ndarray::array;
     const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
-    fn unwrap_correlated(result: TestResult) -> (f64, f64, usize) {
+    fn unwrap_correlated(result: &TestResult) -> (f64, f64, usize) {
         match result {
-            TestResult::Correlated2(Ok(triple)) => triple,
+            TestResult::Correlated2(Ok(triple)) => *triple,
             _ => panic!("expected Correlated2(Ok)"),
         }
     }
@@ -52,14 +59,15 @@ mod tests {
         let empty_z = Array2::<f64>::zeros((0, 0));
 
         let (p_value, statistic, dof) = unwrap_correlated(
-            test.run_test(
-                empty_z.clone(),
-                x.clone(),
-                y.clone(),
-                false,
-                SIGNIFICANCE_LEVEL,
-            )
-            .unwrap(),
+            &test
+                .run_test(
+                    empty_z.clone(),
+                    x.clone(),
+                    y.clone(),
+                    false,
+                    SIGNIFICANCE_LEVEL,
+                )
+                .unwrap(),
         );
         assert!(
             statistic.abs() < 1e-9,
@@ -86,14 +94,15 @@ mod tests {
         let empty_z = Array2::<f64>::zeros((0, 0));
 
         let (p_value, statistic, _dof) = unwrap_correlated(
-            test.run_test(
-                empty_z.clone(),
-                x.clone(),
-                y.clone(),
-                false,
-                SIGNIFICANCE_LEVEL,
-            )
-            .unwrap(),
+            &test
+                .run_test(
+                    empty_z.clone(),
+                    x.clone(),
+                    y.clone(),
+                    false,
+                    SIGNIFICANCE_LEVEL,
+                )
+                .unwrap(),
         );
         assert!(statistic > 5.0, "expected large statistic, got {statistic}");
         assert!(
@@ -121,7 +130,8 @@ mod tests {
         let z = Array2::from_shape_vec((8, 1), vec![0., 0., 0., 0., 1., 1., 1., 1.]).unwrap();
 
         let (p_value, statistic, dof) = unwrap_correlated(
-            test.run_test(z.clone(), x.clone(), y.clone(), false, SIGNIFICANCE_LEVEL)
+            &test
+                .run_test(z.clone(), x.clone(), y.clone(), false, SIGNIFICANCE_LEVEL)
                 .unwrap(),
         );
         assert!(
@@ -147,7 +157,7 @@ mod tests {
         let z = Array2::from_shape_vec((8, 1), vec![0., 0., 0., 0., 1., 1., 1., 1.]).unwrap();
 
         let (p_value, statistic, _dof) =
-            unwrap_correlated(test.run_test(z, x, y, false, SIGNIFICANCE_LEVEL).unwrap());
+            unwrap_correlated(&test.run_test(z, x, y, false, SIGNIFICANCE_LEVEL).unwrap());
         assert!(statistic > 5.0, "expected large statistic, got {statistic}");
         assert!(
             p_value < SIGNIFICANCE_LEVEL,
