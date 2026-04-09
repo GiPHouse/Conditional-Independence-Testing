@@ -41,7 +41,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
             }
         }
         2.0 * temp_stat
-    } else if lambda.abs() + 1. < 1e-12 {
+    } else if (lambda + 1.).abs() < 1e-12 {
         // Modified log-likelihood ratio test
         let mut temp_stat: f64 = 0.0;
         for i in 0..nrows {
@@ -150,13 +150,14 @@ mod tests {
     /// 3. Test zero observed value in Modified log-likelihood test (lambda = -1)
     #[test]
     fn test_modified_log_likelihood_zero_observed() {
-        let observed = array![[5.0, 1.0], [2.0, 0.0]]; // zero observed allowed
-        let result = contingency_test(&observed, -1.0).unwrap(); // should succeed
+        let observed = array![[5.0, 1.0], [2.0, 0.0]]; // contains zero observed
+        let result = contingency_test(&observed, -1.0);
 
-        let (stat, p, dof) = result;
-        assert!(stat >= 0.0); // statistic is non-negative
-        assert!(p >= 0.0 && p <= 1.0); // p-value between 0 and 1
-        assert_eq!(dof, 1); // degrees of freedom for 2x2 table
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Observed value is zero"));
     }
 
     /// 4a. Simple valid test for G-test (lambda = 0)
