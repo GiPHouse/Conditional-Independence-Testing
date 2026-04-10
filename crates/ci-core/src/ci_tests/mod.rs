@@ -9,11 +9,10 @@ mod pearson_equivalence;
 use chi_squared::ChiSquared;
 use cressie_read::CressieRead;
 use freeman_tukey::FreemanTukey;
-//use independence_match::IndependenceMatch;
 use log_likelihood::LogLikelihood;
 use modified_likelihood::ModifiedLikelihood;
 use pearson_correlation::PearsonCorrelation;
-//use pearson_equivalence::PearsonEquivalence;
+use pearson_equivalence::PearsonEquivalence;
 
 use crate::registry::Registry;
 
@@ -34,9 +33,9 @@ pub fn register_all_tests(registry: &mut Registry) {
         .add_to_registry("pearson_correlation", PearsonCorrelation {})
         .expect("Failed to register Pearson Correlation test!");
 
-    //registry
-    //.add_to_registry("pearson_equivalence", PearsonEquivalence {})
-    //.expect("Failed to register Pearson Equivalence test!");
+    registry
+        .add_to_registry("pearson_equivalence", PearsonEquivalence {})
+        .expect("Failed to register Pearson Equivalence test!");
 
     registry
         .add_to_registry("cressie_read", CressieRead {})
