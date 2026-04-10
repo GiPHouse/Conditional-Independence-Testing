@@ -2,9 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [master]
   pull_request:
-    branches: [ main ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,12 +18,14 @@ jobs:
     name: Format Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
+
+      - uses: Swatinem/rust-cache@v2
 
       - name: Check formatting
         run: cargo fmt --all -- --check
@@ -29,33 +34,49 @@ jobs:
     name: Clippy Lints
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
+      - name: Install system dependencies
+        run: sudo apt-get install -y libopenblas-dev
+        
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
 
+      - uses: Swatinem/rust-cache@v2
+
       - name: Run Clippy
-        run: cargo clippy --workspace --exclude ci-python --exclude ci-r --exclude ci-js --all-targets -- -D warnings
+        run: cargo clippy --workspace --exclude ci_python --exclude ci_r --exclude ci_js --all-targets -- -D warnings
 
   test:
     name: Test Suite
+    needs: [fmt, clippy]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         rust: [stable]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+
+      - name: Install OpenBLAS (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install -y libopenblas-dev
+
+      - name: Install OpenBLAS (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install openblas
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
 
+      - uses: Swatinem/rust-cache@v2
+
       - name: Build
-        run: cargo build --workspace --exclude ci-python --exclude ci-r --exclude ci-js --verbose
+        run: cargo build --workspace --exclude ci_python --exclude ci_r --exclude ci_js --verbose
 
       - name: Run tests
-        run: cargo test --workspace --exclude ci-python --exclude ci-r --exclude ci-js --verbose
+        run: cargo test --workspace --exclude ci_python --exclude ci_r --exclude ci_js --verbose
