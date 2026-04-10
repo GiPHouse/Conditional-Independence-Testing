@@ -41,9 +41,8 @@ pub fn power_divergence(
         let x_sub: Array1<f64> = indices.iter().map(|&i| x_values[i]).collect();
         let y_sub: Array1<f64> = indices.iter().map(|&i| y_values[i]).collect();
         let table = contingency_table_with_categories(&x_sub, &y_sub, &x_categories, &y_categories);
-        let (stat, _p, dof) = match contingency_test(&table, lambda) {
-            Ok(result) => result,
-            Err(_) => continue,
+        let Ok((stat, _p, dof)) = contingency_test(&table, lambda) else {
+            continue;
         };
         if dof == 0 {
             continue;
