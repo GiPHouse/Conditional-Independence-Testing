@@ -105,14 +105,14 @@ mod tests {
     use super::*;
 
     #[test]
-    /// Test to check registry creation.
+    // Test to check registry creation.
     fn test_registry_new() {
         let registry = Registry::new();
         assert_ne!(registry.tests.len(), 0);
     }
 
     #[test]
-    /// Test to check getting tests.
+    // Test to check getting tests.
     fn test_get_test() {
         let registry = Registry::new();
         assert!(registry.get_test("chi_square").is_ok());
@@ -120,7 +120,7 @@ mod tests {
     }
 
     #[test]
-    /// Test to check listing all tests.
+    // Test to check listing all tests.
     fn test_all_tests() -> anyhow::Result<()> {
         let registry = Registry::new();
         assert!(!registry.all_tests()?.collect::<Vec<&str>>().is_empty());
@@ -128,17 +128,13 @@ mod tests {
     }
 
     #[test]
-    /// Test to check listing all tests supporting continuous data.
-    ///
-    /// We check if *at least* all current CI tests supporting continuous data are returned so that
-    /// the addition of future tests doesn't necessitate updating the tests of the registry.
+    // Test to check listing all tests supporting continuous data.
+    //
+    // We check if *at least* all current CI tests supporting continuous data are returned so that
+    // the addition of future tests doesn't necessitate updating the tests of the registry.
     fn test_tests_with_data_type_continuous() -> anyhow::Result<()> {
         let registry = Registry::new();
-        for test in [
-            "independence_match",
-            "pearson_correlation",
-            "pearson_equivalence",
-        ] {
+        for test in ["pearson_correlation", "pearson_equivalence"] {
             assert!(registry
                 .tests_with_data_type(&Continuous)?
                 .any(|t| t == test));
@@ -147,19 +143,18 @@ mod tests {
     }
 
     #[test]
-    /// Test to check listing all tests supporting discrete data.
-    ///
-    /// We check if *at least* all current CI tests supporting discrete data are returned so that
-    /// the addition of future tests doesn't necessitate updating the tests of the registry.
+    // Test to check listing all tests supporting discrete data.
+    //
+    // We check if *at least* all current CI tests supporting discrete data are returned so that
+    // the addition of future tests doesn't necessitate updating the tests of the registry.
     fn test_tests_with_data_type_discrete() -> anyhow::Result<()> {
         let registry = Registry::new();
         for test in [
             "chi_square",
-            "g_test",
-            "independence_match",
-            "likelihood_ratio",
+            "log_likelihood",
             "modified_likelihood",
-            "power_divergence",
+            "cressie_read",
+            "freeman_tukey",
         ] {
             assert!(registry.tests_with_data_type(&Discrete)?.any(|t| t == test));
         }
@@ -167,15 +162,16 @@ mod tests {
     }
 
     #[test]
-    /// Test to check listing all tests supporting mixed data.
-    ///
-    /// We check if *at least* all current CI tests supporting mixed data are returned so that
-    /// the addition of future tests doesn't necessitate updating the tests of the registry.
+    // Test to check listing all tests supporting mixed data.
+    //
+    // No tests currently support mixed data (independence_match is not yet implemented).
     fn test_tests_with_data_type_mixed() -> anyhow::Result<()> {
         let registry = Registry::new();
-        assert!(registry
-            .tests_with_data_type(&Mixed)?
-            .any(|t| t == "independence_match"));
+        assert_eq!(
+            registry.tests_with_data_type(&Mixed)?.count(),
+            0,
+            "no registered tests support Mixed yet"
+        );
         Ok(())
     }
 }

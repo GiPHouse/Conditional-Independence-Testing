@@ -50,16 +50,17 @@ impl PyCITest {
     ///
     /// Returns `PyRuntimeError` if the test lookup fails or the test itself returns an error.
     #[allow(clippy::needless_pass_by_value)]
-    #[pyo3(signature = (array, x, y, boolean=true))]
+    #[pyo3(signature = (z, x, y, boolean=true, significance_level=0.05))]
     pub fn __call__(
         &self,
         py: Python<'_>,
-        array: PyReadonlyArray2<'_, f64>,
+        z: PyReadonlyArray2<'_, f64>,
         x: PyReadonlyArray1<'_, f64>,
         y: PyReadonlyArray1<'_, f64>,
         boolean: bool,
+        significance_level: f64,
     ) -> PyResult<Py<PyAny>> {
-        let array: Array2<f64> = array.as_array().to_owned();
+        let z: Array2<f64> = z.as_array().to_owned();
         let x: Array1<f64> = x.as_array().to_owned();
         let y: Array1<f64> = y.as_array().to_owned();
 
@@ -69,20 +70,19 @@ impl PyCITest {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
         let result = test
-            .run_test(array, x, y, boolean)
+            .run_test(x, y, z, boolean, significance_level)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
         match result {
-            TestResult::Boolean(Ok(b)) => Ok(b.into_pyobject(py)?.to_owned().into_any().unbind()),
-            TestResult::Correlated(Ok((p_value, coefficient))) => Ok((p_value, coefficient)
+            TestResult::Boolean(b) => Ok(b.into_pyobject(py)?.to_owned().into_any().unbind()),
+            TestResult::PValue(p_value, coefficient) => Ok((p_value, coefficient)
                 .into_pyobject(py)?
                 .into_any()
                 .unbind()),
-            TestResult::Boolean(Err(e)) | TestResult::Correlated(Err(e)) => {
-                Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-                    e.to_string(),
-                ))
-            }
+            TestResult::Statistic(p_value, statistic, dof) => Ok((p_value, statistic, dof)
+                .into_pyobject(py)?
+                .into_any()
+                .unbind()),
         }
     }
 }
