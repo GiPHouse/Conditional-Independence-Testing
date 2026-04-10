@@ -9,16 +9,16 @@ pub struct ChiSquared {}
 impl CITest for ChiSquared {
     fn run_test(
         &self,
-        conditioning_set: Array2<f64>,
         x_values: Array1<f64>,
         y_values: Array1<f64>,
+        z: Array2<f64>,
         boolean: bool,
         significance_level: f64,
     ) -> anyhow::Result<TestResult> {
         power_divergence(
-            &conditioning_set,
             &x_values,
             &y_values,
+            &z,
             boolean,
             significance_level,
             CHI_SQUARED_LAMBDA,
@@ -49,7 +49,7 @@ mod tests {
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(empty, x, y, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty, false, 0.05).unwrap());
         assert!(stat.abs() < 1e-9, "stat should be ~0, got {stat}");
         assert!(p > 0.99);
         assert_eq!(dof, 1);
@@ -63,7 +63,7 @@ mod tests {
         let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(empty, x, y, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty, false, 0.05).unwrap());
         assert!((stat - 8.0).abs() < 1e-9, "got {stat}");
         assert!((p - 0.004_677_734_981_047_276).abs() < 1e-12, "got {p}");
         assert_eq!(dof, 1);
@@ -76,13 +76,13 @@ mod tests {
         // independent data -> should return true (fail to reject)
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
-        let r = t.run_test(empty.clone(), x, y, true, 0.05).unwrap();
+        let r = t.run_test(x, y, empty.clone(), true, 0.05).unwrap();
         assert!(matches!(r, TestResult::Boolean(true)));
 
         // dependent data -> should return false (reject)
         let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
-        let r = t.run_test(empty, x, y, true, 0.05).unwrap();
+        let r = t.run_test(x, y, empty, true, 0.05).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 }

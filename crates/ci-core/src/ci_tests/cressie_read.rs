@@ -9,16 +9,16 @@ pub struct CressieRead {}
 impl CITest for CressieRead {
     fn run_test(
         &self,
-        conditioning_set: Array2<f64>,
         x_values: Array1<f64>,
         y_values: Array1<f64>,
+        z: Array2<f64>,
         boolean: bool,
         significance_level: f64,
     ) -> anyhow::Result<TestResult> {
         power_divergence(
-            &conditioning_set,
             &x_values,
             &y_values,
+            &z,
             boolean,
             significance_level,
             CRESSIE_READ_LAMBDA,
@@ -61,9 +61,9 @@ mod tests {
         let (p_value, statistic, dof) = unwrap_correlated(
             &test
                 .run_test(
-                    empty_z.clone(),
                     x.clone(),
                     y.clone(),
+                    empty_z.clone(),
                     false,
                     SIGNIFICANCE_LEVEL,
                 )
@@ -78,7 +78,7 @@ mod tests {
 
         let independent = unwrap_boolean(
             &test
-                .run_test(empty_z, x, y, true, SIGNIFICANCE_LEVEL)
+                .run_test(x, y, empty_z, true, SIGNIFICANCE_LEVEL)
                 .unwrap(),
         );
         assert!(independent, "expected fail-to-reject (independent=true)");
@@ -96,9 +96,9 @@ mod tests {
         let (p_value, statistic, _dof) = unwrap_correlated(
             &test
                 .run_test(
-                    empty_z.clone(),
                     x.clone(),
                     y.clone(),
+                    empty_z.clone(),
                     false,
                     SIGNIFICANCE_LEVEL,
                 )
@@ -112,7 +112,7 @@ mod tests {
 
         let independent = unwrap_boolean(
             &test
-                .run_test(empty_z, x, y, true, SIGNIFICANCE_LEVEL)
+                .run_test(x, y, empty_z, true, SIGNIFICANCE_LEVEL)
                 .unwrap(),
         );
         assert!(!independent, "expected reject (independent=false)");
@@ -130,7 +130,7 @@ mod tests {
 
         let (p_value, statistic, dof) = unwrap_correlated(
             &test
-                .run_test(z.clone(), x.clone(), y.clone(), false, SIGNIFICANCE_LEVEL)
+                .run_test(x.clone(), y.clone(), z.clone(), false, SIGNIFICANCE_LEVEL)
                 .unwrap(),
         );
         assert!(
@@ -142,7 +142,7 @@ mod tests {
         assert_eq!(dof, 2);
 
         let independent =
-            unwrap_boolean(&test.run_test(z, x, y, true, SIGNIFICANCE_LEVEL).unwrap());
+            unwrap_boolean(&test.run_test(x, y, z, true, SIGNIFICANCE_LEVEL).unwrap());
         assert!(independent);
     }
 
@@ -156,7 +156,7 @@ mod tests {
         let z = Array2::from_shape_vec((8, 1), vec![0., 0., 0., 0., 1., 1., 1., 1.]).unwrap();
 
         let (p_value, statistic, _dof) =
-            unwrap_correlated(&test.run_test(z, x, y, false, SIGNIFICANCE_LEVEL).unwrap());
+            unwrap_correlated(&test.run_test(x, y, z, false, SIGNIFICANCE_LEVEL).unwrap());
         assert!(statistic > 5.0, "expected large statistic, got {statistic}");
         assert!(
             p_value < SIGNIFICANCE_LEVEL,

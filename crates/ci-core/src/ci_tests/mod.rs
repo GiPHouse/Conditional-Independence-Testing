@@ -1,7 +1,6 @@
 mod chi_squared;
 mod cressie_read;
 mod freeman_tukey;
-mod independence_match;
 mod log_likelihood;
 mod modified_likelihood;
 mod pearson_correlation;
@@ -26,10 +25,6 @@ pub fn register_all_tests(registry: &mut Registry) {
     registry
         .add_to_registry("log_likelihood", LogLikelihood {})
         .expect("Failed to register Log Likelihood test!");
-
-    //registry
-    //.add_to_registry("independence_match", IndependenceMatch {})
-    //.expect("Failed to register Independence Match test!");
 
     registry
         .add_to_registry("modified_likelihood", ModifiedLikelihood {})
