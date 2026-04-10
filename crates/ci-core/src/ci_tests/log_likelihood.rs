@@ -2,11 +2,11 @@ use crate::strategy::{CITest, CITestDataType, TestResult};
 use crate::utils::power_divergence::power_divergence;
 use ndarray::{Array1, Array2};
 
-const MODIFIED_LIKELIHOOD_LAMBDA: f64 = -1.0;
+const LOG_LIKELIHOOD_LAMBDA: f64 = 0.0;
 
-pub struct ModifiedLikelihood {}
+pub struct LogLikelihood {}
 
-impl CITest for ModifiedLikelihood {
+impl CITest for LogLikelihood {
     fn run_test(
         &self,
         x_values: Array1<f64>,
@@ -21,7 +21,7 @@ impl CITest for ModifiedLikelihood {
             &z,
             boolean,
             significance_level,
-            MODIFIED_LIKELIHOOD_LAMBDA,
+            LOG_LIKELIHOOD_LAMBDA,
         )
     }
 
@@ -44,7 +44,7 @@ mod tests {
 
     #[test]
     fn unconditional_independent_data_is_not_rejected() {
-        let t = ModifiedLikelihood {};
+        let t = LogLikelihood {};
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
@@ -55,23 +55,24 @@ mod tests {
         assert_eq!(dof, 1);
     }
 
-    // scipy: power_divergence([[5,1],[1,5]], lambda_=-1) -> stat=7.053439978825427
+    // Can't test perfectly dependent (zero cells -> ln(0)), use skewed table instead.
+    // scipy: power_divergence([[5,1],[1,5]], lambda_=0) -> stat=5.822063320647374
     #[test]
     fn unconditional_dependent_data_is_rejected() {
-        let t = ModifiedLikelihood {};
+        let t = LogLikelihood {};
         let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty, false, 0.05).unwrap());
-        assert!((stat - 7.053_439_978_825_427).abs() < 1e-9, "got {stat}");
-        assert!((p - 0.007_911_317_670_556_329).abs() < 1e-12, "got {p}");
+        assert!((stat - 5.822_063_320_647_374).abs() < 1e-9, "got {stat}");
+        assert!((p - 0.015_826_368_796_540_195).abs() < 1e-12, "got {p}");
         assert_eq!(dof, 1);
     }
 
     #[test]
     fn unconditional_boolean_rejects_dependent() {
-        let t = ModifiedLikelihood {};
+        let t = LogLikelihood {};
         let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
