@@ -60,7 +60,7 @@ mod tests {
 
         assert_eq!(result.len(), 1);
         let mut group = result[0].clone();
-        group.sort();
+        group.sort_unstable();
         assert_eq!(group, vec![0, 1, 2]);
     }
 
@@ -108,7 +108,7 @@ mod tests {
         let result = partition_indices(&data);
         assert_eq!(result.len(), 1);
         let mut group = result[0].clone();
-        group.sort();
+        group.sort_unstable();
         assert_eq!(group, vec![0, 1, 2]);
     }
 

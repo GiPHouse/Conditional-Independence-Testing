@@ -59,8 +59,7 @@ mod tests {
     fn basic_test() {
         let test1_x: Array1<f64> = array![1.0, 2.0, 3.0, 1.0, 1.0];
         let test1_y: Array1<f64> = array![1.0, 2.0, 3.0, 1.0, 2.0];
-        let test1_expected: Array2<f64> =
-            array![[2.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
+        let test1_expected: Array2<f64> = array![[2.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
         assert_eq!(test1_expected, contingency_table(&test1_x, &test1_y));
     }
 
@@ -68,8 +67,7 @@ mod tests {
     fn order_independence() {
         let test2_x: Array1<f64> = array![2.0, 1.0, 1.0, 3.0, 1.0];
         let test2_y: Array1<f64> = array![2.0, 1.0, 2.0, 3.0, 1.0];
-        let test1_expected: Array2<f64> =
-            array![[2.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
+        let test1_expected: Array2<f64> = array![[2.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
         assert_eq!(test1_expected, contingency_table(&test2_x, &test2_y));
     }
 

@@ -51,15 +51,9 @@ impl CITest for PearsonCorrelation {
             ))
         } else {
             // Use linear regression to compute residuals and test independence on it.
-            let x_coefficient = z
-                .view()
-                .least_squares(&x_values.view())?
-                .solution;
+            let x_coefficient = z.view().least_squares(&x_values.view())?.solution;
 
-            let y_coefficient = z
-                .view()
-                .least_squares(&y_values.view())?
-                .solution;
+            let y_coefficient = z.view().least_squares(&y_values.view())?.solution;
 
             let residual_x = x_values - z.dot(&x_coefficient);
             let residual_y = y_values - z.dot(&y_coefficient);
