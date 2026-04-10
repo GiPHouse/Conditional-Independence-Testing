@@ -29,9 +29,9 @@ pub trait CITest: Send + Sync {
     /// Returns an error if the test computation fails (e.g., invalid input dimensions or numerical issues).
     fn run_test(
         &self,
-        conditioning_set: Array2<f64>,
         x_values: Array1<f64>,
         y_values: Array1<f64>,
+        z: Array2<f64>,
         boolean: bool,
         significance_level: f64,
     ) -> anyhow::Result<TestResult>;

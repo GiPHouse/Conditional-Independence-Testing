@@ -22,10 +22,10 @@ impl CITest for PearsonCorrelation {
     ///
     /// # Parameters
     ///
-    /// - `conditioning_set` - Conditioning variables Z for testing X ⊥ Y | Z.
-    ///   Pass an empty array for unconditional testing.
     /// - `x_values` - The first variable X.
     /// - `y_values` - The second variable Y.
+    /// - `z` - Conditioning variables Z for testing X ⊥ Y | Z.
+    ///   Pass an empty array for unconditional testing.
     /// - `boolean` - If true, returns a boolean indicating independence
     ///   (based on `SIGNIFICANCE_LEVEL`). If false, returns the (p-value, coefficient) tuple.
     ///
@@ -35,13 +35,13 @@ impl CITest for PearsonCorrelation {
     /// - If `boolean=false`: `TestResult::PValue(p_value, coefficient)`
     fn run_test(
         &self,
-        conditioning_set: Array2<f64>,
         x_values: Array1<f64>,
         y_values: Array1<f64>,
+        z: Array2<f64>,
         boolean: bool,
         significance_level: f64,
     ) -> anyhow::Result<TestResult> {
-        if conditioning_set.is_empty() {
+        if z.is_empty() {
             let (coefficient, p_value) = pearsonr(&x_values.view(), &y_values.view())?;
             Ok(wrap_result(
                 boolean,
@@ -51,18 +51,18 @@ impl CITest for PearsonCorrelation {
             ))
         } else {
             // Use linear regression to compute residuals and test independence on it.
-            let x_coefficient = conditioning_set
+            let x_coefficient = z
                 .view()
                 .least_squares(&x_values.view())?
                 .solution;
 
-            let y_coefficient = conditioning_set
+            let y_coefficient = z
                 .view()
                 .least_squares(&y_values.view())?
                 .solution;
 
-            let residual_x = x_values - conditioning_set.dot(&x_coefficient);
-            let residual_y = y_values - conditioning_set.dot(&y_coefficient);
+            let residual_x = x_values - z.dot(&x_coefficient);
+            let residual_y = y_values - z.dot(&y_coefficient);
 
             let (coefficient, p_value) = pearsonr(&residual_x.view(), &residual_y.view())?;
             Ok(wrap_result(
@@ -170,7 +170,7 @@ mod tests {
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
 
         let result = pearson()
-            .run_test(empty_array(), x, y, false, SIGNIFICANCE_LEVEL)
+            .run_test(x, y, empty_array(), false, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
@@ -196,7 +196,7 @@ mod tests {
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
 
         let result = pearson()
-            .run_test(empty_array(), x, y, true, SIGNIFICANCE_LEVEL)
+            .run_test(x, y, empty_array(), true, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
             TestResult::Boolean(independent) => {
@@ -217,7 +217,7 @@ mod tests {
         let y = &x * 3.0 + &noise;
 
         let result = pearson()
-            .run_test(empty_array(), x, y, false, SIGNIFICANCE_LEVEL)
+            .run_test(x, y, empty_array(), false, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
@@ -244,7 +244,7 @@ mod tests {
         let y = &x * 3.0 + &noise;
 
         let result = pearson()
-            .run_test(empty_array(), x, y, true, SIGNIFICANCE_LEVEL)
+            .run_test(x, y, empty_array(), true, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
             TestResult::Boolean(independent) => {
@@ -269,7 +269,7 @@ mod tests {
         let array = z.insert_axis(Axis(1));
 
         let result = pearson()
-            .run_test(array, x, y, false, SIGNIFICANCE_LEVEL)
+            .run_test(x, y, array, false, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
@@ -299,7 +299,7 @@ mod tests {
         let array = z.insert_axis(Axis(1));
 
         let result = pearson()
-            .run_test(array, x, y, true, SIGNIFICANCE_LEVEL)
+            .run_test(x, y, array, true, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
             TestResult::Boolean(independent) => {
@@ -326,7 +326,7 @@ mod tests {
         let array = z.insert_axis(Axis(1));
 
         let result = pearson()
-            .run_test(array, x, y, false, SIGNIFICANCE_LEVEL)
+            .run_test(x, y, array, false, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
@@ -355,7 +355,7 @@ mod tests {
         let array = z.insert_axis(Axis(1));
 
         let result = pearson()
-            .run_test(array, x, y, true, SIGNIFICANCE_LEVEL)
+            .run_test(x, y, array, true, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
             TestResult::Boolean(independent) => {
@@ -385,7 +385,7 @@ mod tests {
         let array = stack(Axis(1), &[z_1.view(), z_2.view(), z_3.view()]).unwrap();
 
         let result = pearson()
-            .run_test(array, x, y, false, SIGNIFICANCE_LEVEL)
+            .run_test(x, y, array, false, SIGNIFICANCE_LEVEL)
             .unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
