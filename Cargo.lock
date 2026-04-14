@@ -129,7 +129,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "criterion",
+<<<<<<< HEAD
  "nalgebra",
+=======
+ "libm",
+>>>>>>> d8c7186 (naive untested first version of pearson_equivalence based on pgmpy)
  "ndarray",
  "ordered-float",
  "proptest",
