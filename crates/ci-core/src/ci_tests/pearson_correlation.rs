@@ -74,7 +74,7 @@ impl CITest for PearsonCorrelation {
 }
 
 /// Construct the appropriate [`TestResult`] variant based on the `boolean` flag.
-fn wrap_result(
+pub fn wrap_result(
     boolean: bool,
     p_value: f64,
     coefficient: f64,
