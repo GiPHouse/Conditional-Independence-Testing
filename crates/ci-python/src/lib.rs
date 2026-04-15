@@ -50,15 +50,13 @@ impl PyCITest {
     ///
     /// Returns `PyRuntimeError` if the test lookup fails or the test itself returns an error.
     #[allow(clippy::needless_pass_by_value)]
-    #[pyo3(signature = (z, x, y, boolean=true, significance_level=0.05))]
+    #[pyo3(signature = (z, x, y))]
     pub fn __call__(
         &self,
         py: Python<'_>,
         z: PyReadonlyArray2<'_, f64>,
         x: PyReadonlyArray1<'_, f64>,
         y: PyReadonlyArray1<'_, f64>,
-        boolean: bool,
-        significance_level: f64,
     ) -> PyResult<Py<PyAny>> {
         let z: Array2<f64> = z.as_array().to_owned();
         let x: Array1<f64> = x.as_array().to_owned();
@@ -70,7 +68,7 @@ impl PyCITest {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
         let result = test
-            .run_test(x, y, z, boolean, significance_level)
+            .run_test(x, y, z)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
         match result {

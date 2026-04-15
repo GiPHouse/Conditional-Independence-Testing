@@ -32,8 +32,6 @@ pub trait CITest: Send + Sync {
         x_values: Array1<f64>,
         y_values: Array1<f64>,
         z: Array2<f64>,
-        boolean: bool,
-        significance_level: f64,
     ) -> anyhow::Result<TestResult>;
 
     /// Data types that a test supports.
