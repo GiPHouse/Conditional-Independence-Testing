@@ -8,10 +8,10 @@ description = "PyO3 bindings for Conditional Independence Testing"
 repository = ""
 
 [dependencies]
-ci-core = { path = "../ci-core" }
+ci_core = { path = "../ci-core" }
+pyo3 = { version = "0.28", features = ["extension-module"] }
+numpy = { version = "0.28" }
 ndarray = { workspace = true }
-numpy = "0.28.0"
-pyo3 = { workspace = true }
 
 [lints]
 workspace = true

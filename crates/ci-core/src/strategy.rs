@@ -1,18 +1,19 @@
-use scirs2_core::ndarray::Array1;
-use scirs2_core::ndarray::Array2;
+use ndarray::{Array1, Array2};
 /// Trait defining the interface for conditional independence tests.
 ///
 /// All statistical tests for conditional independence must implement this trait
 /// to be compatible with the registry system.
-
 pub enum TestResult {
     Correlated(anyhow::Result<(f64, f64)>),
     Boolean(anyhow::Result<bool>),
 }
 
-pub trait CITest: Send + Sync{
-    //fn name(&self) -> &'static str;
-    //fn data_types(&self) -> &'static [&'static str];
+pub trait CITest: Send + Sync {
+    /// Runs a conditional independence test on the given data.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the test computation fails (e.g., invalid input dimensions or numerical issues).
     fn run_test(
         &self,
         array: Array2<f64>,
