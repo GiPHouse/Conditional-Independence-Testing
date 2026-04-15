@@ -189,3 +189,6 @@ pyrightconfig.json
 .DS_Store
 Thumbs.db
 todo.txt
+
+# Design documents
+docs/r-bindings-architecture.md
