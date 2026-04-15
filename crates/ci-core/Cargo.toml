@@ -15,6 +15,7 @@ exclude = [""]
 anyhow = { workspace = true}
 ndarray = { workspace = true }
 statrs = { workspace = true }
+ordered-float = "5.3.0"
 rand = "0.9"
 
 [target.'cfg(target_os = "linux")'.dependencies]

@@ -2,11 +2,11 @@ use crate::strategy::{CITest, CITestDataType, TestResult};
 use crate::utils::power_divergence::power_divergence;
 use ndarray::{Array1, Array2};
 
-const MODIFIED_LIKELIHOOD_LAMBDA: f64 = -1.0;
+const FREEMAN_TUKEY_LAMBDA: f64 = -1.0 / 2.0;
 
-pub struct ModifiedLikelihood {}
+pub struct FreemanTukey {}
 
-impl CITest for ModifiedLikelihood {
+impl CITest for FreemanTukey {
     fn run_test(
         &self,
         x_values: Array1<f64>,
@@ -21,7 +21,7 @@ impl CITest for ModifiedLikelihood {
             &z,
             boolean,
             significance_level,
-            MODIFIED_LIKELIHOOD_LAMBDA,
+            FREEMAN_TUKEY_LAMBDA,
         )
     }
 
@@ -44,7 +44,7 @@ mod tests {
 
     #[test]
     fn unconditional_independent_data_is_not_rejected() {
-        let t = ModifiedLikelihood {};
+        let t = FreemanTukey {};
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
@@ -55,27 +55,27 @@ mod tests {
         assert_eq!(dof, 1);
     }
 
-    // scipy: power_divergence([[5,1],[1,5]], lambda_=-1) -> stat=7.053439978825427
+    // scipy: power_divergence([[5,1],[1,5]], lambda_=-0.5) -> stat=6.319453539579289
     #[test]
     fn unconditional_dependent_data_is_rejected() {
-        let t = ModifiedLikelihood {};
+        let t = FreemanTukey {};
         let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty, false, 0.05).unwrap());
-        assert!((stat - 7.053_439_978_825_427).abs() < 1e-9, "got {stat}");
-        assert!((p - 0.007_911_317_670_556_329).abs() < 1e-12, "got {p}");
+        assert!((stat - 6.319_453_539_579_289).abs() < 1e-9, "got {stat}");
+        assert!((p - 0.011_942_042_564_347_121).abs() < 1e-12, "got {p}");
         assert_eq!(dof, 1);
     }
 
     #[test]
-    fn unconditional_boolean_rejects_dependent() {
-        let t = ModifiedLikelihood {};
-        let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
-        let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
+    fn unconditional_boolean_accepts_independent() {
+        let t = FreemanTukey {};
+        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
         let r = t.run_test(x, y, empty, true, 0.05).unwrap();
-        assert!(matches!(r, TestResult::Boolean(false)));
+        assert!(matches!(r, TestResult::Boolean(true)));
     }
 }

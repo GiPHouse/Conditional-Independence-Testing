@@ -1,4 +1,4 @@
-use crate::strategy::CITest;
+use crate::strategy::{CITest, CITestDataType};
 use std::collections::HashMap;
 
 /// Central registry for managing available conditional independence test implementations.
@@ -6,7 +6,7 @@ use std::collections::HashMap;
 /// The registry maintains a collection of test implementations that can be retrieved
 /// by name.
 pub struct Registry {
-    pub tests: HashMap<String, Box<dyn CITest>>,
+    tests: HashMap<String, Box<dyn CITest>>,
 }
 
 impl Registry {
@@ -47,17 +47,34 @@ impl Registry {
     ///
     /// # Errors
     /// Returns an error if the registry is empty.
-    pub fn list_all_tests(&self) -> anyhow::Result<Vec<&String>> {
+    pub fn all_tests(&self) -> anyhow::Result<impl Iterator<Item = &str>> {
         if self.tests.is_empty() {
             anyhow::bail!("No tests found!");
         }
 
-        let array_size = self.tests.len();
-        let mut all_tests = Vec::with_capacity(array_size);
-        for test in self.tests.keys() {
-            all_tests.push(test);
+        Ok(self.tests.keys().map(std::string::String::as_str))
+    }
+
+    /// Returns a list of the registered test names that support the given `data_type`.
+    ///
+    /// # Returns
+    /// A vector containing references to the test names in the registry.
+    ///
+    /// # Errors
+    /// Returns an error if the registry is empty.
+    pub fn tests_with_data_type<'a: 'b, 'b>(
+        &'a self,
+        data_type: &'b CITestDataType,
+    ) -> anyhow::Result<impl Iterator<Item = &'a str> + 'b> {
+        if self.tests.is_empty() {
+            anyhow::bail!("No tests found!");
         }
-        Ok(all_tests)
+
+        Ok(self
+            .tests
+            .iter()
+            .filter(|(_, v)| v.data_types().contains(data_type))
+            .map(|(k, _)| k.as_str()))
     }
 
     /// Adds a new test implementation to the registry.
@@ -77,43 +94,84 @@ impl Registry {
         if self.tests.contains_key(&test_name) {
             anyhow::bail!("Test already exists in registry!");
         }
-        let ci_test = Box::new(test);
-        self.tests.insert(test_name, ci_test);
+        self.tests.insert(test_name, Box::new(test));
         Ok(())
     }
 }
 
-//let register = Registry::new()
-//let chi_square = register.get_test("Chi_square")
-
 #[cfg(test)]
 mod tests {
+    use super::CITestDataType::{Continuous, Discrete, Mixed};
     use super::*;
 
     #[test]
-    // Test to check register creation
+    // Test to check registry creation.
     fn test_registry_new() {
         let registry = Registry::new();
         assert_ne!(registry.tests.len(), 0);
     }
 
     #[test]
-    // Test to check getting tests
+    // Test to check getting tests.
     fn test_get_test() {
-        // This assert would fire and test will fail.
-        // Please note, that private functions can be tested too!
         let registry = Registry::new();
         assert!(registry.get_test("chi_square").is_ok());
         assert!(registry.get_test("dummy").is_err());
     }
 
     #[test]
-    // Test to check listing all tests
-    fn test_list_tests() -> anyhow::Result<()> {
-        // This assert would fire and test will fail.
-        // Please note, that private functions can be tested too!
+    // Test to check listing all tests.
+    fn test_all_tests() -> anyhow::Result<()> {
         let registry = Registry::new();
-        assert!(!registry.list_all_tests()?.is_empty());
+        assert!(!registry.all_tests()?.collect::<Vec<&str>>().is_empty());
+        Ok(())
+    }
+
+    #[test]
+    // Test to check listing all tests supporting continuous data.
+    //
+    // We check if *at least* all current CI tests supporting continuous data are returned so that
+    // the addition of future tests doesn't necessitate updating the tests of the registry.
+    fn test_tests_with_data_type_continuous() -> anyhow::Result<()> {
+        let registry = Registry::new();
+        for test in ["pearson_correlation", "pearson_equivalence"] {
+            assert!(registry
+                .tests_with_data_type(&Continuous)?
+                .any(|t| t == test));
+        }
+        Ok(())
+    }
+
+    #[test]
+    // Test to check listing all tests supporting discrete data.
+    //
+    // We check if *at least* all current CI tests supporting discrete data are returned so that
+    // the addition of future tests doesn't necessitate updating the tests of the registry.
+    fn test_tests_with_data_type_discrete() -> anyhow::Result<()> {
+        let registry = Registry::new();
+        for test in [
+            "chi_square",
+            "log_likelihood",
+            "modified_likelihood",
+            "cressie_read",
+            "freeman_tukey",
+        ] {
+            assert!(registry.tests_with_data_type(&Discrete)?.any(|t| t == test));
+        }
+        Ok(())
+    }
+
+    #[test]
+    // Test to check listing all tests supporting mixed data.
+    //
+    // No tests currently support mixed data (independence_match is not yet implemented).
+    fn test_tests_with_data_type_mixed() -> anyhow::Result<()> {
+        let registry = Registry::new();
+        assert_eq!(
+            registry.tests_with_data_type(&Mixed)?.count(),
+            0,
+            "no registered tests support Mixed yet"
+        );
         Ok(())
     }
 }
