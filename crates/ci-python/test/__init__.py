@@ -1,1 +1,1 @@
-"""Unit tests for ci_python."""
+"""Unit tests for `ci_python`."""
