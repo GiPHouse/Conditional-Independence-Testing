@@ -1,4 +1,5 @@
 import pytest
+
 from ci_python import Registry
 
 
