@@ -1,13 +1,26 @@
 use ndarray::{Array1, Array2};
+
+/// The outcome of a conditional independence test.
+pub enum TestResult {
+    PValue(f64, f64),
+    Statistic(f64, f64, usize),
+    Boolean(bool),
+}
+
+/// Data types that a `CITest` can be performed on.
+///
+/// Used by `Registry`.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum CITestDataType {
+    Continuous,
+    Discrete,
+    Mixed,
+}
+
 /// Trait defining the interface for conditional independence tests.
 ///
 /// All statistical tests for conditional independence must implement this trait
 /// to be compatible with the registry system.
-pub enum TestResult {
-    Correlated(anyhow::Result<(f64, f64)>),
-    Boolean(anyhow::Result<bool>),
-}
-
 pub trait CITest: Send + Sync {
     /// Runs a conditional independence test on the given data.
     ///
@@ -16,9 +29,13 @@ pub trait CITest: Send + Sync {
     /// Returns an error if the test computation fails (e.g., invalid input dimensions or numerical issues).
     fn run_test(
         &self,
-        array: Array2<f64>,
-        x_value: Array1<f64>,
-        y_value: Array1<f64>,
+        x_values: Array1<f64>,
+        y_values: Array1<f64>,
+        z: Array2<f64>,
         boolean: bool,
+        significance_level: f64,
     ) -> anyhow::Result<TestResult>;
+
+    /// Data types that a test supports.
+    fn data_types(&self) -> &'static [CITestDataType];
 }

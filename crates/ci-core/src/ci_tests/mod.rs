@@ -1,20 +1,18 @@
 mod chi_squared;
-mod g_test;
-mod independence_match;
-mod likelihood_ratio;
+mod cressie_read;
+mod freeman_tukey;
+mod log_likelihood;
 mod modified_likelihood;
 mod pearson_correlation;
 mod pearson_equivalence;
-mod power_divergence;
 
 use chi_squared::ChiSquared;
-use g_test::GTest;
-use independence_match::IndependenceMatch;
-use likelihood_ratio::LikelihoodRatio;
+use cressie_read::CressieRead;
+use freeman_tukey::FreemanTukey;
+use log_likelihood::LogLikelihood;
 use modified_likelihood::ModifiedLikelihood;
 use pearson_correlation::PearsonCorrelation;
 use pearson_equivalence::PearsonEquivalence;
-use power_divergence::PowerDivergence;
 
 use crate::registry::Registry;
 
@@ -24,20 +22,12 @@ pub fn register_all_tests(registry: &mut Registry) {
         .expect("Failed to register Chi Square test!");
 
     registry
-        .add_to_registry("g_test", GTest {})
-        .expect("Failed to register GTest!");
-
-    registry
-        .add_to_registry("independence_match", IndependenceMatch {})
-        .expect("Failed to register Independence Match test!");
-
-    registry
-        .add_to_registry("likelihood_ratio", LikelihoodRatio {})
-        .expect("Failed to register Likelihood Ratio test!");
+        .add_to_registry("log_likelihood", LogLikelihood {})
+        .expect("Failed to register Log Likelihood test!");
 
     registry
         .add_to_registry("modified_likelihood", ModifiedLikelihood {})
-        .expect("Failed to register Modified Likelihood tTest!");
+        .expect("Failed to register Modified Likelihood Test!");
 
     registry
         .add_to_registry("pearson_correlation", PearsonCorrelation {})
@@ -48,6 +38,10 @@ pub fn register_all_tests(registry: &mut Registry) {
         .expect("Failed to register Pearson Equivalence test!");
 
     registry
-        .add_to_registry("power_divergence", PowerDivergence {})
-        .expect("Failed to register Power Divergence test!");
+        .add_to_registry("cressie_read", CressieRead {})
+        .expect("Failed to register Cressie Read test!");
+
+    registry
+        .add_to_registry("freeman_tukey", FreemanTukey {})
+        .expect("Failed to register Freeman Tukey test!");
 }
