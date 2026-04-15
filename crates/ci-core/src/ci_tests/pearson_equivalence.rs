@@ -1,20 +1,32 @@
-use crate::strategy::CITest;
-use crate::strategy::TestResult;
+use crate::strategy::{CITest, CITestDataType, TestResult};
 use ndarray::{Array1, Array2};
 
+#[allow(dead_code)]
 pub struct PearsonEquivalence {
-    // Object traits
+    pub boolean: bool,
+    pub significance_level: f64,
+}
+
+impl PearsonEquivalence {
+    pub fn new(boolean: bool, significance_level: f64) -> Self {
+        Self {
+            boolean,
+            significance_level,
+        }
+    }
 }
 
 impl CITest for PearsonEquivalence {
     fn run_test(
         &self,
-        _array: Array2<f64>,
         _x_values: Array1<f64>,
         _y_values: Array1<f64>,
-        _boolean: bool,
+        _z: Array2<f64>,
     ) -> anyhow::Result<TestResult> {
         todo!()
     }
-    //Other necessary stuff
+
+    fn data_types(&self) -> &'static [CITestDataType] {
+        &[CITestDataType::Continuous]
+    }
 }
