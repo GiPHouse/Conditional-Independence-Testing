@@ -43,7 +43,7 @@ mod tests {
     }
 
     #[test]
-    fn unconditional_independent_data_is_not_rejected() {
+    fn uncond_independent_data_accepted() {
         let t = ChiSquared {};
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
@@ -55,22 +55,49 @@ mod tests {
         assert_eq!(dof, 1);
     }
 
+    #[test]
+    fn cond_independent_data_accepted() {
+        let t = ChiSquared {};
+        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
+        let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
+
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
+        assert!(stat.abs() < 1e-9, "stat should be ~0, got {stat}");
+        assert!(p > 0.99);
+        //dof = (#Z strata) * (|X|-1)(|Y|-1): 2 * 1 * 1 = 2
+        assert_eq!(dof, 2);
+    }
+
     // scipy: chi2_contingency([[4,0],[0,4]], lambda_=1, correction=False) -> stat=8.0, p=0.00468
     #[test]
-    fn unconditional_dependent_data_is_rejected() {
+    fn uncond_dependent_data_rejected() {
         let t = ChiSquared {};
         let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty, false, 0.05).unwrap());
-        assert!((stat - 8.0).abs() < 1e-9, "got {stat}");
-        assert!((p - 0.004_677_734_981_047_276).abs() < 1e-12, "got {p}");
+        assert!((stat - 8.0).abs() < 1e-9, "stat {stat} should be larger");
+        assert!((p - 0.004_677_734_981_047_276).abs() < 1e-12, "rejected p value {p}");
         assert_eq!(dof, 1);
     }
 
     #[test]
-    fn unconditional_boolean_mode() {
+    fn cond_dependent_data_rejected() {
+        let t = ChiSquared {};
+        let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
+        let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
+        let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
+
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
+        assert!((stat - 8.0).abs() < 1e-9, "stat {stat} should be larger");
+        assert!((p - 0.004_677_734_981_047_276).abs() < 1e-12, "rejected p value {p}");
+        assert_eq!(dof, 2);
+    }
+
+    #[test]
+    fn uncond_boolean_mode() {
         let t = ChiSquared {};
         let empty = Array2::<f64>::zeros((0, 0));
         // independent data -> should return true (fail to reject)
@@ -83,6 +110,24 @@ mod tests {
         let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let r = t.run_test(x, y, empty, true, 0.05).unwrap();
+        assert!(matches!(r, TestResult::Boolean(false)));
+    }
+
+    #[test]
+    fn cond_boolean_mode() {
+        //accepted
+        let t = ChiSquared {};
+        let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
+        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
+        let r = t.run_test(x, y, z, true, 0.05).unwrap();
+        assert!(matches!(r, TestResult::Boolean(true)));
+
+        //rejected
+        let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
+        let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
+        let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
+        let r = t.run_test(x, y, z, true, 0.05).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 }
