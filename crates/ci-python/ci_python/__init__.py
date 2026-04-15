@@ -1,8 +1,7 @@
-from _ci_python import _RustRegistry  # type: ignore[reportAttributeAccessIssue] # noqa: D104
+"""Python bindings for conditional independence testing."""
 
-from .CITests import ci_registry  # noqa: D104
+from ._ci_python import Registry
 
 __all__ = [
-    "_RustRegistry",
-    "ci_registry"
+    "Registry",
 ]

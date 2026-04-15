@@ -1,11 +1,11 @@
 from pgmpy.estimators.CITests import pearsonr
 import numpy as np
-from ci_python import PyRegistry
+from ci_python import Registry
 import time
 import pandas as pd
 
 
-registry = PyRegistry()
+registry = Registry()
 test = registry.get_test("pearson_correlation")
 
 N_ITER = 50
