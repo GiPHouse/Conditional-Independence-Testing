@@ -42,6 +42,7 @@ impl CITest for ChiSquared {
 }
 
 #[cfg(test)]
+#[allow(clippy::many_single_char_names)]
 mod tests {
     use super::*;
     use ndarray::{array, Array2};
@@ -90,20 +91,26 @@ mod tests {
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty, false, 0.05).unwrap());
         assert!((stat - 8.0).abs() < 1e-9, "stat {stat} should be larger");
-        assert!((p - 0.004_677_734_981_047_276).abs() < 1e-12, "rejected p value {p}");
+        assert!(
+            (p - 0.004_677_734_981_047_276).abs() < 1e-12,
+            "rejected p value {p}"
+        );
         assert_eq!(dof, 1);
     }
 
     #[test]
     fn cond_dependent_data_rejected() {
         let t = ChiSquared {};
-        let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
-        let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
+        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
         assert!((stat - 8.0).abs() < 1e-9, "stat {stat} should be larger");
-        assert!((p - 0.004_677_734_981_047_276).abs() < 1e-12, "rejected p value {p}");
+        assert!(
+            (p - 0.018_315_638_888_734_193).abs() < 1e-12,
+            "rejected p value {p}"
+        );
         assert_eq!(dof, 2);
     }
 
@@ -135,8 +142,8 @@ mod tests {
         assert!(matches!(r, TestResult::Boolean(true)));
 
         //rejected
-        let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
-        let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
+        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
         let r = t.run_test(x, y, z, true, 0.05).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
