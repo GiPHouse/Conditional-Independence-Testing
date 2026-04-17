@@ -1,4 +1,4 @@
-mod chi_squared;
+pub mod chi_squared;
 mod cressie_read;
 mod freeman_tukey;
 mod log_likelihood;
