@@ -9,6 +9,7 @@ repository = ""
 
 [dependencies]
 ci_core = { path = "../ci-core" }
+anyhow = { workspace = true}
 extendr-api = "0.9.0"
 
 [lints]
