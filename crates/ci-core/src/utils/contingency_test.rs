@@ -12,6 +12,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
     let row_sums = observed.sum_axis(Axis(1));
     let col_sums = observed.sum_axis(Axis(0));
     let total: f64 = row_sums.sum();
+    let inverse_total = 1.0/total;
 
     // Check whether contingency test is applicable
     if observed.is_empty() {
@@ -29,7 +30,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
         let mut temp_stat: f64 = 0.0;
         for i in 0..nrows {
             for j in 0..ncols {
-                let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
+                let temp_expected: f64 = row_sums[i] * col_sums[j] * inverse_total; // division is worse than multiplication in rust
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0. {
                     bail!("Expected frequency is zero at position [{i}, {j}]");
@@ -46,7 +47,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
         let mut temp_stat: f64 = 0.0;
         for i in 0..nrows {
             for j in 0..ncols {
-                let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
+                let temp_expected: f64 = row_sums[i] * col_sums[j] * inverse_total; //multiplication instead of division
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0. {
                     continue;
@@ -63,7 +64,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
         let mut temp_stat: f64 = 0.0;
         for i in 0..nrows {
             for j in 0..ncols {
-                let temp_expected: f64 = row_sums[i] * col_sums[j] / total;
+                let temp_expected: f64 = row_sums[i] * col_sums[j] * inverse_total; //again the multiplication instead of division  
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0.0 {
                     bail!("Expected frequency is zero at position [{i}, {j}]");
@@ -89,6 +90,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
 
     Ok((statistic, p_value, degrees_of_freedom))
 }
+
 
 #[cfg(test)]
 mod tests {
