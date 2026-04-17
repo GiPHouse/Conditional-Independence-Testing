@@ -1,10 +1,10 @@
 use extendr_api::prelude::*;
-use ci_core::strategy::CITest;
+use ci_core::strategy::{CITest, TestResult};
 use ci_core::ci_tests::chi_squared::ChiSquared;
+use anyhow;
 
 
 #[extendr]
-#[derive(Clone)]
 pub struct RChiSquared {
     citest: Option<ChiSquared>,
 }
