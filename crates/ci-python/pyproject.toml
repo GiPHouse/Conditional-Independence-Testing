@@ -57,4 +57,4 @@ ignore = [
 convention = "google"
 
 [tool.ruff.format]
-quote-style = "preserve"
+quote-style = "double"
