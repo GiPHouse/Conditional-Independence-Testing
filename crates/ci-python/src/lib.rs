@@ -3,11 +3,15 @@ use ci_core::strategy::TestResult;
 use ndarray::{Array1, Array2};
 use numpy::{PyReadonlyArray1, PyReadonlyArray2};
 use pyo3::prelude::*;
+use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
+use pyo3_stub_gen::{define_stub_info_gatherer, reexport_module_members};
 use std::sync::Arc;
 
+#[gen_stub_pyclass]
 #[pyclass(frozen, name = "Registry")]
 pub struct PyRegistry(Arc<Registry>);
 
+#[gen_stub_pymethods]
 #[pymethods]
 impl PyRegistry {
     #[new]
@@ -36,12 +40,14 @@ impl PyRegistry {
     }
 }
 
+#[gen_stub_pyclass]
 #[pyclass(frozen, name = "CITest")]
 pub struct PyCITest {
     registry: Arc<Registry>,
     test_name: String,
 }
 
+#[gen_stub_pymethods]
 #[pymethods]
 impl PyCITest {
     /// Run the conditional independence test on the given data.
@@ -91,3 +97,6 @@ fn _ci_python(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCITest>()?;
     Ok(())
 }
+
+reexport_module_members!("ci_python", "ci_python._ci_python");
+define_stub_info_gatherer!(stub_info);
