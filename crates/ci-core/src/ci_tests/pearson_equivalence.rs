@@ -36,13 +36,13 @@ impl CITest for PearsonEquivalence {
         let pearsonr = PearsonCorrelation{}.run_test(x_values, y_values, z, false, significance_level);
         let statistic = match pearsonr {
             Ok(TestResult::PValue(_, statistic)) => statistic,
-            Ok(_) => 0.,
+            Ok(_) => 0.0,
             Err(e) => return Err(e)
         };
-        let rho = if statistic <= -1. { 
+        let rho = if statistic <= -1.0 { 
             -0.9999999 
         } else {
-            if statistic >= 1. {
+            if statistic >= 1.0 {
                 0.99999999 
             } 
             else {statistic}
@@ -54,10 +54,10 @@ impl CITest for PearsonEquivalence {
         let std_error_factor = sqrt(n - s - 3.);
 
         let z_score_lower = std_error_factor * (coefficient + z_delta);
-        let p_value_lower = 1. - Normal::new(0.0, 0.1).unwrap().cdf(z_score_lower);
+        let p_value_lower = 1.0 - Normal::new(0.0, 1.0).unwrap().cdf(z_score_lower);
 
         let z_score_upper = std_error_factor * (coefficient - z_delta);
-        let p_value_upper = 1. - Normal::new(0.0, 0.1).unwrap().cdf(z_score_upper);
+        let p_value_upper = Normal::new(0.0, 1.0).unwrap().cdf(z_score_upper);
 
         let p_value = if p_value_lower > p_value_upper { 
             p_value_lower 
