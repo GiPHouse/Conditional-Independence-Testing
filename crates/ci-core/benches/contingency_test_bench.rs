@@ -1,29 +1,52 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use ndarray::array;
+use criterion::{
+    black_box, criterion_group, criterion_main, BatchSize, Criterion
+};
+use ndarray::Array2;
 use ci_core::utils::contingency_test::contingency_test;
 
-fn benchmark_contingency_test(c: &mut Criterion) {
-    let observed = array![
-        [10.0, 20.0, 30.0],
-        [6.0,  9.0,  17.0]
-    ];
+fn generate_matrix(n: usize, m: usize) -> Array2<f64> {
+    Array2::from_shape_fn((n, m), |(i, j)| (i + j + 1) as f64)
+}
 
-    let lambda_values = vec![0.0, -1.0, 2.0]; // G-test, modified, Cressie-Read
-
-    for &lambda in &lambda_values {
-        let bench_id = format!("contingency_test_lambda_{}", lambda);
-
-        c.bench_function(&bench_id, |b| {
-            b.iter(|| {
+// Helper to avoid duplication
+fn bench_lambda(c: &mut Criterion, name: &str, lambda: f64, observed: &Array2<f64>) {
+    c.bench_function(name, |b| {
+        b.iter_batched_ref(
+            || observed.clone(),
+            |data| {
                 let result = contingency_test(
-                    black_box(&observed),
+                    black_box(data),
                     black_box(lambda),
                 );
                 black_box(result)
-            })
-        });
+            },
+            BatchSize::SmallInput,
+        )
+    });
+}
+
+fn benchmark_contingency_test(c: &mut Criterion) {
+    let observed = generate_matrix(100, 100);
+
+    let cases = [
+        ("contingency_lambda_0", 0.0),
+        ("contingency_lambda_-1", -1.0),
+        ("contingency_lambda_2", 2.0),
+    ];
+
+    for (name, lambda) in cases {
+        bench_lambda(c, name, lambda, &observed);
     }
 }
 
-criterion_group!(benches, benchmark_contingency_test);
+fn custom_criterion() -> Criterion {
+    Criterion::default()
+        .measurement_time(std::time::Duration::from_secs(10))
+}
+
+criterion_group! {
+    name = benches;
+    config = custom_criterion();
+    targets = benchmark_contingency_test
+}
 criterion_main!(benches);
