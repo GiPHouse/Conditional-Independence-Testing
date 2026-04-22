@@ -36,3 +36,7 @@ rand_distr = "0.5"
 workspace = true
 
 [lib]
+
+[[bench]]
+name = "contingency_test_bench"
+harness = false
