@@ -28,7 +28,7 @@ impl CITest for PearsonEquivalence {
         z: Array2<f64>,
     ) -> anyhow::Result<TestResult> {
         // placeholder, need to ask about hyperparameters
-        let delta_treshold = 0.1;
+        let delta_threshold = 0.1;
 
         let n = x_values.len() as f64;
         let s = z.axis_iter(Axis(1)).len() as f64;
@@ -49,7 +49,7 @@ impl CITest for PearsonEquivalence {
         };
 
         let coefficient = atanh(rho);
-        let z_delta = atanh(delta_treshold);
+        let z_delta = atanh(delta_threshold);
 
         let std_error_factor = sqrt(n - s - 3.);
 
@@ -70,5 +70,30 @@ impl CITest for PearsonEquivalence {
 
     fn data_types(&self) -> &'static [CITestDataType] {
         &[CITestDataType::Continuous]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ndarray::array;
+
+    use super::*;
+
+    #[test]
+    fn basic_test(){
+        let x_vals = array![1.0, 2.0, 3.0, 4.0];
+        let y_vals = array![1.0, 1.0, 2.0, 2.0];
+        let z_vals = array![[1.0], [2.0], [3.0], [4.0]];
+        let empty_z = array![[]];
+
+        let test = PearsonEquivalence {};
+        let result = test.run_test(x_vals, y_vals, empty_z, false, 0.05);
+
+        let actual = match result {
+            Ok(TestResult::PValue(a, b)) => (a,b),
+            _ => (0.0, 0.0)
+        };
+
+        println!("{:?}", actual);
     }
 }
