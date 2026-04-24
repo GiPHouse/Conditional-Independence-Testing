@@ -3,10 +3,6 @@ use crate::ci_tests::pearson_correlation::{PearsonCorrelation, wrap_result};
 use ndarray::{Array1, Array2, Axis};
 use libm::{atanh, sqrt};
 use statrs::distribution::{ContinuousCDF, Normal};
-use crate::ci_tests::pearson_correlation::{PearsonCorrelation, wrap_result};
-use ndarray::{Array1, Array2, Axis};
-use libm::{atanh, sqrt};
-use statrs::distribution::{ContinuousCDF, Normal};
 
 #[allow(dead_code)]
 pub struct PearsonEquivalence {
