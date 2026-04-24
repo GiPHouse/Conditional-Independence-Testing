@@ -1,10 +1,10 @@
 pub mod chi_squared;
-mod cressie_read;
-mod freeman_tukey;
-mod log_likelihood;
-mod modified_likelihood;
-mod pearson_correlation;
-mod pearson_equivalence;
+pub mod cressie_read;
+pub mod freeman_tukey;
+pub mod log_likelihood;
+pub mod modified_likelihood;
+pub mod pearson_correlation;
+pub mod pearson_equivalence;
 
 use chi_squared::ChiSquared;
 use cressie_read::CressieRead;

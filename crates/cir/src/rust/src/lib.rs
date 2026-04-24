@@ -3,7 +3,7 @@ use ci_core::strategy::{CITest, TestResult};
 use ci_core::ci_tests::chi_squared::ChiSquared;
 use ndarray::{ArrayView1, ArrayView2};
 use anyhow;
-
+mod macro_tryout;
 
 #[extendr]
 pub struct RChiSquared {
@@ -25,13 +25,14 @@ impl RChiSquared {
         x_values: ArrayView1<f64>,
         y_values: ArrayView1<f64>,
         z: ArrayView2<f64>,
-    ) -> anyhow::Result<()> {
+    ) -> anyhow::Result<Robj> {
 
         let result = self.citest.run_test(
             x_values.to_owned(), 
             y_values.to_owned(), 
-            z.to_owned())?;
-        Ok(self.test_result_to_robj(result))
+            z.to_owned())
+            ?;
+        Ok(test_result_to_robj(result))
     }
 }
 
@@ -53,4 +54,9 @@ fn test_result_to_robj(r: TestResult) -> Robj {
             independent = b,
         ).into(),
     }
+}
+
+extendr_module! {
+    mod cir;
+    impl RChiSquared;
 }
