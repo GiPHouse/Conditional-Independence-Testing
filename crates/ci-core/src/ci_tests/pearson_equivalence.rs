@@ -8,13 +8,15 @@ use statrs::distribution::{ContinuousCDF, Normal};
 pub struct PearsonEquivalence {
     pub boolean: bool,
     pub significance_level: f64,
+    pub delta_threshold: f64,
 }
 
 impl PearsonEquivalence {
-    pub fn new(boolean: bool, significance_level: f64) -> Self {
+    pub fn new(boolean: bool, significance_level: f64, delta_threshold: f64) -> Self {
         Self {
             boolean,
             significance_level,
+            delta_threshold,
         }
     }
 }
@@ -26,13 +28,10 @@ impl CITest for PearsonEquivalence {
         y_values: Array1<f64>,
         z: Array2<f64>,
     ) -> anyhow::Result<TestResult> {
-        // placeholder, need to ask about hyperparameters
-        let delta_threshold = 0.1;
-
         let n = x_values.len() as f64;
         let s = z.axis_iter(Axis(1)).len() as f64;
 
-        let pearsonr = PearsonCorrelation{}.run_test(x_values, y_values, z, false, significance_level);
+        let pearsonr = PearsonCorrelation{boolean: false, significance_level: self.significance_level}.run_test(x_values, y_values, z);
         let statistic = match pearsonr {
             Ok(TestResult::PValue(_, statistic)) => statistic,
             Ok(_) => 0.0,
@@ -48,7 +47,7 @@ impl CITest for PearsonEquivalence {
         };
 
         let coefficient = atanh(rho);
-        let z_delta = atanh(delta_threshold);
+        let z_delta = atanh(self.delta_threshold);
 
         let std_error_factor = sqrt(n - s - 3.);
 
@@ -64,7 +63,7 @@ impl CITest for PearsonEquivalence {
             p_value_upper
         };
         
-        Ok(wrap_result(boolean, p_value, coefficient, significance_level))
+        Ok(wrap_result(self.boolean, p_value, coefficient, self.significance_level))
     }
 
     fn data_types(&self) -> &'static [CITestDataType] {
@@ -88,8 +87,8 @@ mod tests {
         let z_vals = array![[1.0], [2.0], [3.0], [4.0]];
         let empty_z = array![[]];
 
-        let test = PearsonEquivalence {};
-        let result = test.run_test(x_vals, y_vals, empty_z, false, 0.05);
+        let test = PearsonEquivalence {boolean: false, significance_level: 0.05, delta_threshold: 0.1};
+        let result = test.run_test(x_vals, y_vals, empty_z);
 
         let actual = match result {
             Ok(TestResult::PValue(a, b)) => (a,b),
@@ -100,6 +99,8 @@ mod tests {
     }
 
     const SIGNIFICANCE_LEVEL: f64 = 0.05;
+
+    const DELTA_THRESHOLD: f64 = 0.1;
 
     const N: usize = 1000;
 
@@ -116,8 +117,8 @@ mod tests {
         Array2::zeros((0, 0))
     }
 
-    fn pearson() -> PearsonEquivalence {
-        PearsonEquivalence {}
+    fn pearson(boolean: bool) -> PearsonEquivalence {
+        PearsonEquivalence {boolean: boolean, significance_level: SIGNIFICANCE_LEVEL, delta_threshold: DELTA_THRESHOLD}
     }
 
     // --- 1. Empty array + independent X, Y + boolean=false ---
@@ -129,8 +130,8 @@ mod tests {
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
 
-        let result = pearson()
-            .run_test(x, y, empty_array(), false, SIGNIFICANCE_LEVEL)
+        let result = pearson(false)
+            .run_test(x, y, empty_array())
             .unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
@@ -155,8 +156,8 @@ mod tests {
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
 
-        let result = pearson()
-            .run_test(x, y, empty_array(), true, SIGNIFICANCE_LEVEL)
+        let result = pearson(true)
+            .run_test(x, y, empty_array())
             .unwrap();
         match result {
             TestResult::Boolean(independent) => {
@@ -176,8 +177,8 @@ mod tests {
         let noise = gen_normal(N, 0.0, 0.1, &mut rng);
         let y = &x * 3.0 + &noise;
 
-        let result = pearson()
-            .run_test(x, y, empty_array(), false, SIGNIFICANCE_LEVEL)
+        let result = pearson(false)
+            .run_test(x, y, empty_array())
             .unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
@@ -203,8 +204,8 @@ mod tests {
         let noise = gen_normal(N, 0.0, 0.1, &mut rng);
         let y = &x * 3.0 + &noise;
 
-        let result = pearson()
-            .run_test(x, y, empty_array(), true, SIGNIFICANCE_LEVEL)
+        let result = pearson(true)
+            .run_test(x, y, empty_array())
             .unwrap();
         match result {
             TestResult::Boolean(independent) => {
@@ -228,8 +229,8 @@ mod tests {
         let y = &z * 2.0 + &noise_y;
         let array = z.insert_axis(Axis(1));
 
-        let result = pearson()
-            .run_test(x, y, array, false, SIGNIFICANCE_LEVEL)
+        let result = pearson(false)
+            .run_test(x, y, array)
             .unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
@@ -258,8 +259,8 @@ mod tests {
         let y = &z * 2.0 + &noise_y;
         let array = z.insert_axis(Axis(1));
 
-        let result = pearson()
-            .run_test(x, y, array, true, SIGNIFICANCE_LEVEL)
+        let result = pearson(true)
+            .run_test(x, y, array)
             .unwrap();
         match result {
             TestResult::Boolean(independent) => {
@@ -285,8 +286,8 @@ mod tests {
         let z = &x * 2.0 + &y * 2.0 + &noise;
         let array = z.insert_axis(Axis(1));
 
-        let result = pearson()
-            .run_test(x, y, array, false, SIGNIFICANCE_LEVEL)
+        let result = pearson(false)
+            .run_test(x, y, array)
             .unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
@@ -314,8 +315,8 @@ mod tests {
         let z = &x * 2.0 + &y * 2.0 + &noise;
         let array = z.insert_axis(Axis(1));
 
-        let result = pearson()
-            .run_test(x, y, array, true, SIGNIFICANCE_LEVEL)
+        let result = pearson(true)
+            .run_test(x, y, array)
             .unwrap();
         match result {
             TestResult::Boolean(independent) => {
@@ -344,8 +345,8 @@ mod tests {
 
         let array = stack(Axis(1), &[z_1.view(), z_2.view(), z_3.view()]).unwrap();
 
-        let result = pearson()
-            .run_test(x, y, array, false, SIGNIFICANCE_LEVEL)
+        let result = pearson(false)
+            .run_test(x, y, array)
             .unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
