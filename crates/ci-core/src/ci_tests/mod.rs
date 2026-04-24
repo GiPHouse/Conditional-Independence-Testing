@@ -37,7 +37,7 @@ pub fn register_all_tests(registry: &mut Registry) {
         .expect("Failed to register Pearson Correlation test!");
 
     registry
-        .add_to_registry("pearson_equivalence", PearsonEquivalence::new(true, 0.05))
+        .add_to_registry("pearson_equivalence", PearsonEquivalence::new(true, 0.05, 0.1))
         .expect("Failed to register Pearson Equivalence test!");
 
     registry
@@ -47,8 +47,4 @@ pub fn register_all_tests(registry: &mut Registry) {
     registry
         .add_to_registry("freeman_tukey", FreemanTukey::new(true, 0.05))
         .expect("Failed to register Freeman Tukey test!");
-
-    registry
-        .add_to_registry("pearson_equivalence", PearsonEquivalence {})
-        .expect("Failed to register Pearson Equivalence")
 }
