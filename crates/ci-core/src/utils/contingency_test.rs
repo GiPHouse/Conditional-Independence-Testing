@@ -12,7 +12,9 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
     let row_sums = observed.sum_axis(Axis(1));
     let col_sums = observed.sum_axis(Axis(0));
     let total: f64 = row_sums.sum();
+    let inverse_total = 1.0/total;
 
+    let col_times_total = col_sums.clone() * inverse_total;
     let ln_total = total.ln();
     let ln_row_sums = row_sums.mapv(|x| x.ln());
     let ln_col_sums = col_sums.mapv(|x| x.ln());
@@ -34,7 +36,8 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
         let mut temp_stat: f64 = 0.0;
         for i in 0..nrows {
             for j in 0..ncols {
-                //let temp_expected: f64 = row_sums[i] * col_sums[j] * inverse_total; // division is worse than multiplication in rust
+                let temp_expected: f64 = row_sums[i] * col_times_total[j]; // division is worse than multiplication in rust
+                //let temp_expected: f64 = row_sums[i] * col_sums[j] * inverse_total;
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0. {
                     bail!("Expected frequency is zero at position [{i}, {j}]");
@@ -42,7 +45,6 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 if temp_observed == 0. {
                     continue;
                 }
-                //temp_stat += temp_expected * (temp_expected / temp_observed).ln();
                 temp_stat += temp_observed * (temp_observed.ln() + ln_total - ln_row_sums[i] + ln_col_sums[i]); //used logarithmic rules to get rid of division and mulitplication
             }
         }
@@ -52,7 +54,8 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
         let mut temp_stat: f64 = 0.0;
         for i in 0..nrows {
             for j in 0..ncols {
-                //let temp_expected: f64 = row_sums[i] * col_sums[j] * inverse_total; //multiplication instead of division
+                let temp_expected: f64 = row_sums[i] * col_times_total[j]; //multiplication instead of division
+                //let temp_expected: f64 = row_sums[i] * col_sums[j] * inverse_total;
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0. {
                     continue;
@@ -60,7 +63,6 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 if temp_observed == 0. {
                     bail!("Observed value is zero at position [{i}, {j}]");
                 }
-                //temp_stat += temp_expected * (temp_expected / temp_observed).ln();
                 temp_stat += temp_observed * (temp_observed.ln() + ln_total - ln_row_sums[i] + ln_col_sums[i]);
             }
         }
@@ -70,7 +72,8 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
         let mut temp_stat: f64 = 0.0;
         for i in 0..nrows {
             for j in 0..ncols {
-                let temp_expected: f64 = row_sums[i] * col_sums[j] * inverse_total; //again the multiplication instead of division  
+                let temp_expected: f64 = row_sums[i] * col_times_total[j]; //again the multiplication instead of division  
+                //let temp_expected: f64 = row_sums[i] * col_sums[j] * inverse_total;
                 let temp_observed = observed[[i, j]];
                 if temp_expected == 0.0 {
                     bail!("Expected frequency is zero at position [{i}, {j}]");
