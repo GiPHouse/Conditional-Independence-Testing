@@ -12,6 +12,7 @@ rextendr::use_extendr()
 
 to regenerate bindings -> install.packages("devtools")
 
-devtools::document()   # generates R wrappers
+devtools::document()   # generates R bindings
 devtools::load_all()   # compiles Rust + loads the package
 
+devtools::test() # Run all tests
