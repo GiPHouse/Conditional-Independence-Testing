@@ -178,7 +178,7 @@ mod tests {
     // X and Y are independently generated, no conditioning variables.
     // Expected: high p_value (> 0.05), low |coefficient| (< 0.1)
     #[test]
-    fn unconditional_independent_data_is_not_rejected() {
+    fn uncond_independent_data_accepted() {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
@@ -202,7 +202,7 @@ mod tests {
     // --- 2. Empty array + independent X, Y + boolean=true ---
     // Expected: true (variables are independent)
     #[test]
-    fn unconditional_boolean_accepts_independent() {
+    fn uncond_bool_accepts_independent() {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
@@ -220,7 +220,7 @@ mod tests {
     // Y = 3*X + small noise, so they are strongly correlated.
     // Expected: low p_value (< 0.05), high |coefficient| (> 0.9)
     #[test]
-    fn unconditional_dependent_data_is_rejected() {
+    fn uncond_dependent_data_rejected() {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let noise = gen_normal(N, 0.0, 0.1, &mut rng);
@@ -245,7 +245,7 @@ mod tests {
     // --- 4. Empty array + correlated X, Y + boolean=true ---
     // Expected: false (variables are NOT independent)
     #[test]
-    fn unconditional_boolean_rejects_dependent() {
+    fn uncond_bool_rejects_dependent() {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let noise = gen_normal(N, 0.0, 0.1, &mut rng);
@@ -265,7 +265,7 @@ mod tests {
     // After conditioning on Z, residuals should be independent.
     // Expected: high p_value (> 0.05), low |coefficient| (< 0.1)
     #[test]
-    fn conditional_independent_data_is_not_rejected() {
+    fn cond_independent_data_accepted() {
         let mut rng = seeded_rng();
         let z = gen_normal(N, 0.0, 1.0, &mut rng);
         let noise_x = gen_normal(N, 0.0, 0.1, &mut rng);
@@ -293,7 +293,7 @@ mod tests {
     // --- 6. Non-empty array + conditionally independent + boolean=true ---
     // Expected: true (conditionally independent given Z)
     #[test]
-    fn conditional_boolean_accepts_independent() {
+    fn cond_bool_accepts_independent() {
         let mut rng = seeded_rng();
         let z = gen_normal(N, 0.0, 1.0, &mut rng);
         let noise_x = gen_normal(N, 0.0, 0.1, &mut rng);
@@ -319,7 +319,7 @@ mod tests {
     // Conditioning on Z makes X and Y dependent.
     // Expected: low p_value (< 0.05), high |coefficient|
     #[test]
-    fn conditional_dependent_data_is_rejected() {
+    fn cond_dependent_data_rejected() {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
@@ -346,7 +346,7 @@ mod tests {
     // --- 8. Non-empty array + conditionally dependent (v-structure) + boolean=true ---
     // Expected: false (NOT independent after conditioning on collider)
     #[test]
-    fn conditional_boolean_rejects_dependent() {
+    fn cond_bool_rejects_dependent() {
         let mut rng = seeded_rng();
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
@@ -370,7 +370,7 @@ mod tests {
     // After conditioning on all three, residuals should be independent.
     // Expected: high p_value, low |coefficient|
     #[test]
-    fn conditional_multiple_vars_independent_is_not_rejected() {
+    fn cond_multiple_vars_independent_not_rejected() {
         let mut rng = seeded_rng();
         let z_1 = gen_normal(N, 0.0, 1.0, &mut rng);
         let z_2 = gen_normal(N, 0.0, 1.0, &mut rng);
