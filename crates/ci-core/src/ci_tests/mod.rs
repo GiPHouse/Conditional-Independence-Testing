@@ -37,7 +37,7 @@ pub fn register_all_tests(registry: &mut Registry) {
         .expect("Failed to register Pearson Correlation test!");
 
     registry
-        .add_to_registry("pearson_equivalence", PearsonEquivalence::new(true, 0.05, 0.1))
+        .add_to_registry("pearson_equivalence", PearsonEquivalence::new(false, 0.05, 0.1))
         .expect("Failed to register Pearson Equivalence test!");
 
     registry
