@@ -1,4 +1,4 @@
-use crate::ci_tests::pearson_correlation::{wrap_result, PearsonCorrelation};
+use crate::ci_tests::pearson_correlation::PearsonCorrelation;
 use crate::strategy::{CITest, CITestDataType, TestResult};
 use libm::{atanh, sqrt};
 use ndarray::{Array1, Array2, Axis};
@@ -77,6 +77,18 @@ impl CITest for PearsonEquivalence {
     fn data_types(&self) -> &'static [CITestDataType] {
         &[CITestDataType::Continuous]
     }
+}
+
+pub fn wrap_result(
+    boolean: bool,
+    p_value: f64,
+    coefficient: f64,
+    significance_level: f64,
+) -> TestResult {
+    if boolean {
+        return TestResult::Boolean(p_value < significance_level);
+    }
+    TestResult::PValue(p_value, coefficient)
 }
 
 #[cfg(test)]
