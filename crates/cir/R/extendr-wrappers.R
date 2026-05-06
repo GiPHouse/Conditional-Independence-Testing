@@ -5,6 +5,10 @@
 #' @useDynLib cir, .registration = TRUE
 NULL
 
+list_ci_tests <- function() .Call(wrap__list_ci_tests)
+
+list_ci_tests_for <- function(data_type) .Call(wrap__list_ci_tests_for, data_type)
+
 RChiSquared <- new.env(parent = emptyenv())
 
 RChiSquared$new <- function(boolean, significance_level) .Call(wrap__RChiSquared__new, boolean, significance_level)
