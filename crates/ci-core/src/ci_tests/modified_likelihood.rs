@@ -42,6 +42,7 @@ impl CITest for ModifiedLikelihood {
 }
 
 #[cfg(test)]
+#[allow(clippy::many_single_char_names)]
 mod tests {
     use super::*;
     use ndarray::{array, Array2};
@@ -67,6 +68,21 @@ mod tests {
         assert!(stat.abs() < 1e-9);
         assert!(p > 0.99);
         assert_eq!(dof, 1);
+    }
+
+    #[test]
+    fn cond_independent_data_accepted() {
+        let t = ModifiedLikelihood {};
+        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
+        let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
+
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
+        
+        // Even with lambda = -1, perfectly independent data results in 0
+        assert!(stat.abs() < 1e-9, " got stat {stat}");
+        assert!(p > 0.99, " got p {p}");
+        assert_eq!(dof, 2);
     }
 
     // scipy: power_divergence([[5,1],[1,5]], lambda_=-1) -> stat=7.053439978825427
