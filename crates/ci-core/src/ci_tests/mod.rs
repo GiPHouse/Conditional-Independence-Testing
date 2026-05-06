@@ -1,10 +1,10 @@
-mod chi_squared;
-mod cressie_read;
-mod freeman_tukey;
-mod log_likelihood;
-mod modified_likelihood;
-mod pearson_correlation;
-mod pearson_equivalence;
+pub mod chi_squared;
+pub mod cressie_read;
+pub mod freeman_tukey;
+pub mod log_likelihood;
+pub mod modified_likelihood;
+pub mod pearson_correlation;
+pub mod pearson_equivalence;
 
 use chi_squared::ChiSquared;
 use cressie_read::CressieRead;
@@ -30,7 +30,7 @@ pub fn register_all_tests(registry: &mut Registry) {
         .expect("Failed to register Modified Likelihood Test!");
 
     registry
-        .add_to_registry("pearson_correlation", PearsonCorrelation::new(true, 0.05))
+        .add_to_registry("pearson_correlation", PearsonCorrelation::new(false, 0.05))
         .expect("Failed to register Pearson Correlation test!");
 
     registry
