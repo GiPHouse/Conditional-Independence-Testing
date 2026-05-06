@@ -42,6 +42,7 @@ impl CITest for FreemanTukey {
 }
 
 #[cfg(test)]
+#[allow(clippy::many_single_char_names)]
 mod tests {
     use super::*;
     use ndarray::{array, Array2};
@@ -67,6 +68,22 @@ mod tests {
         assert!(stat.abs() < 1e-9);
         assert!(p > 0.99);
         assert_eq!(dof, 1);
+    }
+
+    #[test]
+    fn cond_independent_not_rejected() {
+        let t = FreemanTukey {};
+        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
+        let z = array![
+            [1.],[1.],[1.],[1.],
+            [2.],[2.],[2.],[2.],
+        ];
+        
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
+        assert!(stat.abs() < 1e-9);
+        assert!(p > 0.99);
+        assert_eq!(dof, 2);
     }
 
     // scipy: power_divergence([[5,1],[1,5]], lambda_=-0.5) -> stat=6.319453539579289
@@ -97,5 +114,19 @@ mod tests {
         let empty = Array2::<f64>::zeros((0, 0));
         let r = t.run_test(x, y, empty).unwrap();
         assert!(matches!(r, TestResult::Boolean(true)));
+    }
+
+    #[test]
+    fn cond_boolean_rejects_dependent() {
+        let t = FreemanTukey {};
+        let x = array![1., 1., 1., 2., 2., 2., 1., 1., 1., 2., 2., 2.];
+        let y = array![1., 1., 2., 2., 2., 2., 1., 1., 2., 2., 2., 2.];
+        let z = array![
+                [1.],[1.],[1.],[1.],[1.],[1.],
+                [2.],[2.],[2.],[2.],[2.],[2.]
+            ];
+
+        let r = t.run_test(x, y, z, true, 0.05).unwrap();
+        assert!(matches!(r, TestResult::Boolean(false)));
     }
 }
