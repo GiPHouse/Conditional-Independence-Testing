@@ -7,6 +7,7 @@ import numpy.typing
 import typing
 __all__ = [
     "CITest",
+    "ChiSquared",
     "Registry",
 ]
 
@@ -20,6 +21,11 @@ class CITest:
         
         Returns `PyRuntimeError` if the test lookup fails or the test itself returns an error.
         """
+
+@typing.final
+class ChiSquared:
+    def __new__(cls) -> ChiSquared: ...
+    def __call__(self, z: numpy.typing.NDArray[numpy.float64], x: numpy.typing.NDArray[numpy.float64], y: numpy.typing.NDArray[numpy.float64]) -> typing.Any: ...
 
 @typing.final
 class Registry:

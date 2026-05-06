@@ -23,7 +23,7 @@ module-name = "ci_python._ci_python"
 python-source = "."
 
 [tool.pyo3-stub-gen]
-generate-init-py = true
+generate-init-py = false
 
 [project.optional-dependencies]
 test = [
@@ -35,7 +35,6 @@ line-length = 120
 
 # Exclude generated files.
 extend-exclude = [
-    "ci_python/__init__.py",
     "ci_python/_ci_python",
 ]
 
