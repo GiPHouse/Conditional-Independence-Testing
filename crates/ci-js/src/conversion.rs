@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 pub struct TestRequest {
-    pub z: Option<Vec<Vec<f64>>>,
+    pub z: Vec<Vec<f64>>,
     pub x: Vec<f64>,
     pub y: Vec<f64>,
     pub boolean: bool,
@@ -26,7 +26,7 @@ pub enum TestResponse {
     Statistics {
         p_value: f64,
         coefficient: f64,
-        dof: f64,
+        dof: usize,
     },
 }
 
@@ -60,7 +60,7 @@ mod tests {
         let req: TestRequest = from_value(input).unwrap();
         assert_eq!(req.x, vec![1.0, 2.0, 3.0]);
         assert_eq!(req.y, vec![4.0, 5.0, 6.0]);
-        assert_eq!(req.z, Some(vec![vec![1.0, 2.0], vec![3.0, 4.0]]));
+        assert_eq!(req.z, vec![vec![1.0, 2.0], vec![3.0, 4.0]]);
         assert_eq!(req.boolean, true);
         assert_eq!(req.significance_level, 0.05);
     }
@@ -74,7 +74,7 @@ mod tests {
             "significance_level": 0.05
         });
         let req: TestRequest = from_value(input).unwrap();
-        assert!(req.z.is_none());
+        assert!(req.z.is_empty());
     }
 
     #[test]
@@ -87,7 +87,7 @@ mod tests {
             "significance_level": 0.05
         });
         let req: TestRequest = from_value(input).unwrap();
-        assert!(req.z.is_none());
+        assert!(req.z.is_empty());
     }
 
     #[test]
@@ -159,12 +159,12 @@ mod tests {
         let result = TestResponse::Statistics {
             p_value: 0.01,
             coefficient: 0.9,
-            dof: 5.0,
+            dof: 5,
         };
         let json = to_value(&result).unwrap();
         assert!((json["p_value"].as_f64().unwrap() - 0.01).abs() < 1e-10);
         assert!((json["coefficient"].as_f64().unwrap() - 0.9).abs() < 1e-10);
-        assert!((json["dof"].as_f64().unwrap() - 5.0).abs() < 1e-10);
+        assert_eq!(json["dof"], 5);
     }
 
     #[test]
