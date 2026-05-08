@@ -71,12 +71,15 @@ mod tests {
 
     #[test]
     fn cond_independent_data_accepted() {
-        let t = ChiSquared {};
+        let t = ChiSquared {
+             boolean: false,
+             significance_level: 0.05,
+        };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
         assert!(stat.abs() < 1e-9, "stat should be ~0, got {stat}");
         assert!(p > 0.99);
         assert_eq!(dof, 2);
@@ -101,12 +104,15 @@ mod tests {
 
     #[test]
     fn cond_dependent_data_rejected() {
-        let t = ChiSquared {};
+        let t = ChiSquared {
+             boolean: false,
+             significance_level: 0.05,
+        };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
         assert!((stat - 8.0).abs() < 1e-9, "stat {stat} should be larger");
         assert!(
             (p - 0.018_315_638_888_734_193).abs() < 1e-12,
@@ -138,18 +144,21 @@ mod tests {
     #[test]
     fn cond_boolean_mode() {
         //accepted
-        let t = ChiSquared {};
+        let t = ChiSquared {
+             boolean: true,
+             significance_level: 0.05,
+        };
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
-        let r = t.run_test(x, y, z, true, 0.05).unwrap();
+        let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(true)));
 
         //rejected
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
-        let r = t.run_test(x, y, z, true, 0.05).unwrap();
+        let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 }
