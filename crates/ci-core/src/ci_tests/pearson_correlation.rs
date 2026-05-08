@@ -15,7 +15,19 @@ use statrs::statistics::Statistics;
 ///
 /// - [Pearson correlation coefficient](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient)
 /// - [Partial correlation using linear regression](https://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression)
-pub struct PearsonCorrelation {}
+pub struct PearsonCorrelation {
+    pub boolean: bool,
+    pub significance_level: f64,
+}
+
+impl PearsonCorrelation {
+    pub fn new(boolean: bool, significance_level: f64) -> Self {
+        Self {
+            boolean,
+            significance_level,
+        }
+    }
+}
 
 impl CITest for PearsonCorrelation {
     /// Test the independence condition X ⊥ Y | Z using Pearson correlation.
@@ -38,16 +50,14 @@ impl CITest for PearsonCorrelation {
         x_values: Array1<f64>,
         y_values: Array1<f64>,
         z: Array2<f64>,
-        boolean: bool,
-        significance_level: f64,
     ) -> anyhow::Result<TestResult> {
         if z.is_empty() {
             let (coefficient, p_value) = pearsonr(&x_values.view(), &y_values.view())?;
             Ok(wrap_result(
-                boolean,
+                self.boolean,
                 p_value,
                 coefficient,
-                significance_level,
+                self.significance_level,
             ))
         } else {
             // Use linear regression to compute residuals and test independence on it.
@@ -60,10 +70,10 @@ impl CITest for PearsonCorrelation {
 
             let (coefficient, p_value) = pearsonr(&residual_x.view(), &residual_y.view())?;
             Ok(wrap_result(
-                boolean,
+                self.boolean,
                 p_value,
                 coefficient,
-                significance_level,
+                self.significance_level,
             ))
         }
     }
@@ -151,7 +161,17 @@ mod tests {
     }
 
     fn pearson() -> PearsonCorrelation {
-        PearsonCorrelation {}
+        PearsonCorrelation {
+            boolean: false,
+            significance_level: 0.05,
+        }
+    }
+
+    fn pearson_boolean() -> PearsonCorrelation {
+        PearsonCorrelation {
+            boolean: true,
+            significance_level: 0.05,
+        }
     }
 
     // --- 1. Empty array + independent X, Y + boolean=false ---
@@ -163,9 +183,7 @@ mod tests {
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
 
-        let result = pearson()
-            .run_test(x, y, empty_array(), false, SIGNIFICANCE_LEVEL)
-            .unwrap();
+        let result = pearson().run_test(x, y, empty_array()).unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
                 assert!(
@@ -189,9 +207,7 @@ mod tests {
         let x = gen_normal(N, 0.0, 1.0, &mut rng);
         let y = gen_normal(N, 0.0, 1.0, &mut rng);
 
-        let result = pearson()
-            .run_test(x, y, empty_array(), true, SIGNIFICANCE_LEVEL)
-            .unwrap();
+        let result = pearson_boolean().run_test(x, y, empty_array()).unwrap();
         match result {
             TestResult::Boolean(independent) => {
                 assert!(independent, "Independent data should return true");
@@ -210,9 +226,7 @@ mod tests {
         let noise = gen_normal(N, 0.0, 0.1, &mut rng);
         let y = &x * 3.0 + &noise;
 
-        let result = pearson()
-            .run_test(x, y, empty_array(), false, SIGNIFICANCE_LEVEL)
-            .unwrap();
+        let result = pearson().run_test(x, y, empty_array()).unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
                 assert!(
@@ -237,9 +251,7 @@ mod tests {
         let noise = gen_normal(N, 0.0, 0.1, &mut rng);
         let y = &x * 3.0 + &noise;
 
-        let result = pearson()
-            .run_test(x, y, empty_array(), true, SIGNIFICANCE_LEVEL)
-            .unwrap();
+        let result = pearson_boolean().run_test(x, y, empty_array()).unwrap();
         match result {
             TestResult::Boolean(independent) => {
                 assert!(!independent, "Correlated data should return false");
@@ -262,9 +274,7 @@ mod tests {
         let y = &z * 2.0 + &noise_y;
         let array = z.insert_axis(Axis(1));
 
-        let result = pearson()
-            .run_test(x, y, array, false, SIGNIFICANCE_LEVEL)
-            .unwrap();
+        let result = pearson().run_test(x, y, array).unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
                 assert!(
@@ -292,9 +302,7 @@ mod tests {
         let y = &z * 2.0 + &noise_y;
         let array = z.insert_axis(Axis(1));
 
-        let result = pearson()
-            .run_test(x, y, array, true, SIGNIFICANCE_LEVEL)
-            .unwrap();
+        let result = pearson_boolean().run_test(x, y, array).unwrap();
         match result {
             TestResult::Boolean(independent) => {
                 assert!(
@@ -319,9 +327,7 @@ mod tests {
         let z = &x * 2.0 + &y * 2.0 + &noise;
         let array = z.insert_axis(Axis(1));
 
-        let result = pearson()
-            .run_test(x, y, array, false, SIGNIFICANCE_LEVEL)
-            .unwrap();
+        let result = pearson().run_test(x, y, array).unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
                 assert!(
@@ -348,9 +354,7 @@ mod tests {
         let z = &x * 2.0 + &y * 2.0 + &noise;
         let array = z.insert_axis(Axis(1));
 
-        let result = pearson()
-            .run_test(x, y, array, true, SIGNIFICANCE_LEVEL)
-            .unwrap();
+        let result = pearson_boolean().run_test(x, y, array).unwrap();
         match result {
             TestResult::Boolean(independent) => {
                 assert!(
@@ -378,9 +382,7 @@ mod tests {
 
         let array = stack(Axis(1), &[z_1.view(), z_2.view(), z_3.view()]).unwrap();
 
-        let result = pearson()
-            .run_test(x, y, array, false, SIGNIFICANCE_LEVEL)
-            .unwrap();
+        let result = pearson().run_test(x, y, array).unwrap();
         match result {
             TestResult::PValue(p_value, coefficient) => {
                 assert!(

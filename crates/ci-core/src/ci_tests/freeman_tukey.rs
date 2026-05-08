@@ -4,7 +4,19 @@ use ndarray::{Array1, Array2};
 
 const FREEMAN_TUKEY_LAMBDA: f64 = -1.0 / 2.0;
 
-pub struct FreemanTukey {}
+pub struct FreemanTukey {
+    pub boolean: bool,
+    pub significance_level: f64,
+}
+
+impl FreemanTukey {
+    pub fn new(boolean: bool, significance_level: f64) -> Self {
+        Self {
+            boolean,
+            significance_level,
+        }
+    }
+}
 
 impl CITest for FreemanTukey {
     fn run_test(
@@ -12,15 +24,13 @@ impl CITest for FreemanTukey {
         x_values: Array1<f64>,
         y_values: Array1<f64>,
         z: Array2<f64>,
-        boolean: bool,
-        significance_level: f64,
     ) -> anyhow::Result<TestResult> {
         power_divergence(
             &x_values,
             &y_values,
             &z,
-            boolean,
-            significance_level,
+            self.boolean,
+            self.significance_level,
             FREEMAN_TUKEY_LAMBDA,
         )
     }
@@ -45,12 +55,15 @@ mod tests {
 
     #[test]
     fn uncond_independent_data_not_rejected() {
-        let t = FreemanTukey {};
+        let t = FreemanTukey {
+            boolean: false,
+            significance_level: 0.05,
+      };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty).unwrap());
         assert!(stat.abs() < 1e-9);
         assert!(p > 0.99);
         assert_eq!(dof, 1);
@@ -75,12 +88,15 @@ mod tests {
     // scipy: power_divergence([[5,1],[1,5]], lambda_=-0.5) -> stat=6.319453539579289
     #[test]
     fn uncond_dependent_rejected() {
-        let t = FreemanTukey {};
+        let t = FreemanTukey {
+            boolean: false,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty).unwrap());
         assert!((stat - 6.319_453_539_579_289).abs() < 1e-9, "got {stat}");
         assert!((p - 0.011_942_042_564_347_121).abs() < 1e-12, "got {p}");
         assert_eq!(dof, 1);
@@ -104,11 +120,14 @@ mod tests {
 
     #[test]
     fn uncond_boolean_accepts_independent() {
-        let t = FreemanTukey {};
+        let t = FreemanTukey {
+            boolean: true,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
-        let r = t.run_test(x, y, empty, true, 0.05).unwrap();
+        let r = t.run_test(x, y, empty).unwrap();
         assert!(matches!(r, TestResult::Boolean(true)));
     }
 
