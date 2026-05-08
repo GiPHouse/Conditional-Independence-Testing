@@ -58,7 +58,7 @@ mod tests {
         let t = ModifiedLikelihood {
             boolean: false,
             significance_level: 0.05,
-      };
+        };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
@@ -71,12 +71,15 @@ mod tests {
 
     #[test]
     fn cond_independent_data_accepted() {
-        let t = ModifiedLikelihood {};
+        let t = ModifiedLikelihood {
+            boolean: false,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
         
         // Even with lambda = -1, perfectly independent data results in 0
         assert!(stat.abs() < 1e-9, " got stat {stat}");
@@ -103,7 +106,10 @@ mod tests {
 
     #[test]
     fn cond_dependent_data_rejected() {
-        let t = ModifiedLikelihood {};
+        let t = ModifiedLikelihood {
+            boolean: false,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 1., 2., 2., 2., 1., 1., 1., 2., 2., 2.];
         let y = array![1., 1., 2., 2., 2., 1., 1., 1., 2., 2., 2., 1.];
         let z = array![
@@ -111,7 +117,7 @@ mod tests {
             [2.], [2.], [2.], [2.], [2.], [2.]
         ];
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap()); 
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap()); 
 
         assert!((stat - 1.413_396_427_876_601_6).abs() < 1e-9, "got stat {stat}");
         assert!((p - 0.493_270_184_272_571_97).abs() < 1e-12, "got p {p}");
@@ -133,11 +139,14 @@ mod tests {
 
     #[test]
     fn cond_bool_rejects_dependent() {
-        let t = ModifiedLikelihood {};
+        let t = ModifiedLikelihood {
+            boolean: true,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let z = array![[1.],[1.],[1.],[1.],[2.],[2.],[2.],[2.]];
-        let r = t.run_test(x, y, z, true, 0.05).unwrap();
+        let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 }
