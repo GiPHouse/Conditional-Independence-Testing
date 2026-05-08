@@ -72,12 +72,15 @@ mod tests {
 
     #[test]
     fn cond_independent_data_accepted() {
-        let t = ModifiedLikelihood {};
+        let t = ModifiedLikelihood {
+            boolean: false,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
         
         // Even with lambda = -1, perfectly independent data results in 0
         assert!(stat.abs() < 1e-9, " got stat {stat}");
