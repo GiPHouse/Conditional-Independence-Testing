@@ -14,35 +14,22 @@ use ndarray::{ArrayView1, ArrayView2};
 mod util;
 
 macro_rules! r_ci_test {
-    ($r_name:ident, $inner:ty) => {
+    ($fn_name:ident, $inner:ty) => {
         #[extendr]
-        pub struct $r_name {
-            citest: $inner
-        }
-        
-        #[extendr]
-        impl $r_name {
-            fn new(
-                boolean: bool,
-                significance_level: f64
-                ) -> Self {
+        fn $fn_name(
+            x_values: ArrayView1<f64>,
+            y_values: ArrayView1<f64>,
+            z: ArrayView2<f64>,
+            boolean: bool,
+            significance_level: f64,
+        ) -> anyhow::Result<Robj> {
             let citest = <$inner>::new(boolean, significance_level);
-            $r_name{citest: citest}
-            }
-
-            fn run_test(
-                &self,
-                x_values: ArrayView1<f64>,
-                y_values: ArrayView1<f64>,
-                z: ArrayView2<f64>,
-                ) -> anyhow::Result<Robj> {
-
-                    let result = self.citest.run_test(
-                    x_values.to_owned(), 
-                    y_values.to_owned(), 
-                    z.to_owned())?;
-                    Ok(util::test_result_to_robj(result))
-            }
+            let result = citest.run_test(
+                x_values.to_owned(),
+                y_values.to_owned(),
+                z.to_owned(),
+            )?;
+            Ok(util::test_result_to_robj(result))
         }
     };
 }
@@ -69,24 +56,24 @@ fn list_ci_tests_for(data_type: &str) -> anyhow::Result<Vec<String>> {
     Ok(tests)
 }
 
-r_ci_test!(RChiSquared, ChiSquared);
-r_ci_test!(RLogLikelihood, LogLikelihood);
-r_ci_test!(RCressieRead, CressieRead);
-r_ci_test!(RPearsonCorrelation, PearsonCorrelation);
-r_ci_test!(RFreemanTukey, FreemanTukey);
-r_ci_test!(RModifiedLikelihood, ModifiedLikelihood);
-r_ci_test!(RPearsonEquivalence, PearsonEquivalence);
+r_ci_test!(chi_squared_test, ChiSquared);
+r_ci_test!(log_likelihood_test, LogLikelihood);
+r_ci_test!(cressie_read_test, CressieRead);
+r_ci_test!(pearson_correlation_test, PearsonCorrelation);
+r_ci_test!(freeman_tukey_test, FreemanTukey);
+r_ci_test!(modified_likelihood_test, ModifiedLikelihood);
+r_ci_test!(pearson_equivalence_test, PearsonEquivalence);
 
 
 extendr_module! {
     mod cir;
     fn list_ci_tests;
     fn list_ci_tests_for;
-    impl RChiSquared;
-    impl RLogLikelihood;
-    impl RCressieRead;
-    impl RPearsonCorrelation;
-    impl RFreemanTukey;
-    impl RModifiedLikelihood;
-    impl RPearsonEquivalence;
+    fn chi_squared_test;
+    fn log_likelihood_test;
+    fn cressie_read_test;
+    fn pearson_correlation_test;
+    fn freeman_tukey_test;
+    fn modified_likelihood_test;
+    fn pearson_equivalence_test;
 }
