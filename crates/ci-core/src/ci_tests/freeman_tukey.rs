@@ -107,7 +107,26 @@ mod tests {
     }
 
     #[test]
-    fn unconditional_boolean_accepts_independent() {
+    fn cond_dependent_rejected() {
+        let t = FreemanTukey {
+            boolean: false,
+            significance_level: 0.05,
+        };
+        let x = array![1., 1., 2., 2., 1., 2., 1., 1., 2., 2., 1., 2.];
+        let y = array![1., 2., 1., 2., 2., 1., 1., 2., 1., 2., 2., 1.];
+        let z = array![
+            [1.],[1.],[1.],[1.],[1.],[1.],
+            [2.],[2.],[2.],[2.],[2.],[2.]
+        ];
+
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
+        assert!((stat - 1.382_538_273_265_069_5).abs() < 1e-9, "got stat {stat}");
+        assert!((p - 0.500_939_904_278_208_8).abs() < 1e-12, "got p value {p}");
+        assert_eq!(dof, 2);
+    }
+
+    #[test]
+    fn uncond_boolean_accepts_independent() {
         let t = FreemanTukey {
             boolean: true,
             significance_level: 0.05,
