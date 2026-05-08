@@ -1,8 +1,6 @@
-use criterion::{
-    black_box, criterion_group, criterion_main, BatchSize, Criterion
-};
-use ndarray::Array2;
 use ci_core::utils::contingency_test::contingency_test;
+use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
+use ndarray::Array2;
 
 fn generate_matrix(n: usize, m: usize) -> Array2<f64> {
     Array2::from_shape_fn((n, m), |(i, j)| (i + j + 1) as f64)
@@ -14,10 +12,7 @@ fn bench_lambda(c: &mut Criterion, name: &str, lambda: f64, observed: &Array2<f6
         b.iter_batched_ref(
             || observed.clone(),
             |data| {
-                let result = contingency_test(
-                    black_box(data),
-                    black_box(lambda),
-                );
+                let result = contingency_test(black_box(data), black_box(lambda));
                 black_box(result)
             },
             BatchSize::SmallInput,
@@ -34,14 +29,15 @@ fn benchmark_contingency_test(c: &mut Criterion) {
         ("contingency_lambda_2", 2.0),
     ];
 
+    //benchmark for all values of lambda
     for (name, lambda) in cases {
         bench_lambda(c, name, lambda, &observed);
     }
 }
 
 fn custom_criterion() -> Criterion {
-    Criterion::default()
-        .measurement_time(std::time::Duration::from_secs(10))
+    //gives criterion a bit more time to get a more accurate benchmark
+    Criterion::default().measurement_time(std::time::Duration::from_secs(10))
 }
 
 criterion_group! {

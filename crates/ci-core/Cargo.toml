@@ -41,3 +41,11 @@ workspace = true
 [[bench]]
 name = "contingency_test_bench"
 harness = false
+
+[[bench]]
+name = "contingency_table_bench"
+harness = false
+
+[[bench]]
+name = "power_divergence_bench"
+harness = false
