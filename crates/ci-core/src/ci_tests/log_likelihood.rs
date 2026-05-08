@@ -4,7 +4,19 @@ use ndarray::{Array1, Array2};
 
 const LOG_LIKELIHOOD_LAMBDA: f64 = 0.0;
 
-pub struct LogLikelihood {}
+pub struct LogLikelihood {
+    pub boolean: bool,
+    pub significance_level: f64,
+}
+
+impl LogLikelihood {
+    pub fn new(boolean: bool, significance_level: f64) -> Self {
+        Self {
+            boolean,
+            significance_level,
+        }
+    }
+}
 
 impl CITest for LogLikelihood {
     fn run_test(
@@ -12,15 +24,13 @@ impl CITest for LogLikelihood {
         x_values: Array1<f64>,
         y_values: Array1<f64>,
         z: Array2<f64>,
-        boolean: bool,
-        significance_level: f64,
     ) -> anyhow::Result<TestResult> {
         power_divergence(
             &x_values,
             &y_values,
             &z,
-            boolean,
-            significance_level,
+            self.boolean,
+            self.significance_level,
             LOG_LIKELIHOOD_LAMBDA,
         )
     }
@@ -45,12 +55,15 @@ mod tests {
 
     #[test]
     fn uncond_independent_data_accepted() {
-        let t = LogLikelihood {};
+        let t = LogLikelihood {
+            boolean: false,
+            significance_level: 0.05,
+      };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty).unwrap());
         assert!(stat.abs() < 1e-9);
         assert!(p > 0.99);
         assert_eq!(dof, 1);
@@ -73,12 +86,15 @@ mod tests {
     // scipy: power_divergence([[5,1],[1,5]], lambda_=0) -> stat=5.822063320647374
     #[test]
     fn uncond_dependent_data_rejected() {
-        let t = LogLikelihood {};
+        let t = LogLikelihood {
+            boolean: false,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty).unwrap());
         assert!((stat - 5.822_063_320_647_374).abs() < 1e-9, "got {stat}");
         assert!((p - 0.015_826_368_796_540_195).abs() < 1e-12, "got {p}");
         assert_eq!(dof, 1);
@@ -100,11 +116,14 @@ mod tests {
 
     #[test]
     fn uncond_bool_rejects_dependent() {
-        let t = LogLikelihood {};
+        let t = LogLikelihood {
+            boolean: true,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
-        let r = t.run_test(x, y, empty, true, 0.05).unwrap();
+        let r = t.run_test(x, y, empty).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 
