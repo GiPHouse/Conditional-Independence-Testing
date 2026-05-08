@@ -1,6 +1,6 @@
 use crate::ci_tests::pearson_correlation::PearsonCorrelation;
 use crate::strategy::{CITest, CITestDataType, TestResult};
-use libm::{atanh, sqrt};
+use anyhow::bail;
 use ndarray::{Array1, Array2, Axis};
 use statrs::distribution::{ContinuousCDF, Normal};
 
@@ -49,14 +49,19 @@ impl CITest for PearsonEquivalence {
             statistic
         };
 
-        let coefficient = atanh(rho);
-        let z_delta = atanh(self.delta_threshold);
+        let coefficient = rho.atanh();
+        let z_delta = self.delta_threshold.atanh();
 
         #[allow(
             clippy::cast_precision_loss,
             reason = "array length and number of variables most likely won't exceed 2^53"
         )]
-        let std_error_factor = sqrt((n - s - 3) as f64);
+        let argument = (n - s - 3) as f64;
+        let std_error_factor = if argument >= 0.0 {
+            argument.sqrt()
+        } else {
+            bail!("The length of the data should be at least 3 greater than the number of conditional variables");
+        };
 
         let z_score_lower = std_error_factor * (coefficient + z_delta);
         let p_value_lower = 1.0 - Normal::new(0.0, 1.0).unwrap().cdf(z_score_lower);
