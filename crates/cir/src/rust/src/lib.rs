@@ -7,7 +7,7 @@
 use ci_core::ci_tests::{
     chi_squared::ChiSquared, cressie_read::CressieRead, freeman_tukey::FreemanTukey,
     log_likelihood::LogLikelihood, modified_likelihood::ModifiedLikelihood,
-    pearson_correlation::PearsonCorrelation, 
+    pearson_correlation::PearsonCorrelation,
 };
 use ci_core::registry::Registry;
 use ci_core::strategy::{CITest, CITestDataType};
