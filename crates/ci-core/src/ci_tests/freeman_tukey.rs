@@ -58,7 +58,7 @@ mod tests {
         let t = FreemanTukey {
             boolean: false,
             significance_level: 0.05,
-      };
+        };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
@@ -71,7 +71,10 @@ mod tests {
 
     #[test]
     fn cond_independent_not_rejected() {
-        let t = FreemanTukey {};
+        let t = FreemanTukey {
+            boolean: false,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let z = array![
@@ -79,7 +82,7 @@ mod tests {
             [2.],[2.],[2.],[2.],
         ];
         
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
         assert!(stat.abs() < 1e-9);
         assert!(p > 0.99);
         assert_eq!(dof, 2);
@@ -104,7 +107,10 @@ mod tests {
 
     #[test]
     fn cond_dependent_rejected() {
-        let t = FreemanTukey {};
+        let t = FreemanTukey {
+            boolean: false,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 2., 2., 1., 2., 1., 1., 2., 2., 1., 2.];
         let y = array![1., 2., 1., 2., 2., 1., 1., 2., 1., 2., 2., 1.];
         let z = array![
@@ -112,7 +118,7 @@ mod tests {
             [2.],[2.],[2.],[2.],[2.],[2.]
         ];
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
         assert!((stat - 4.949_747_468_305_833).abs() < 1e-9, "got {stat}");
         assert!((p - 0.083_861_843_220_591_97).abs() < 1e-12, "got {p}");
         assert_eq!(dof, 2);
@@ -133,7 +139,10 @@ mod tests {
 
     #[test]
     fn cond_boolean_rejects_dependent() {
-        let t = FreemanTukey {};
+        let t = FreemanTukey {
+            boolean: true,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 1., 2., 2., 2., 1., 1., 1., 2., 2., 2.];
         let y = array![1., 1., 2., 2., 2., 2., 1., 1., 2., 2., 2., 2.];
         let z = array![
@@ -141,7 +150,7 @@ mod tests {
                 [2.],[2.],[2.],[2.],[2.],[2.]
             ];
 
-        let r = t.run_test(x, y, z, true, 0.05).unwrap();
+        let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 }
