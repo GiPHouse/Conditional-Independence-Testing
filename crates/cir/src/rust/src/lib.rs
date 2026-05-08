@@ -81,7 +81,7 @@ r_ci_test!(cressie_read_test, CressieRead);
 r_ci_test!(pearson_correlation_test, PearsonCorrelation);
 r_ci_test!(freeman_tukey_test, FreemanTukey);
 r_ci_test!(modified_likelihood_test, ModifiedLikelihood);
-r_ci_test!(pearson_equivalence_test, PearsonEquivalence);
+//r_ci_test!(pearson_equivalence_test, PearsonEquivalence);
 
 extendr_module! {
     mod cir;
@@ -93,5 +93,5 @@ extendr_module! {
     fn pearson_correlation_test;
     fn freeman_tukey_test;
     fn modified_likelihood_test;
-    fn pearson_equivalence_test;
+    //fn pearson_equivalence_test;
 }
