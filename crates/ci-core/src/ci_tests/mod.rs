@@ -16,6 +16,9 @@ use pearson_equivalence::PearsonEquivalence;
 
 use crate::registry::Registry;
 
+/// # Panics
+///
+/// Panics if any test name is already registered (indicates a duplicate registration bug).
 pub fn register_all_tests(registry: &mut Registry) {
     registry
         .add_to_registry("chi_square", ChiSquared::new(true, 0.05))
