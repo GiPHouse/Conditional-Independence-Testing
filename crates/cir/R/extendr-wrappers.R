@@ -5,8 +5,13 @@
 #' @useDynLib cir, .registration = TRUE
 NULL
 
+#' Returns a sorted vector of all registered CI test names.
 list_ci_tests <- function() .Call(wrap__list_ci_tests)
 
+#' Returns a sorted vector of CI test names compatible with the given data type.
+#'
+#' `data_type` must be one of `"discrete"`, `"continuous"`, or `"mixed"` (case-insensitive).
+#' Returns an error for any other value.
 list_ci_tests_for <- function(data_type) .Call(wrap__list_ci_tests_for, data_type)
 
 chi_squared_test <- function(x_values, y_values, z, boolean, significance_level) .Call(wrap__chi_squared_test, x_values, y_values, z, boolean, significance_level)

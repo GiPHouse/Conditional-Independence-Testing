@@ -107,8 +107,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Install R package dependencies
-        run: install.packages(c("devtools", "testthat", "rextendr"))
-        shell: Rscript {0}
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          working-directory: crates/cir
+          extra-packages: any::devtools, any::rextendr
 
       - name: Generate Makevars and R wrappers
         working-directory: crates/cir
