@@ -11,7 +11,7 @@ R
 Install `pak` (the modern R package manager that handles system dependencies automatically):
 
 ```r
-install.packages("pak")
+install.packages("pak", repos = "https://cloud.r-project.org")
 ```
 
 Install dev dependencies:
