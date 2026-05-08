@@ -10,6 +10,7 @@ pub struct CressieRead {
 }
 
 impl CressieRead {
+    #[must_use]
     pub fn new(boolean: bool, significance_level: f64) -> Self {
         Self {
             boolean,
