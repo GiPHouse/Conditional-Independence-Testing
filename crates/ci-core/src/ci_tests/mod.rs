@@ -1,10 +1,10 @@
-mod chi_squared;
-mod cressie_read;
-mod freeman_tukey;
-mod log_likelihood;
-mod modified_likelihood;
-mod pearson_correlation;
-mod pearson_equivalence;
+pub mod chi_squared;
+pub mod cressie_read;
+pub mod freeman_tukey;
+pub mod log_likelihood;
+pub mod modified_likelihood;
+pub mod pearson_correlation;
+pub mod pearson_equivalence;
 
 use chi_squared::ChiSquared;
 use cressie_read::CressieRead;
@@ -16,6 +16,9 @@ use pearson_equivalence::PearsonEquivalence;
 
 use crate::registry::Registry;
 
+/// # Panics
+///
+/// Panics if any test name is already registered (indicates a duplicate registration bug).
 pub fn register_all_tests(registry: &mut Registry) {
     registry
         .add_to_registry("chi_square", ChiSquared::new(true, 0.05))
