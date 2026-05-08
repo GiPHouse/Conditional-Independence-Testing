@@ -56,7 +56,10 @@ mod tests {
 
     #[test]
     fn uncond_independent_data_accepted() {
-        let t = LogLikelihood {};
+        let t = LogLikelihood {
+            boolean: false,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
@@ -69,12 +72,15 @@ mod tests {
 
     #[test]
     fn cond_independent_data_accepted() {
-        let t = LogLikelihood {};
+        let t = LogLikelihood {
+            boolean: false,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
         assert!((stat).abs() < 1e-9, " got {stat}");
         assert!(p > 0.99);
         assert_eq!(dof, 2);
@@ -97,12 +103,15 @@ mod tests {
 
     #[test]
     fn cond_dependent_data_rejected() {
-        let t = LogLikelihood {};
+        let t = LogLikelihood {
+            boolean: false,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
         assert!(stat > 0.0, "stat should be positive, got {stat}");
         assert!((stat - 11.090_354_888_959_125).abs() < 1e-9, "for stat got {stat}");
         assert!((p - 0.003_906_249_999_999_994).abs() < 1e-12, "for p got {p}");
@@ -121,7 +130,10 @@ mod tests {
 
     #[test]
     fn cond_bool_rejects_dependent() {
-        let t = LogLikelihood {};
+        let t = LogLikelihood {
+            boolean: true,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 1., 2., 2., 2., 1., 1., 1., 2., 2., 2.];
         let y = array![1., 1., 2., 2., 2., 2., 1., 1., 2., 2., 2., 2.];
         let z = array![
@@ -129,7 +141,7 @@ mod tests {
             [2.],[2.],[2.],[2.],[2.],[2.]
         ];
 
-        let r = t.run_test(x, y, z, true, 0.05).unwrap();
+        let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 }
