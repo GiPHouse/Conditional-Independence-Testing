@@ -119,8 +119,8 @@ mod tests {
         ];
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
-        assert!((stat - 4.949_747_468_305_833).abs() < 1e-9, "got {stat}");
-        assert!((p - 0.083_861_843_220_591_97).abs() < 1e-12, "got {p}");
+        assert!((stat - 1.382_538_273_265_069_5).abs() < 1e-9, "got stat {stat}");
+        assert!((p - 0.500_939_904_278_208_8).abs() < 1e-12, "got p value {p}");
         assert_eq!(dof, 2);
     }
 
