@@ -9,88 +9,18 @@ list_ci_tests <- function() .Call(wrap__list_ci_tests)
 
 list_ci_tests_for <- function(data_type) .Call(wrap__list_ci_tests_for, data_type)
 
-RChiSquared <- new.env(parent = emptyenv())
+chi_squared_test <- function(x_values, y_values, z, boolean, significance_level) .Call(wrap__chi_squared_test, x_values, y_values, z, boolean, significance_level)
 
-RChiSquared$new <- function(boolean, significance_level) .Call(wrap__RChiSquared__new, boolean, significance_level)
+log_likelihood_test <- function(x_values, y_values, z, boolean, significance_level) .Call(wrap__log_likelihood_test, x_values, y_values, z, boolean, significance_level)
 
-RChiSquared$run_test <- function(x_values, y_values, z) .Call(wrap__RChiSquared__run_test, self, x_values, y_values, z)
+cressie_read_test <- function(x_values, y_values, z, boolean, significance_level) .Call(wrap__cressie_read_test, x_values, y_values, z, boolean, significance_level)
 
-#' @export
-`$.RChiSquared` <- function (self, name) { func <- RChiSquared[[name]]; environment(func) <- environment(); func }
+pearson_correlation_test <- function(x_values, y_values, z, boolean, significance_level) .Call(wrap__pearson_correlation_test, x_values, y_values, z, boolean, significance_level)
 
-#' @export
-`[[.RChiSquared` <- `$.RChiSquared`
+freeman_tukey_test <- function(x_values, y_values, z, boolean, significance_level) .Call(wrap__freeman_tukey_test, x_values, y_values, z, boolean, significance_level)
 
-RLogLikelihood <- new.env(parent = emptyenv())
+modified_likelihood_test <- function(x_values, y_values, z, boolean, significance_level) .Call(wrap__modified_likelihood_test, x_values, y_values, z, boolean, significance_level)
 
-RLogLikelihood$new <- function(boolean, significance_level) .Call(wrap__RLogLikelihood__new, boolean, significance_level)
-
-RLogLikelihood$run_test <- function(x_values, y_values, z) .Call(wrap__RLogLikelihood__run_test, self, x_values, y_values, z)
-
-#' @export
-`$.RLogLikelihood` <- function (self, name) { func <- RLogLikelihood[[name]]; environment(func) <- environment(); func }
-
-#' @export
-`[[.RLogLikelihood` <- `$.RLogLikelihood`
-
-RCressieRead <- new.env(parent = emptyenv())
-
-RCressieRead$new <- function(boolean, significance_level) .Call(wrap__RCressieRead__new, boolean, significance_level)
-
-RCressieRead$run_test <- function(x_values, y_values, z) .Call(wrap__RCressieRead__run_test, self, x_values, y_values, z)
-
-#' @export
-`$.RCressieRead` <- function (self, name) { func <- RCressieRead[[name]]; environment(func) <- environment(); func }
-
-#' @export
-`[[.RCressieRead` <- `$.RCressieRead`
-
-RPearsonCorrelation <- new.env(parent = emptyenv())
-
-RPearsonCorrelation$new <- function(boolean, significance_level) .Call(wrap__RPearsonCorrelation__new, boolean, significance_level)
-
-RPearsonCorrelation$run_test <- function(x_values, y_values, z) .Call(wrap__RPearsonCorrelation__run_test, self, x_values, y_values, z)
-
-#' @export
-`$.RPearsonCorrelation` <- function (self, name) { func <- RPearsonCorrelation[[name]]; environment(func) <- environment(); func }
-
-#' @export
-`[[.RPearsonCorrelation` <- `$.RPearsonCorrelation`
-
-RFreemanTukey <- new.env(parent = emptyenv())
-
-RFreemanTukey$new <- function(boolean, significance_level) .Call(wrap__RFreemanTukey__new, boolean, significance_level)
-
-RFreemanTukey$run_test <- function(x_values, y_values, z) .Call(wrap__RFreemanTukey__run_test, self, x_values, y_values, z)
-
-#' @export
-`$.RFreemanTukey` <- function (self, name) { func <- RFreemanTukey[[name]]; environment(func) <- environment(); func }
-
-#' @export
-`[[.RFreemanTukey` <- `$.RFreemanTukey`
-
-RModifiedLikelihood <- new.env(parent = emptyenv())
-
-RModifiedLikelihood$new <- function(boolean, significance_level) .Call(wrap__RModifiedLikelihood__new, boolean, significance_level)
-
-RModifiedLikelihood$run_test <- function(x_values, y_values, z) .Call(wrap__RModifiedLikelihood__run_test, self, x_values, y_values, z)
-
-#' @export
-`$.RModifiedLikelihood` <- function (self, name) { func <- RModifiedLikelihood[[name]]; environment(func) <- environment(); func }
-
-#' @export
-`[[.RModifiedLikelihood` <- `$.RModifiedLikelihood`
-
-RPearsonEquivalence <- new.env(parent = emptyenv())
-
-RPearsonEquivalence$new <- function(boolean, significance_level) .Call(wrap__RPearsonEquivalence__new, boolean, significance_level)
-
-RPearsonEquivalence$run_test <- function(x_values, y_values, z) .Call(wrap__RPearsonEquivalence__run_test, self, x_values, y_values, z)
-
-#' @export
-`$.RPearsonEquivalence` <- function (self, name) { func <- RPearsonEquivalence[[name]]; environment(func) <- environment(); func }
-
-#' @export
-`[[.RPearsonEquivalence` <- `$.RPearsonEquivalence`
+pearson_equivalence_test <- function(x_values, y_values, z, boolean, significance_level) .Call(wrap__pearson_equivalence_test, x_values, y_values, z, boolean, significance_level)
 
 # nolint end
