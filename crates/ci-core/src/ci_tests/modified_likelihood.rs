@@ -117,4 +117,17 @@ mod tests {
         let r = t.run_test(x, y, empty).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
+
+    #[test]
+    fn cond_bool_rejects_independent() {
+        let t = ModifiedLikelihood {
+            boolean: true,
+            significance_level: 0.05,
+        };
+        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let z = array![[1.],[1.],[1.],[1.],[2.],[2.],[2.],[2.]];
+        let r = t.run_test(x, y, z).unwrap();
+        assert!(matches!(r, TestResult::Boolean(true)));
+    }
 }
