@@ -80,7 +80,7 @@ mod tests {
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
-        
+
         // Even with lambda = -1, perfectly independent data results in 0
         assert!(stat.abs() < 1e-9, " got stat {stat}");
         assert!(p > 0.99, " got p {p}");
@@ -113,13 +113,26 @@ mod tests {
         let x = array![1., 1., 1., 2., 2., 2., 1., 1., 1., 2., 2., 2.];
         let y = array![1., 1., 2., 2., 2., 1., 1., 1., 2., 2., 2., 1.];
         let z = array![
-            [1.], [1.], [1.], [1.], [1.], [1.], 
-            [2.], [2.], [2.], [2.], [2.], [2.]
+            [1.],
+            [1.],
+            [1.],
+            [1.],
+            [1.],
+            [1.],
+            [2.],
+            [2.],
+            [2.],
+            [2.],
+            [2.],
+            [2.]
         ];
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap()); 
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
 
-        assert!((stat - 1.413_396_427_876_601_6).abs() < 1e-9, "got stat {stat}");
+        assert!(
+            (stat - 1.413_396_427_876_601_6).abs() < 1e-9,
+            "got stat {stat}"
+        );
         assert!((p - 0.493_270_184_272_571_97).abs() < 1e-12, "got p {p}");
         assert_eq!(dof, 2);
     }
@@ -145,7 +158,7 @@ mod tests {
         };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
-        let z = array![[1.],[1.],[1.],[1.],[2.],[2.],[2.],[2.]];
+        let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
         let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(true)));
     }
