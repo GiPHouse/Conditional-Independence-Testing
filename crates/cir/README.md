@@ -1,18 +1,35 @@
 extendr bindings
 
-##Usage
+## Usage
 
-Install R
-In your command line open an R session by typing: R
-install.packages("rextendr") (this takes 5-15 mins)
+Install R, then open an R session:
 
-usethis::create_package("crates/ci-r-pkg", open = FALSE)
-setwd("crates/ci-r-pkg")
-rextendr::use_extendr()
+```sh
+R
+```
 
-to regenerate bindings -> install.packages("devtools")
+Install `pak` (the modern R package manager that handles system dependencies automatically):
 
-devtools::document()   # generates R bindings
-devtools::load_all()   # compiles Rust + loads the package
+```r
+install.packages("pak")
+```
 
-devtools::test() # Run all tests
+Install dev dependencies:
+
+```r
+pak::pak(c("devtools", "rextendr"))
+```
+
+### Regenerate bindings
+
+```r
+setwd("crates/cir")
+rextendr::document()  # regenerates R wrappers and compiles Rust
+```
+
+### Load and test
+
+```r
+devtools::load_all()  # compiles Rust + loads the package
+devtools::test()      # run all tests
+```
