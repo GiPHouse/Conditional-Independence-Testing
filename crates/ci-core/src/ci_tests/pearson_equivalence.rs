@@ -12,7 +12,7 @@ pub struct PearsonEquivalence {
 
 impl PearsonEquivalence {
     #[must_use]
-    pub fn new(boolean: bool, significance_level: f64) -> Self {
+    pub fn new(boolean: bool, significance_level: f64, delta_threshold: f64) -> Self {
         Self {
             boolean,
             significance_level,
@@ -88,6 +88,7 @@ impl CITest for PearsonEquivalence {
     }
 }
 
+#[must_use]
 pub fn wrap_result(
     boolean: bool,
     p_value: f64,
