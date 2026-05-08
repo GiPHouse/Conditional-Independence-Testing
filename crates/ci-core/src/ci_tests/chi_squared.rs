@@ -56,7 +56,14 @@ mod tests {
 
     #[test]
     fn uncond_independent_data_accepted() {
+<<<<<<< HEAD
         let t = ChiSquared {};
+=======
+        let t = ChiSquared {
+            boolean: false,
+            significance_level: 0.05,
+        };
+>>>>>>> 9b75505 (Cargo fmt ran)
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
@@ -70,8 +77,8 @@ mod tests {
     #[test]
     fn cond_independent_data_accepted() {
         let t = ChiSquared {
-             boolean: false,
-             significance_level: 0.05,
+            boolean: false,
+            significance_level: 0.05,
         };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
@@ -86,7 +93,14 @@ mod tests {
     // scipy: chi2_contingency([[4,0],[0,4]], lambda_=1, correction=False) -> stat=8.0, p=0.00468
     #[test]
     fn uncond_dependent_data_rejected() {
+<<<<<<< HEAD
         let t = ChiSquared {};
+=======
+        let t = ChiSquared {
+            boolean: false,
+            significance_level: 0.05,
+        };
+>>>>>>> 9b75505 (Cargo fmt ran)
         let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
@@ -103,8 +117,8 @@ mod tests {
     #[test]
     fn cond_dependent_data_rejected() {
         let t = ChiSquared {
-             boolean: false,
-             significance_level: 0.05,
+            boolean: false,
+            significance_level: 0.05,
         };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
@@ -140,8 +154,8 @@ mod tests {
     fn cond_boolean_mode() {
         //accepted
         let t = ChiSquared {
-             boolean: true,
-             significance_level: 0.05,
+            boolean: true,
+            significance_level: 0.05,
         };
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];

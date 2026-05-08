@@ -113,8 +113,14 @@ mod tests {
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
         assert!(stat > 0.0, "stat should be positive, got {stat}");
-        assert!((stat - 11.090_354_888_959_125).abs() < 1e-9, "for stat got {stat}");
-        assert!((p - 0.003_906_249_999_999_994).abs() < 1e-12, "for p got {p}");
+        assert!(
+            (stat - 11.090_354_888_959_125).abs() < 1e-9,
+            "for stat got {stat}"
+        );
+        assert!(
+            (p - 0.003_906_249_999_999_994).abs() < 1e-12,
+            "for p got {p}"
+        );
         assert_eq!(dof, 2);
     }
 
@@ -137,8 +143,18 @@ mod tests {
         let x = array![1., 1., 1., 2., 2., 2., 1., 1., 1., 2., 2., 2.];
         let y = array![1., 1., 2., 2., 2., 2., 1., 1., 2., 2., 2., 2.];
         let z = array![
-            [1.],[1.],[1.],[1.],[1.],[1.],
-            [2.],[2.],[2.],[2.],[2.],[2.]
+            [1.],
+            [1.],
+            [1.],
+            [1.],
+            [1.],
+            [1.],
+            [2.],
+            [2.],
+            [2.],
+            [2.],
+            [2.],
+            [2.]
         ];
 
         let r = t.run_test(x, y, z).unwrap();
