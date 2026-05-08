@@ -77,7 +77,6 @@ mod tests {
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z, false, 0.05).unwrap());
         assert!(stat.abs() < 1e-9, "stat should be ~0, got {stat}");
         assert!(p > 0.99);
-        //dof = (#Z strata) * (|X|-1)(|Y|-1): 2 * 1 * 1 = 2
         assert_eq!(dof, 2);
     }
 
