@@ -1,9 +1,15 @@
+//! R bindings for the conditional independence testing library.
+//!
+//! Exposes CI test functions and registry queries to R via the `extendr` framework.
+//! Each CI test accepts paired observation vectors and a conditioning matrix, returning
+//! a named R list whose shape depends on whether the test runs in boolean or numeric mode.
+
 use extendr_api::prelude::*;
 use ci_core::registry::Registry;
 use ci_core::strategy::{CITest, CITestDataType};
 use ci_core::ci_tests::{
-    chi_squared::ChiSquared, 
-    cressie_read::CressieRead, 
+    chi_squared::ChiSquared,
+    cressie_read::CressieRead,
     freeman_tukey::FreemanTukey,
     log_likelihood::LogLikelihood,
     modified_likelihood::ModifiedLikelihood,
@@ -13,6 +19,17 @@ use ci_core::ci_tests::{
 use ndarray::{ArrayView1, ArrayView2};
 mod util;
 
+/// Generates an R-callable wrapper for a [`CITest`] implementation.
+///
+/// The generated function signature is:
+/// ```text
+/// fn $fn_name(x_values, y_values, z, boolean, significance_level) -> Robj
+/// ```
+/// - `x_values` / `y_values`: paired observation vectors.
+/// - `z`: conditioning matrix; pass a 0-column matrix for unconditional tests.
+/// - `boolean`: when `true`, returns only an independence verdict at `significance_level`
+///   instead of the raw test statistic and p-value.
+/// - `significance_level`: threshold used only when `boolean` is `true`.
 macro_rules! r_ci_test {
     ($fn_name:ident, $inner:ty) => {
         #[extendr]
@@ -34,6 +51,7 @@ macro_rules! r_ci_test {
     };
 }
 
+/// Returns a sorted vector of all registered CI test names.
 #[extendr]
 fn list_ci_tests() -> anyhow::Result<Vec<String>> {
     let registry = Registry::new();
@@ -42,6 +60,10 @@ fn list_ci_tests() -> anyhow::Result<Vec<String>> {
     Ok(tests)
 }
 
+/// Returns a sorted vector of CI test names compatible with the given data type.
+///
+/// `data_type` must be one of `"discrete"`, `"continuous"`, or `"mixed"` (case-insensitive).
+/// Returns an error for any other value.
 #[extendr]
 fn list_ci_tests_for(data_type: &str) -> anyhow::Result<Vec<String>> {
     let dt = match data_type.to_lowercase().as_str() {
