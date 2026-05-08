@@ -4,18 +4,14 @@
 //! Each CI test accepts paired observation vectors and a conditioning matrix, returning
 //! a named R list whose shape depends on whether the test runs in boolean or numeric mode.
 
-use extendr_api::prelude::*;
+use ci_core::ci_tests::{
+    chi_squared::ChiSquared, cressie_read::CressieRead, freeman_tukey::FreemanTukey,
+    log_likelihood::LogLikelihood, modified_likelihood::ModifiedLikelihood,
+    pearson_correlation::PearsonCorrelation, pearson_equivalence::PearsonEquivalence,
+};
 use ci_core::registry::Registry;
 use ci_core::strategy::{CITest, CITestDataType};
-use ci_core::ci_tests::{
-    chi_squared::ChiSquared,
-    cressie_read::CressieRead,
-    freeman_tukey::FreemanTukey,
-    log_likelihood::LogLikelihood,
-    modified_likelihood::ModifiedLikelihood,
-    pearson_correlation::PearsonCorrelation,
-    pearson_equivalence::PearsonEquivalence,
-};
+use extendr_api::prelude::*;
 use ndarray::{ArrayView1, ArrayView2};
 mod util;
 
@@ -41,11 +37,7 @@ macro_rules! r_ci_test {
             significance_level: f64,
         ) -> anyhow::Result<Robj> {
             let citest = <$inner>::new(boolean, significance_level);
-            let result = citest.run_test(
-                x_values.to_owned(),
-                y_values.to_owned(),
-                z.to_owned(),
-            )?;
+            let result = citest.run_test(x_values.to_owned(), y_values.to_owned(), z.to_owned())?;
             Ok(util::test_result_to_robj(result))
         }
     };
@@ -70,10 +62,15 @@ fn list_ci_tests_for(data_type: &str) -> anyhow::Result<Vec<String>> {
         "discrete" => CITestDataType::Discrete,
         "continuous" => CITestDataType::Continuous,
         "mixed" => CITestDataType::Mixed,
-        _ => anyhow::bail!("Unknown data type: '{data_type}'. Use 'discrete', 'continuous', or 'mixed'."),
+        _ => anyhow::bail!(
+            "Unknown data type: '{data_type}'. Use 'discrete', 'continuous', or 'mixed'."
+        ),
     };
     let registry = Registry::new();
-    let mut tests: Vec<String> = registry.tests_with_data_type(&dt)?.map(String::from).collect();
+    let mut tests: Vec<String> = registry
+        .tests_with_data_type(&dt)?
+        .map(String::from)
+        .collect();
     tests.sort();
     Ok(tests)
 }
@@ -85,7 +82,6 @@ r_ci_test!(pearson_correlation_test, PearsonCorrelation);
 r_ci_test!(freeman_tukey_test, FreemanTukey);
 r_ci_test!(modified_likelihood_test, ModifiedLikelihood);
 r_ci_test!(pearson_equivalence_test, PearsonEquivalence);
-
 
 extendr_module! {
     mod cir;
