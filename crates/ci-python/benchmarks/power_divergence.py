@@ -1,4 +1,5 @@
 from pgmpy.estimators.CITests import pearsonr, power_divergence
+from pgmpy.ci_tests import PearsonrEquivalence
 import numpy as np
 from ci_python import PyRegistry
 import time
@@ -6,7 +7,6 @@ import pandas as pd
 
 
 registry = PyRegistry()
-test = registry.get_test("pearson_correlation")
 
 N_ITER = 50
 
@@ -28,29 +28,34 @@ def make_data(size, rng):
 
     return df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond
 
+# ---------------------------------------------------------------------------
+# Pearson correlation bench
+# ---------------------------------------------------------------------------
 
-def bench(size):
+pearsonr_test = registry.get_test("pearson_correlation")
+
+def bench_pearsonr(size):
     rng = np.random.default_rng(seed=42)
     df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond = make_data(
         size, rng
     )
 
     # Warmup
-    test(array_empty, x_ind, y_ind)
-    test(array_z, x_cond, y_cond)
+    pearsonr_test(array_empty, x_ind, y_ind)
+    pearsonr_test(array_z, x_cond, y_cond)
     pearsonr(X="X", Y="Y", Z=[], data=df_ind, boolean=False)
     pearsonr(X="X", Y="Y", Z=["Z1", "Z2"], data=df_cind, boolean=False)
 
     # Correctness check (single run)
-    print(f"  Rust  empty Z: {test(array_empty, x_ind, y_ind)}")
-    print(f"  Rust  with Z:  {test(array_z, x_cond, y_cond)}")
+    print(f"  Rust  empty Z: {pearsonr_test(array_empty, x_ind, y_ind)}")
+    print(f"  Rust  with Z:  {pearsonr_test(array_z, x_cond, y_cond)}")
     coef, pval = pearsonr(X="X", Y="Y", Z=["Z1", "Z2"], data=df_cind, boolean=False)
     print(f"  pgmpy with Z:  ({pval}, {coef})")
 
     # Benchmark
     t0 = time.perf_counter()
     for _ in range(N_ITER):
-        test(array_empty, x_ind, y_ind)
+        pearsonr_test(array_empty, x_ind, y_ind)
     rust_empty = (time.perf_counter() - t0) / N_ITER
 
     t0 = time.perf_counter()
@@ -60,7 +65,7 @@ def bench(size):
 
     t0 = time.perf_counter()
     for _ in range(N_ITER):
-        test(array_z, x_cond, y_cond)
+        pearsonr_test(array_z, x_cond, y_cond)
     rust_z = (time.perf_counter() - t0) / N_ITER
 
     t0 = time.perf_counter()
@@ -80,8 +85,69 @@ for size in [1_000, 10_000]:
     print(f"\n{'='*60}")
     print(f"N={size:,}  ({N_ITER} iterations)")
     print(f"{'='*60}")
-    bench(size)
+    bench_pearsonr(size)
 
+# ---------------------------------------------------------------------------
+# Pearson equivalence bench
+# ---------------------------------------------------------------------------
+
+pearson_equivalence_test = registry.get_test("pearson_equivalence")
+
+def bench_pearson_equivalence(size):
+    rng = np.random.default_rng(seed=42)
+    df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond = make_data(
+        size, rng
+    )
+
+    # Warmup
+    pearson_equivalence_test(array_empty, x_ind, y_ind)
+    pearson_equivalence_test(array_z, x_cond, y_cond)
+
+    pearson_eqvuivalence_ind = PearsonrEquivalence(df_ind)
+    pearson_eqvuivalence_cind = PearsonrEquivalence(df_cind)
+    pearson_eqvuivalence_ind.run_test(X="X", Y="Y", Z=[])
+    pearson_eqvuivalence_cind.run_test(X="X", Y="Y", Z=["Z1", "Z2"])
+
+    # Correctness check (single run)
+    print(f" Rust pearson equivalence empty Z: {pearson_equivalence_test(array_empty, x_ind, y_ind)}")
+    print(f" Rust pearson equivalence with Z:  {pearson_equivalence_test(array_z, x_cond, y_cond)}")
+    coef, pval = pearson_eqvuivalence_cind.run_test(X="X", Y="Y", Z=["Z1", "Z2"])
+    print(f"  pgmpy pearson equivalence with Z:  ({pval}, {coef})")
+
+    # Benchmark
+    t0 = time.perf_counter()
+    for _ in range(N_ITER):
+        pearson_equivalence_test(array_empty, x_ind, y_ind)
+    rust_empty = (time.perf_counter() - t0) / N_ITER
+
+    t0 = time.perf_counter()
+    for _ in range(N_ITER):
+        pearson_eqvuivalence_ind.run_test(X="X", Y="Y", Z=[])
+    pgmpy_empty = (time.perf_counter() - t0) / N_ITER
+
+    t0 = time.perf_counter()
+    for _ in range(N_ITER):
+        pearson_equivalence_test(array_z, x_cond, y_cond)
+    rust_z = (time.perf_counter() - t0) / N_ITER
+
+    t0 = time.perf_counter()
+    for _ in range(N_ITER):
+        pearson_eqvuivalence_cind.run_test(X="X", Y="Y", Z=["Z1", "Z2"])
+    pgmpy_z = (time.perf_counter() - t0) / N_ITER
+
+    print(
+        f" Pearson equivalence empty Z:  Rust={rust_empty*1000:.4f}ms  pgmpy={pgmpy_empty*1000:.4f}ms  speedup={pgmpy_empty/rust_empty:.2f}x"
+    )
+    print(
+        f" Pearson equivalence with  Z:  Rust={rust_z*1000:.4f}ms  pgmpy={pgmpy_z*1000:.4f}ms  speedup={pgmpy_z/rust_z:.2f}x"
+    )
+
+
+for size in [1_000, 10_000]:
+    print(f"\n{'='*60}")
+    print(f"N={size:,}  ({N_ITER} iterations)")
+    print(f"{'='*60}")
+    bench_pearson_equivalence(size)
 
 # ---------------------------------------------------------------------------
 # Scaling benchmark: Cressie-Read with increasing discrete conditioning vars
