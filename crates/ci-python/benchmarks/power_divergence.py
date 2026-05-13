@@ -110,6 +110,8 @@ def bench_pearson_equivalence(size):
 
     # Correctness check (single run)
     print(f" Rust pearson equivalence empty Z: {pearson_equivalence_test(array_empty, x_ind, y_ind)}")
+    coef, pval = pearson_eqvuivalence_ind.run_test(X="X", Y="Y", Z=[])
+    print(f"  pgmpy pearson equivalence empty Z:  ({pval}, {coef})")
     print(f" Rust pearson equivalence with Z:  {pearson_equivalence_test(array_z, x_cond, y_cond)}")
     coef, pval = pearson_eqvuivalence_cind.run_test(X="X", Y="Y", Z=["Z1", "Z2"])
     print(f"  pgmpy pearson equivalence with Z:  ({pval}, {coef})")
