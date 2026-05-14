@@ -1,41 +1,49 @@
-use ci_core::registry::Registry;
 use ci_core::strategy::TestResult;
 use ndarray::{Array1, Array2};
 use numpy::{PyReadonlyArray1, PyReadonlyArray2};
 use pyo3::prelude::*;
-use std::sync::Arc;
+use ci_core::ci_tests::{
+    chi_squared::ChiSquared, cressie_read::CressieRead, freeman_tukey::FreemanTukey,
+    log_likelihood::LogLikelihood, modified_likelihood::ModifiedLikelihood,
+    pearson_correlation::PearsonCorrelation,
+};
+use ci_core::strategy::{CITest, CITestDataType};
 
-#[pyclass(frozen)]
-pub struct PyRegistry(Arc<Registry>);
-
-#[pymethods]
-impl PyRegistry {
-    #[new]
-    #[must_use]
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        Self(Arc::new(Registry::new()))
-    }
-
-    fn list_all_tests(&self) -> PyResult<Vec<&str>> {
-        let tests = self
-            .0
-            .all_tests()
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-        Ok(tests.collect())
-    }
-
-    fn get_test(&self, test_name: &str) -> PyResult<PyCITest> {
-        self.0
-            .get_test(test_name)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
-        Ok(PyCITest {
-            registry: self.0.clone(),
-            test_name: test_name.to_string(),
-        })
-    }
+macro_rules! python_ci_test {
+    ($fn_name:ident, $inner:ty) => {
+        #[extendr]
+        fn $fn_name(
+            x_values: PyReadonlyArray1<f64>,
+            y_values: PyReadonlyArray1<f64>,
+            z: PyReadonlyArray2<f64>,
+            boolean: bool,
+            significance_level: f64,
+        ) -> PyResult<Py<PyAny>> {
+            let citest = <$inner>::new(boolean, significance_level);
+            let result = citest.run_test(x_values.to_owned(), y_values.to_owned(), z.to_owned())?;
+            Ok(util::test_result_to_pyobj(result))
+        }
+    };
 }
 
+fn test_result_to_pyobj(result) -> Result<pyo3::Py<pyo3::PyAny>, _>{
+    match result {
+            TestResult::Boolean(b) => Ok(b.into_pyobject(py)?.to_owned().into_any().unbind()),
+            TestResult::PValue(p_value, coefficient) => Ok((p_value, coefficient)
+                .into_pyobject(py)?
+                .into_any()
+                .unbind()),
+            TestResult::Statistic(p_value, statistic, dof) => Ok((p_value, statistic, dof)
+                .into_pyobject(py)?
+                .into_any()
+                .unbind()),
+        }
+}
+
+#[pyfunction]
+python_ci_test!(chi_squared_test. ChiSquared);
+
+#[pymethods]
 #[pyclass(frozen)]
 pub struct PyCITest {
     registry: Arc<Registry>,
@@ -71,23 +79,12 @@ impl PyCITest {
             .run_test(x, y, z)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
-        match result {
-            TestResult::Boolean(b) => Ok(b.into_pyobject(py)?.to_owned().into_any().unbind()),
-            TestResult::PValue(p_value, coefficient) => Ok((p_value, coefficient)
-                .into_pyobject(py)?
-                .into_any()
-                .unbind()),
-            TestResult::Statistic(p_value, statistic, dof) => Ok((p_value, statistic, dof)
-                .into_pyobject(py)?
-                .into_any()
-                .unbind()),
-        }
+        
     }
 }
 
 #[pymodule]
 fn ci_python(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyRegistry>()?;
     m.add_class::<PyCITest>()?;
     Ok(())
 }
