@@ -7,9 +7,8 @@
 use ci_core::ci_tests::{
     chi_squared::ChiSquared, cressie_read::CressieRead, freeman_tukey::FreemanTukey,
     log_likelihood::LogLikelihood, modified_likelihood::ModifiedLikelihood,
-    pearson_correlation::PearsonCorrelation,
+    pearson_correlation::PearsonCorrelation, ALL_CI_TESTS,
 };
-use ci_core::registry::Registry;
 use ci_core::strategy::{CITest, CITestDataType};
 use extendr_api::prelude::*;
 use ndarray::{ArrayView1, ArrayView2};
@@ -43,13 +42,12 @@ macro_rules! r_ci_test {
     };
 }
 
-/// Returns a sorted vector of all registered CI test names.
+/// Returns a sorted vector of all CI test names.
 #[extendr]
-fn list_ci_tests() -> anyhow::Result<Vec<String>> {
-    let registry = Registry::new();
-    let mut tests: Vec<String> = registry.all_tests()?.map(String::from).collect();
+fn list_ci_tests() -> Vec<String> {
+    let mut tests: Vec<String> = ALL_CI_TESTS.iter().map(|(name, _)| name.to_string()).collect();
     tests.sort();
-    Ok(tests)
+    tests
 }
 
 /// Returns a sorted vector of CI test names compatible with the given data type.
@@ -66,10 +64,10 @@ fn list_ci_tests_for(data_type: &str) -> anyhow::Result<Vec<String>> {
             "Unknown data type: '{data_type}'. Use 'discrete', 'continuous', or 'mixed'."
         ),
     };
-    let registry = Registry::new();
-    let mut tests: Vec<String> = registry
-        .tests_with_data_type(&dt)?
-        .map(String::from)
+    let mut tests: Vec<String> = ALL_CI_TESTS
+        .iter()
+        .filter(|(_, types)| types.contains(&dt))
+        .map(|(name, _)| name.to_string())
         .collect();
     tests.sort();
     Ok(tests)

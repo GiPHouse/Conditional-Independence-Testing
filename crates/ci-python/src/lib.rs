@@ -1,90 +1,101 @@
-use ci_core::strategy::TestResult;
-use ndarray::{Array1, Array2};
-use numpy::{PyReadonlyArray1, PyReadonlyArray2};
-use pyo3::prelude::*;
+mod util;
+
+use crate::util::test_result_to_pyobj;
 use ci_core::ci_tests::{
     chi_squared::ChiSquared, cressie_read::CressieRead, freeman_tukey::FreemanTukey,
     log_likelihood::LogLikelihood, modified_likelihood::ModifiedLikelihood,
     pearson_correlation::PearsonCorrelation,
 };
-use ci_core::strategy::{CITest, CITestDataType};
+use ci_core::strategy::CITest as CITestTrait;
+use numpy::{PyReadonlyArray1, PyReadonlyArray2};
+use pyo3::prelude::*;
 
 macro_rules! python_ci_test {
     ($fn_name:ident, $inner:ty) => {
-        #[extendr]
+        #[pyfunction]
         fn $fn_name(
-            x_values: PyReadonlyArray1<f64>,
-            y_values: PyReadonlyArray1<f64>,
-            z: PyReadonlyArray2<f64>,
+            py: Python<'_>,
+            x_values: PyReadonlyArray1<'_, f64>,
+            y_values: PyReadonlyArray1<'_, f64>,
+            z: PyReadonlyArray2<'_, f64>,
             boolean: bool,
             significance_level: f64,
         ) -> PyResult<Py<PyAny>> {
             let citest = <$inner>::new(boolean, significance_level);
-            let result = citest.run_test(x_values.to_owned(), y_values.to_owned(), z.to_owned())?;
-            Ok(util::test_result_to_pyobj(result))
+            let result = citest
+                .run_test(
+                    x_values.as_array().to_owned(),
+                    y_values.as_array().to_owned(),
+                    z.as_array().to_owned(),
+                )
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+            test_result_to_pyobj(result, py)
         }
     };
 }
 
-fn test_result_to_pyobj(result) -> Result<pyo3::Py<pyo3::PyAny>, _>{
-    match result {
-            TestResult::Boolean(b) => Ok(b.into_pyobject(py)?.to_owned().into_any().unbind()),
-            TestResult::PValue(p_value, coefficient) => Ok((p_value, coefficient)
-                .into_pyobject(py)?
-                .into_any()
-                .unbind()),
-            TestResult::Statistic(p_value, statistic, dof) => Ok((p_value, statistic, dof)
-                .into_pyobject(py)?
-                .into_any()
-                .unbind()),
-        }
-}
+python_ci_test!(chi_squared_test, ChiSquared);
+python_ci_test!(log_likelihood_test, LogLikelihood);
+python_ci_test!(cressie_read_test, CressieRead);
+python_ci_test!(pearson_correlation_test, PearsonCorrelation);
+python_ci_test!(freeman_tukey_test, FreemanTukey);
+python_ci_test!(modified_likelihood_test, ModifiedLikelihood);
 
-#[pyfunction]
-python_ci_test!(chi_squared_test. ChiSquared);
-
-#[pymethods]
 #[pyclass(frozen)]
-pub struct PyCITest {
-    registry: Arc<Registry>,
-    test_name: String,
+pub struct CITest {
+    inner: Box<dyn CITestTrait>,
 }
 
 #[pymethods]
-impl PyCITest {
-    /// Run the conditional independence test on the given data.
-    ///
-    /// # Errors
-    ///
-    /// Returns `PyRuntimeError` if the test lookup fails or the test itself returns an error.
+impl CITest {
+    #[new]
+    #[pyo3(signature = (name, boolean = false, significance_level = 0.05))]
+    pub fn new(name: &str, boolean: bool, significance_level: f64) -> PyResult<Self> {
+        let inner: Box<dyn CITestTrait> = match name {
+            "chi_squared" => Box::new(ChiSquared::new(boolean, significance_level)),
+            "log_likelihood" => Box::new(LogLikelihood::new(boolean, significance_level)),
+            "cressie_read" => Box::new(CressieRead::new(boolean, significance_level)),
+            "pearson_correlation" => Box::new(PearsonCorrelation::new(boolean, significance_level)),
+            "freeman_tukey" => Box::new(FreemanTukey::new(boolean, significance_level)),
+            "modified_likelihood" => Box::new(ModifiedLikelihood::new(boolean, significance_level)),
+            _ => {
+                return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                    "Unknown test: '{name}'"
+                )))
+            }
+        };
+        Ok(Self { inner })
+    }
+
     #[allow(clippy::needless_pass_by_value)]
-    #[pyo3(signature = (z, x, y))]
+    #[pyo3(signature = (x, y, z))]
     pub fn __call__(
         &self,
         py: Python<'_>,
-        z: PyReadonlyArray2<'_, f64>,
         x: PyReadonlyArray1<'_, f64>,
         y: PyReadonlyArray1<'_, f64>,
+        z: PyReadonlyArray2<'_, f64>,
     ) -> PyResult<Py<PyAny>> {
-        let z: Array2<f64> = z.as_array().to_owned();
-        let x: Array1<f64> = x.as_array().to_owned();
-        let y: Array1<f64> = y.as_array().to_owned();
-
-        let test = self
-            .registry
-            .get_test(&self.test_name)
+        let result = self
+            .inner
+            .run_test(
+                x.as_array().to_owned(),
+                y.as_array().to_owned(),
+                z.as_array().to_owned(),
+            )
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-
-        let result = test
-            .run_test(x, y, z)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-
-        
+        test_result_to_pyobj(result, py)
     }
 }
 
 #[pymodule]
 fn ci_python(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyCITest>()?;
+    m.add_class::<CITest>()?;
+    m.add_function(wrap_pyfunction!(chi_squared_test, m)?)?;
+    m.add_function(wrap_pyfunction!(log_likelihood_test, m)?)?;
+    m.add_function(wrap_pyfunction!(cressie_read_test, m)?)?;
+    m.add_function(wrap_pyfunction!(pearson_correlation_test, m)?)?;
+    m.add_function(wrap_pyfunction!(freeman_tukey_test, m)?)?;
+    m.add_function(wrap_pyfunction!(modified_likelihood_test, m)?)?;
     Ok(())
 }
