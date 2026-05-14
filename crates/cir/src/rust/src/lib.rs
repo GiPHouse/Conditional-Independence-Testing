@@ -1,6 +1,6 @@
 //! R bindings for the conditional independence testing library.
 //!
-//! Exposes CI test functions and registry queries to R via the `extendr` framework.
+//! Exposes CI test functions to R via the `extendr` framework.
 //! Each CI test accepts paired observation vectors and a conditioning matrix, returning
 //! a named R list whose shape depends on whether the test runs in boolean or numeric mode.
 
@@ -45,7 +45,10 @@ macro_rules! r_ci_test {
 /// Returns a sorted vector of all CI test names.
 #[extendr]
 fn list_ci_tests() -> Vec<String> {
-    let mut tests: Vec<String> = ALL_CI_TESTS.iter().map(|(name, _)| name.to_string()).collect();
+    let mut tests: Vec<String> = ALL_CI_TESTS
+        .iter()
+        .map(|(name, _)| name.to_string())
+        .collect();
     tests.sort();
     tests
 }

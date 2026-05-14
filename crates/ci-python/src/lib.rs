@@ -1,3 +1,9 @@
+//! Python bindings for the conditional independence testing library.
+//!
+//! Exposes CI test functions to Python via the `pyo3` framework.
+//! Each CI test accepts paired observation vectors and a conditioning matrix, returning
+//! a Python object whose shape depends on whether the test runs in boolean or numeric mode.
+
 mod util;
 
 use crate::util::test_result_to_pyobj;
@@ -10,6 +16,17 @@ use ci_core::strategy::CITest as CITestTrait;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2};
 use pyo3::prelude::*;
 
+/// Generates an Python-callable wrapper for a [`CITest`] implementation.
+///
+/// The generated function signature is:
+/// ```text
+/// fn $fn_name(x_values, y_values, z, boolean, significance_level) -> PyResult<PyAny>
+/// ```
+/// - `x_values` / `y_values`: paired observation vectors.
+/// - `z`: conditioning matrix; pass a 0-column matrix for unconditional tests.
+/// - `boolean`: when `true`, returns only an independence verdict at `significance_level`
+///   instead of the raw test statistic and p-value.
+/// - `significance_level`: threshold used only when `boolean` is `true`.
 macro_rules! python_ci_test {
     ($fn_name:ident, $inner:ty) => {
         #[pyfunction]
@@ -29,7 +46,7 @@ macro_rules! python_ci_test {
                     z.as_array().to_owned(),
                 )
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-            test_result_to_pyobj(result, py)
+            test_result_to_pyobj(&result, py)
         }
     };
 }
@@ -48,6 +65,9 @@ pub struct CITest {
 
 #[pymethods]
 impl CITest {
+    /// # Errors
+    ///
+    /// Returns `PyValueError` if `name` does not match any known CI test.
     #[new]
     #[pyo3(signature = (name, boolean = false, significance_level = 0.05))]
     pub fn new(name: &str, boolean: bool, significance_level: f64) -> PyResult<Self> {
@@ -67,6 +87,9 @@ impl CITest {
         Ok(Self { inner })
     }
 
+    /// # Errors
+    ///
+    /// Returns `PyRuntimeError` if the test computation fails.
     #[allow(clippy::needless_pass_by_value)]
     #[pyo3(signature = (x, y, z))]
     pub fn __call__(
@@ -84,7 +107,7 @@ impl CITest {
                 z.as_array().to_owned(),
             )
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-        test_result_to_pyobj(result, py)
+        test_result_to_pyobj(&result, py)
     }
 }
 
