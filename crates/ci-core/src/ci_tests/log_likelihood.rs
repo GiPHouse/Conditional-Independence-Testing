@@ -42,6 +42,7 @@ impl CITest for LogLikelihood {
 }
 
 #[cfg(test)]
+#[allow(clippy::many_single_char_names)]
 mod tests {
     use super::*;
     use ndarray::{array, Array2};
@@ -54,7 +55,7 @@ mod tests {
     }
 
     #[test]
-    fn unconditional_independent_data_is_not_rejected() {
+    fn uncond_independent_data_accepted() {
         let t = LogLikelihood {
             boolean: false,
             significance_level: 0.05,
@@ -69,10 +70,26 @@ mod tests {
         assert_eq!(dof, 1);
     }
 
+    #[test]
+    fn cond_independent_data_accepted() {
+        let t = LogLikelihood {
+            boolean: false,
+            significance_level: 0.05,
+        };
+        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
+        let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
+
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
+        assert!((stat).abs() < 1e-9, " got {stat}");
+        assert!(p > 0.99);
+        assert_eq!(dof, 2);
+    }
+
     // Can't test perfectly dependent (zero cells -> ln(0)), use skewed table instead.
     // scipy: power_divergence([[5,1],[1,5]], lambda_=0) -> stat=5.822063320647374
     #[test]
-    fn unconditional_dependent_data_is_rejected() {
+    fn uncond_dependent_data_rejected() {
         let t = LogLikelihood {
             boolean: false,
             significance_level: 0.05,
@@ -88,7 +105,30 @@ mod tests {
     }
 
     #[test]
-    fn unconditional_boolean_rejects_dependent() {
+    fn cond_dependent_data_rejected() {
+        let t = LogLikelihood {
+            boolean: false,
+            significance_level: 0.05,
+        };
+        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
+
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
+        assert!(stat > 0.0, "stat should be positive, got {stat}");
+        assert!(
+            (stat - 11.090_354_888_959_125).abs() < 1e-9,
+            "for stat got {stat}"
+        );
+        assert!(
+            (p - 0.003_906_249_999_999_994).abs() < 1e-12,
+            "for p got {p}"
+        );
+        assert_eq!(dof, 2);
+    }
+
+    #[test]
+    fn uncond_bool_rejects_dependent() {
         let t = LogLikelihood {
             boolean: true,
             significance_level: 0.05,
@@ -97,6 +137,33 @@ mod tests {
         let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
         let r = t.run_test(x, y, empty).unwrap();
+        assert!(matches!(r, TestResult::Boolean(false)));
+    }
+
+    #[test]
+    fn cond_bool_rejects_dependent() {
+        let t = LogLikelihood {
+            boolean: true,
+            significance_level: 0.05,
+        };
+        let x = array![1., 1., 1., 2., 2., 2., 1., 1., 1., 2., 2., 2.];
+        let y = array![1., 1., 2., 2., 2., 2., 1., 1., 2., 2., 2., 2.];
+        let z = array![
+            [1.],
+            [1.],
+            [1.],
+            [1.],
+            [1.],
+            [1.],
+            [2.],
+            [2.],
+            [2.],
+            [2.],
+            [2.],
+            [2.]
+        ];
+
+        let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 }
