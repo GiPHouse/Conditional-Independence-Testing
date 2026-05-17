@@ -31,9 +31,7 @@ def make_data(size, rng):
 
 def bench(size):
     rng = np.random.default_rng(seed=42)
-    df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond = make_data(
-        size, rng
-    )
+    df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond = make_data(size, rng)
 
     # Warmup
     test(array_empty, x_ind, y_ind)
@@ -73,9 +71,7 @@ def bench(size):
     print(
         f"  Empty Z:  Rust={rust_empty_ms:.4f}ms  pgmpy={pgmpy_empty_ms:.4f}ms  speedup={pgmpy_empty / rust_empty:.2f}x"
     )
-    print(
-        f"  With  Z:  Rust={rust_z_ms:.4f}ms  pgmpy={pgmpy_z_ms:.4f}ms  speedup={pgmpy_z / rust_z:.2f}x"
-    )
+    print(f"  With  Z:  Rust={rust_z_ms:.4f}ms  pgmpy={pgmpy_z_ms:.4f}ms  speedup={pgmpy_z / rust_z:.2f}x")
 
 
 for size in [1_000, 10_000]:
@@ -104,9 +100,7 @@ def bench_scaling(size, n_z_vars, n_iter=20):
 
     # Warmup
     cressie_test(array_z, x, y)
-    power_divergence(
-        X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read"
-    )
+    power_divergence(X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read")
 
     t0 = time.perf_counter()
     for _ in range(n_iter):
@@ -115,15 +109,11 @@ def bench_scaling(size, n_z_vars, n_iter=20):
 
     t0 = time.perf_counter()
     for _ in range(n_iter):
-        power_divergence(
-            X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read"
-        )
+        power_divergence(X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read")
     pgmpy_t = (time.perf_counter() - t0) / n_iter
     rust_t = rust_t * 1000
 
-    print(
-        f"  |Z|={n_z_vars:2d}  Rust={rust_t:8.4f}ms  pgmpy={pgmpy_t * 1000:8.4f}ms  speedup={pgmpy_t / rust_t:6.2f}x"
-    )
+    print(f"  |Z|={n_z_vars:2d}  Rust={rust_t:8.4f}ms  pgmpy={pgmpy_t * 1000:8.4f}ms  speedup={pgmpy_t / rust_t:6.2f}x")
 
 
 print(f"\n{'=' * 60}")
