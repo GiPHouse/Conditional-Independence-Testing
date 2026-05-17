@@ -1,11 +1,11 @@
 library(cir)
-N <- 1000
+n <- 1000
 
 test_that("unconditional independent data is not rejected", {
   set.seed(42)
-  x <- rnorm(N)
-  y <- rnorm(N)
-  z <- matrix(0, nrow = N, ncol = 0)
+  x <- rnorm(n)
+  y <- rnorm(n)
+  z <- matrix(0, nrow = n, ncol = 0)
 
   result <- pearson_correlation_test(x, y, z, FALSE, 0.05)
   expect_equal(result$kind, "pvalue")
@@ -15,9 +15,9 @@ test_that("unconditional independent data is not rejected", {
 
 test_that("unconditional boolean accepts independent data", {
   set.seed(42)
-  x <- rnorm(N)
-  y <- rnorm(N)
-  z <- matrix(0, nrow = N, ncol = 0)
+  x <- rnorm(n)
+  y <- rnorm(n)
+  z <- matrix(0, nrow = n, ncol = 0)
 
   result <- pearson_correlation_test(x, y, z, TRUE, 0.05)
   expect_equal(result$kind, "boolean")
@@ -26,10 +26,10 @@ test_that("unconditional boolean accepts independent data", {
 
 test_that("unconditional dependent data is rejected", {
   set.seed(42)
-  x <- rnorm(N)
-  noise <- rnorm(N, sd = 0.1)
+  x <- rnorm(n)
+  noise <- rnorm(n, sd = 0.1)
   y <- 3 * x + noise
-  z <- matrix(0, nrow = N, ncol = 0)
+  z <- matrix(0, nrow = n, ncol = 0)
 
   result <- pearson_correlation_test(x, y, z, FALSE, 0.05)
   expect_equal(result$kind, "pvalue")
@@ -39,10 +39,10 @@ test_that("unconditional dependent data is rejected", {
 
 test_that("unconditional boolean rejects dependent data", {
   set.seed(42)
-  x <- rnorm(N)
-  noise <- rnorm(N, sd = 0.1)
+  x <- rnorm(n)
+  noise <- rnorm(n, sd = 0.1)
   y <- 3 * x + noise
-  z <- matrix(0, nrow = N, ncol = 0)
+  z <- matrix(0, nrow = n, ncol = 0)
 
   result <- pearson_correlation_test(x, y, z, TRUE, 0.05)
   expect_equal(result$kind, "boolean")
@@ -51,12 +51,12 @@ test_that("unconditional boolean rejects dependent data", {
 
 test_that("conditional independent data is not rejected", {
   set.seed(42)
-  z_col <- rnorm(N)
-  noise_x <- rnorm(N, sd = 0.1)
-  noise_y <- rnorm(N, sd = 0.1)
+  z_col <- rnorm(n)
+  noise_x <- rnorm(n, sd = 0.1)
+  noise_y <- rnorm(n, sd = 0.1)
   x <- 3 * z_col + noise_x
   y <- 2 * z_col + noise_y
-  z <- matrix(z_col, nrow = N, ncol = 1)
+  z <- matrix(z_col, nrow = n, ncol = 1)
 
   result <- pearson_correlation_test(x, y, z, FALSE, 0.05)
   expect_equal(result$kind, "pvalue")
@@ -66,12 +66,12 @@ test_that("conditional independent data is not rejected", {
 
 test_that("conditional boolean accepts conditionally independent data", {
   set.seed(42)
-  z_col <- rnorm(N)
-  noise_x <- rnorm(N, sd = 0.1)
-  noise_y <- rnorm(N, sd = 0.1)
+  z_col <- rnorm(n)
+  noise_x <- rnorm(n, sd = 0.1)
+  noise_y <- rnorm(n, sd = 0.1)
   x <- 3 * z_col + noise_x
   y <- 2 * z_col + noise_y
-  z <- matrix(z_col, nrow = N, ncol = 1)
+  z <- matrix(z_col, nrow = n, ncol = 1)
 
   result <- pearson_correlation_test(x, y, z, TRUE, 0.05)
   expect_equal(result$kind, "boolean")
@@ -80,11 +80,11 @@ test_that("conditional boolean accepts conditionally independent data", {
 
 test_that("conditional dependent data (v-structure collider) is rejected", {
   set.seed(42)
-  x <- rnorm(N)
-  y <- rnorm(N)
-  noise <- rnorm(N, sd = 0.1)
+  x <- rnorm(n)
+  y <- rnorm(n)
+  noise <- rnorm(n, sd = 0.1)
   z_col <- 2 * x + 2 * y + noise
-  z <- matrix(z_col, nrow = N, ncol = 1)
+  z <- matrix(z_col, nrow = n, ncol = 1)
 
   result <- pearson_correlation_test(x, y, z, FALSE, 0.05)
   expect_equal(result$kind, "pvalue")
@@ -94,11 +94,11 @@ test_that("conditional dependent data (v-structure collider) is rejected", {
 
 test_that("conditional boolean rejects dependent data (v-structure collider)", {
   set.seed(42)
-  x <- rnorm(N)
-  y <- rnorm(N)
-  noise <- rnorm(N, sd = 0.1)
+  x <- rnorm(n)
+  y <- rnorm(n)
+  noise <- rnorm(n, sd = 0.1)
   z_col <- 2 * x + 2 * y + noise
-  z <- matrix(z_col, nrow = N, ncol = 1)
+  z <- matrix(z_col, nrow = n, ncol = 1)
 
   result <- pearson_correlation_test(x, y, z, TRUE, 0.05)
   expect_equal(result$kind, "boolean")
@@ -107,11 +107,11 @@ test_that("conditional boolean rejects dependent data (v-structure collider)", {
 
 test_that("conditional independent data with multiple conditioning variables is not rejected", {
   set.seed(42)
-  z1 <- rnorm(N)
-  z2 <- rnorm(N)
-  z3 <- rnorm(N)
-  noise_x <- rnorm(N, sd = 0.1)
-  noise_y <- rnorm(N, sd = 0.1)
+  z1 <- rnorm(n)
+  z2 <- rnorm(n)
+  z3 <- rnorm(n)
+  noise_x <- rnorm(n, sd = 0.1)
+  noise_y <- rnorm(n, sd = 0.1)
   x <- 0.5 * z1 + 0.5 * z2 + 0.5 * z3 + noise_x
   y <- 0.5 * z1 + 0.5 * z2 + 0.5 * z3 + noise_y
   z <- cbind(z1, z2, z3)

@@ -1,9 +1,9 @@
-from pgmpy.estimators.CITests import pearsonr, power_divergence
-import numpy as np
-from ci_python import PyRegistry
 import time
-import pandas as pd
 
+import numpy as np
+import pandas as pd
+from ci_python import PyRegistry
+from pgmpy.estimators.CITests import pearsonr, power_divergence
 
 registry = PyRegistry()
 test = registry.get_test("pearson_correlation")
@@ -68,11 +68,13 @@ def bench(size):
         pearsonr(X="X", Y="Y", Z=["Z1", "Z2"], data=df_cind, boolean=False)
     pgmpy_z = (time.perf_counter() - t0) / N_ITER
 
+    rust_empty_ms, pgmpy_empty_ms = rust_empty * 1000, pgmpy_empty * 1000
+    rust_z_ms, pgmpy_z_ms = rust_z * 1000, pgmpy_z * 1000
     print(
-        f"  Empty Z:  Rust={rust_empty * 1000:.4f}ms  pgmpy={pgmpy_empty * 1000:.4f}ms  speedup={pgmpy_empty / rust_empty:.2f}x"
+        f"  Empty Z:  Rust={rust_empty_ms:.4f}ms  pgmpy={pgmpy_empty_ms:.4f}ms  speedup={pgmpy_empty / rust_empty:.2f}x"
     )
     print(
-        f"  With  Z:  Rust={rust_z * 1000:.4f}ms  pgmpy={pgmpy_z * 1000:.4f}ms  speedup={pgmpy_z / rust_z:.2f}x"
+        f"  With  Z:  Rust={rust_z_ms:.4f}ms  pgmpy={pgmpy_z_ms:.4f}ms  speedup={pgmpy_z / rust_z:.2f}x"
     )
 
 
@@ -117,9 +119,10 @@ def bench_scaling(size, n_z_vars, n_iter=20):
             X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read"
         )
     pgmpy_t = (time.perf_counter() - t0) / n_iter
+    rust_t = rust_t * 1000
 
     print(
-        f"  |Z|={n_z_vars:2d}  Rust={rust_t * 1000:8.4f}ms  pgmpy={pgmpy_t * 1000:8.4f}ms  speedup={pgmpy_t / rust_t:6.2f}x"
+        f"  |Z|={n_z_vars:2d}  Rust={rust_t:8.4f}ms  pgmpy={pgmpy_t * 1000:8.4f}ms  speedup={pgmpy_t / rust_t:6.2f}x"
     )
 
 
