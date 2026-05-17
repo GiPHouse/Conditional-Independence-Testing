@@ -128,7 +128,7 @@ jobs:
 
       - name: Install OpenBLAS (macOS)
         if: matrix.os == 'macos-latest'
-        run: brew install openblas
+        run: brew install openblas gcc
 
       - uses: actions/setup-python@v5
         with:
