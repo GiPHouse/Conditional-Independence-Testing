@@ -31,7 +31,7 @@ jobs:
         run: cargo fmt --all -- --check
 
   clippy:
-    name: Clippy Lints
+    name: Rust Clippy Lints
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -142,9 +142,9 @@ jobs:
       - name: Install Python dependencies
         run: pip install maturin pytest numpy mypy
 
-      - name: Build extension
+      - name: Build and install extension
         working-directory: crates/ci-python
-        run: maturin develop
+        run: pip install -e . --no-build-isolation
 
       - name: Type check
         working-directory: crates/ci-python
