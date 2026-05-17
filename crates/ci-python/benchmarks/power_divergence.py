@@ -69,17 +69,17 @@ def bench(size):
     pgmpy_z = (time.perf_counter() - t0) / N_ITER
 
     print(
-        f"  Empty Z:  Rust={rust_empty*1000:.4f}ms  pgmpy={pgmpy_empty*1000:.4f}ms  speedup={pgmpy_empty/rust_empty:.2f}x"
+        f"  Empty Z:  Rust={rust_empty * 1000:.4f}ms  pgmpy={pgmpy_empty * 1000:.4f}ms  speedup={pgmpy_empty / rust_empty:.2f}x"
     )
     print(
-        f"  With  Z:  Rust={rust_z*1000:.4f}ms  pgmpy={pgmpy_z*1000:.4f}ms  speedup={pgmpy_z/rust_z:.2f}x"
+        f"  With  Z:  Rust={rust_z * 1000:.4f}ms  pgmpy={pgmpy_z * 1000:.4f}ms  speedup={pgmpy_z / rust_z:.2f}x"
     )
 
 
 for size in [1_000, 10_000]:
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"N={size:,}  ({N_ITER} iterations)")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     bench(size)
 
 
@@ -119,12 +119,12 @@ def bench_scaling(size, n_z_vars, n_iter=20):
     pgmpy_t = (time.perf_counter() - t0) / n_iter
 
     print(
-        f"  |Z|={n_z_vars:2d}  Rust={rust_t*1000:8.4f}ms  pgmpy={pgmpy_t*1000:8.4f}ms  speedup={pgmpy_t/rust_t:6.2f}x"
+        f"  |Z|={n_z_vars:2d}  Rust={rust_t * 1000:8.4f}ms  pgmpy={pgmpy_t * 1000:8.4f}ms  speedup={pgmpy_t / rust_t:6.2f}x"
     )
 
 
-print(f"\n{'='*60}")
+print(f"\n{'=' * 60}")
 print("Cressie-Read scaling benchmark: N=10,000, increasing |Z|")
-print(f"{'='*60}")
+print(f"{'=' * 60}")
 for n_z in [2, 4, 6, 8, 10, 15]:
     bench_scaling(10_000, n_z)
