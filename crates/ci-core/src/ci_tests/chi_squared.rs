@@ -97,7 +97,7 @@ mod tests {
         let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty).unwrap());
         assert!((stat - 8.0).abs() < 1e-9, "stat {stat} should be larger");
         assert!(
             (p - 0.004_677_734_981_047_276).abs() < 1e-12,
