@@ -88,10 +88,6 @@ impl CITest for PearsonEquivalence {
     }
 }
 
-    fn data_types(&self) -> &'static [CITestDataType] {
-        &[CITestDataType::Continuous]
-    }
-}
 
 #[must_use]
 pub fn wrap_result(
