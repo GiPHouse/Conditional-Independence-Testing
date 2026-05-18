@@ -56,14 +56,10 @@ mod tests {
 
     #[test]
     fn uncond_independent_data_accepted() {
-<<<<<<< HEAD
-        let t = ChiSquared {};
-=======
         let t = ChiSquared {
             boolean: false,
             significance_level: 0.05,
         };
->>>>>>> 9b75505 (Cargo fmt ran)
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
@@ -93,19 +89,15 @@ mod tests {
     // scipy: chi2_contingency([[4,0],[0,4]], lambda_=1, correction=False) -> stat=8.0, p=0.00468
     #[test]
     fn uncond_dependent_data_rejected() {
-<<<<<<< HEAD
-        let t = ChiSquared {};
-=======
         let t = ChiSquared {
             boolean: false,
             significance_level: 0.05,
         };
->>>>>>> 9b75505 (Cargo fmt ran)
         let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
 
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty, false, 0.05).unwrap());
+        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
         assert!((stat - 8.0).abs() < 1e-9, "stat {stat} should be larger");
         assert!(
             (p - 0.004_677_734_981_047_276).abs() < 1e-12,
@@ -135,7 +127,10 @@ mod tests {
 
     #[test]
     fn uncond_boolean_mode() {
-        let t = ChiSquared {};
+        let t = ChiSquared {
+            boolean: true,
+            significance_level: 0.05,
+        };
         let empty = Array2::<f64>::zeros((0, 0));
         // independent data -> should return true (fail to reject)
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
@@ -146,7 +141,7 @@ mod tests {
         // dependent data -> should return false (reject)
         let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
-        let r = t.run_test(x, y, empty, true, 0.05).unwrap();
+         let r = t.run_test(x, y, empty).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 

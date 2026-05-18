@@ -90,7 +90,8 @@ mod tests {
     // scipy: power_divergence([[5,1],[1,5]], lambda_=0) -> stat=5.822063320647374
     #[test]
     fn uncond_dependent_data_rejected() {
-        let t = LogLikelihood {};
+        let t = LogLikelihood {boolean: false,
+            significance_level: 0.05,};
         let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
@@ -126,11 +127,12 @@ mod tests {
 
     #[test]
     fn uncond_bool_rejects_dependent() {
-        let t = LogLikelihood {};
+        let t = LogLikelihood { boolean: true,
+            significance_level: 0.05,};
         let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
-        let r = t.run_test(x, y, empty, true, 0.05).unwrap();
+        let r = t.run_test(x, y, empty).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 

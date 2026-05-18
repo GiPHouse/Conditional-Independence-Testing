@@ -22,7 +22,7 @@ impl PearsonEquivalence {
 }
 
 impl CITest for PearsonEquivalence {
-    fn run_test(
+  fn run_test(
         &self,
         x_values: Array1<f64>,
         y_values: Array1<f64>,
@@ -82,6 +82,11 @@ impl CITest for PearsonEquivalence {
             self.significance_level,
         ))
     }
+
+    fn data_types(&self) -> &'static [CITestDataType] {
+        &[CITestDataType::Continuous]
+    }
+}
 
     fn data_types(&self) -> &'static [CITestDataType] {
         &[CITestDataType::Continuous]

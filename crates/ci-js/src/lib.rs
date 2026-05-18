@@ -1,6 +1,6 @@
 use ci_core::strategy::TestResult;
+use js_sys::{Array, Float64Array};
 use ndarray::{Array1, Array2};
-use js_sys::{Float64Array, Array};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -43,15 +43,14 @@ impl JSCITest {
                 array.push(&JsValue::from_f64(coefficient));
                 Ok(array.into())
             }
-                
+
             TestResult::Statistic(p_value, statistic, dof) => {
                 let array = Array::new();
                 array.push(&JsValue::from_f64(p_value));
                 array.push(&JsValue::from_f64(statistic));
                 array.push(&JsValue::from_f64(dof as f64));
-                Ok(array.into())}
-                
+                Ok(array.into())
+            }
         }
-
     }
 }

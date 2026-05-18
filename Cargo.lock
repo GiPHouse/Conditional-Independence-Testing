@@ -84,40 +84,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37b2a672a2cb129a2e41c10b1224bb368f9f37a2b16b612598138befd7b37eb5"
 
 [[package]]
-<<<<<<< HEAD
-=======
-name = "cauchy"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ff11ddd2af3b5e80dd0297fee6e56ac038d9bdc549573cdb51bd6d2efe7f05e"
-dependencies = [
- "num-complex",
- "num-traits",
- "rand 0.8.6",
- "serde",
-]
-
-[[package]]
-name = "cblas-sys"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6feecd82cce51b0204cf063f0041d69f24ce83f680d87514b004248e7b0fa65"
-dependencies = [
- "libc",
-]
-
-[[package]]
-name = "cc"
-version = "1.2.60"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43c5703da9466b66a946814e1adf53ea2c90f10063b86290cc9eb67ce3478a20"
-dependencies = [
- "find-msvc-tools",
- "shlex",
-]
-
-[[package]]
->>>>>>> 84e6d3b (feat: downgraded ndarray to 0.16 everywhere, added testresult enum unpacking for r)
 name = "cfg-if"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -129,11 +95,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "criterion",
-<<<<<<< HEAD
  "nalgebra",
-=======
- "libm",
->>>>>>> d8c7186 (naive untested first version of pearson_equivalence based on pgmpy)
  "ndarray",
  "ordered-float",
  "proptest",
@@ -146,7 +108,6 @@ dependencies = [
 name = "ci_js"
 version = "0.1.0"
 dependencies = [
- "axum",
  "ci_core",
  "js-sys",
  "ndarray",
@@ -492,50 +453,12 @@ dependencies = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-=======
-name = "katexit"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ccfb0b7ce7938f84a5ecbdca5d0a991e46bc9d6d078934ad5e92c5270fe547db"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "lapack-sys"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "447f56c85fb410a7a3d36701b2153c1018b1d2b908c5fbaf01c1b04fac33bcbe"
-dependencies = [
- "libc",
-]
-
-[[package]]
-name = "lax"
-version = "0.17.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1048f58cdc36e726e1c5ef81ec7ac9b1be2fce6b705786514b5a4f8c63487867"
-dependencies = [
- "cauchy",
- "intel-mkl-src",
- "katexit",
- "lapack-sys",
- "num-traits",
- "openblas-src",
- "thiserror 2.0.18",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
->>>>>>> 84e6d3b (feat: downgraded ndarray to 0.16 everywhere, added testresult enum unpacking for r)
 name = "leb128fmt"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -554,21 +477,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
 
 [[package]]
-<<<<<<< HEAD
-=======
-name = "libredox"
-version = "0.1.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e02f3bb43d335493c96bf3fd3a321600bf6bd07ed34bc64118e9293bdffea46c"
-dependencies = [
- "bitflags",
- "libc",
- "plain",
- "redox_syscall",
-]
-
-[[package]]
->>>>>>> 84e6d3b (feat: downgraded ndarray to 0.16 everywhere, added testresult enum unpacking for r)
 name = "linux-raw-sys"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -641,25 +549,6 @@ dependencies = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-=======
-name = "ndarray-linalg"
-version = "0.17.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "820b7fdcc3f1fd48c31f4c85bdefe93ef2d0e8b69ff955c4d499ea6db2f19d44"
-dependencies = [
- "cauchy",
- "katexit",
- "lax",
- "ndarray",
- "num-complex",
- "num-traits",
- "rand 0.8.6",
- "thiserror 2.0.18",
-]
-
-[[package]]
->>>>>>> 84e6d3b (feat: downgraded ndarray to 0.16 everywhere, added testresult enum unpacking for r)
 name = "num-bigint"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -676,11 +565,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73f88a1307638156682bada9d7604135552957b7818057dcef22705b4d509495"
 dependencies = [
  "num-traits",
-<<<<<<< HEAD
-=======
- "rand 0.8.6",
- "serde",
->>>>>>> 84e6d3b (feat: downgraded ndarray to 0.16 everywhere, added testresult enum unpacking for r)
 ]
 
 [[package]]
@@ -742,85 +626,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6790f58c7ff633d8771f42965289203411a5e5c68388703c06e14f24770b41e"
 
 [[package]]
-<<<<<<< HEAD
-=======
-name = "openblas-build"
-version = "0.10.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd235aa8876fa5c4be452efde09b9b8bafa19aea0bf14a4926508213082439a3"
-dependencies = [
- "anyhow",
- "cc",
- "flate2",
- "tar",
- "thiserror 2.0.18",
- "ureq 3.3.0",
-]
-
-[[package]]
-name = "openblas-src"
-version = "0.10.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fccd2c4f5271ab871f2069cb6f1a13ef2c0db50e1145ce03428ee541f4c63c4f"
-dependencies = [
- "dirs",
- "openblas-build",
- "pkg-config",
- "vcpkg",
-]
-
-[[package]]
-name = "openssl"
-version = "0.10.78"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f38c4372413cdaaf3cc79dd92d29d7d9f5ab09b51b10dded508fb90bb70b9222"
-dependencies = [
- "bitflags",
- "cfg-if",
- "foreign-types",
- "libc",
- "once_cell",
- "openssl-macros",
- "openssl-sys",
-]
-
-[[package]]
-name = "openssl-macros"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a948666b637a0f465e8564c73e89d4dde00d72d4d473cc972f390fc3dcee7d9c"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "openssl-probe"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
-
-[[package]]
-name = "openssl-sys"
-version = "0.9.114"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13ce1245cd07fcc4cfdb438f7507b0c7e4f3849a69fd84d52374c66d83741bb6"
-dependencies = [
- "cc",
- "libc",
- "pkg-config",
- "vcpkg",
-]
-
-[[package]]
-name = "option-ext"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
-
-[[package]]
->>>>>>> 84e6d3b (feat: downgraded ndarray to 0.16 everywhere, added testresult enum unpacking for r)
 name = "ordered-float"
 version = "5.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -830,64 +635,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "parking_lot"
-version = "0.12.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93857453250e3077bd71ff98b6a65ea6621a19bb0f559a85248955ac12c45a1a"
-dependencies = [
- "lock_api",
- "parking_lot_core",
-]
-
-[[package]]
-<<<<<<< HEAD
-=======
-name = "pem-rfc7468"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2621685985a2ebf1c516881c026032ac7deafcda1a2c9b7850dc81e3dfcb64c1"
-dependencies = [
- "cfg-if",
- "libc",
- "redox_syscall",
- "smallvec",
- "windows-link",
-]
-
-[[package]]
 name = "paste"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
-<<<<<<< HEAD
-name = "percent-encoding"
-version = "2.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
-
-[[package]]
-<<<<<<< HEAD
-name = "pkg-config"
-version = "0.3.33"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19f132c84eca552bf34cab8ec81f1c1dcc229b811638f9d283dceabe58c5569e"
-
-[[package]]
-name = "plain"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4596b6d070b27117e987119b4dac604f3c58cfb0b191112e24771b2faeac1a6"
-=======
-name = "pin-project-lite"
-version = "0.2.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
->>>>>>> 5c76c86 (feat: Replaced ndarray-linalg with nalgebra)
-
-[[package]]
->>>>>>> 84e6d3b (feat: downgraded ndarray to 0.16 everywhere, added testresult enum unpacking for r)
 name = "plotters"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1177,8 +930,6 @@ dependencies = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-=======
 name = "readonly"
 version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1190,44 +941,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "redox_syscall"
-version = "0.7.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f450ad9c3b1da563fb6948a8e0fb0fb9269711c9c73d9ea1de5058c79c8d643a"
-=======
-name = "redox_syscall"
-version = "0.5.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed2bf2547551a7053d6fdfafda3f938979645c44812fbfcda098faae3f1a362d"
->>>>>>> 5c76c86 (feat: Replaced ndarray-linalg with nalgebra)
-dependencies = [
- "bitflags",
-]
-
-[[package]]
-name = "redox_users"
-version = "0.4.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
-dependencies = [
- "getrandom 0.2.17",
- "libredox",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "redox_users"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4e608c6638b9c18977b00b475ac1f28d14e84b27d8d42f70e0bf1e3dec127ac"
-dependencies = [
- "getrandom 0.2.17",
- "libredox",
- "thiserror 2.0.18",
-]
-
-[[package]]
->>>>>>> 9f33b14 (feat: very naive implementation)
 name = "regex"
 version = "1.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1272,46 +985,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
-<<<<<<< HEAD
  "windows-sys",
-=======
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "rustls"
-version = "0.23.38"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69f9466fb2c14ea04357e91413efb882e2a6d4a406e625449bc0a5d360d53a21"
-dependencies = [
- "log",
- "once_cell",
- "ring",
- "rustls-pki-types",
- "rustls-webpki",
- "subtle",
- "zeroize",
-]
-
-[[package]]
-name = "rustls-pki-types"
-version = "1.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be040f8b0a225e40375822a563fa9524378b9d63112f53e19ffff34df5d33fdd"
-dependencies = [
- "zeroize",
-]
-
-[[package]]
-name = "rustls-webpki"
-version = "0.103.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61c429a8649f110dddef65e2a5ad240f747e85f7758a6bccc7e5777bd33f756e"
-dependencies = [
- "ring",
- "rustls-pki-types",
- "untrusted",
->>>>>>> 84e6d3b (feat: downgraded ndarray to 0.16 everywhere, added testresult enum unpacking for r)
 ]
 
 [[package]]
@@ -1455,8 +1129,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "tower-layer"
-version = "0.3.3"
+name = "tinytemplate"
+version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be4d6b5f19ff7664e8c98d03e2139cb510db9b0a60b55f8e8709b689d939b6bc"
 dependencies = [
@@ -1489,109 +1163,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
-<<<<<<< HEAD
-=======
-name = "untrusted"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1"
-
-[[package]]
-name = "ureq"
-version = "2.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02d1a66277ed75f640d608235660df48c8e3c19f3b4edb6a263315626cc3c01d"
-dependencies = [
- "base64",
- "flate2",
- "log",
- "once_cell",
- "rustls",
- "rustls-pki-types",
- "serde",
- "serde_json",
- "url",
- "webpki-roots 0.26.11",
-]
-
-[[package]]
-name = "ureq"
-version = "3.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dea7109cdcd5864d4eeb1b58a1648dc9bf520360d7af16ec26d0a9354bafcfc0"
-dependencies = [
- "base64",
- "der",
- "log",
- "native-tls",
- "percent-encoding",
- "rustls-pki-types",
- "ureq-proto",
- "utf8-zero",
- "webpki-root-certs",
-]
-
-[[package]]
-name = "ureq-proto"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e994ba84b0bd1b1b0cf92878b7ef898a5c1760108fe7b6010327e274917a808c"
-dependencies = [
- "base64",
- "http",
- "httparse",
- "log",
-]
-
-[[package]]
-name = "url"
-version = "2.5.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff67a8a4397373c3ef660812acab3268222035010ab8680ec4215f38ba3d0eed"
-dependencies = [
- "form_urlencoded",
- "idna",
- "percent-encoding",
- "serde",
-]
-
-[[package]]
-name = "utf8-zero"
-version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8c0a043c9540bae7c578c88f91dda8bd82e59ae27c21baca69c8b191aaf5a6e"
-
-[[package]]
-name = "utf8_iter"
-version = "1.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
-
-[[package]]
-name = "uuid"
-version = "1.23.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddd74a9687298c6858e9b88ec8935ec45d22e8fd5e6394fa1bd4e99a87789c76"
-dependencies = [
- "getrandom 0.4.2",
- "js-sys",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "vcpkg"
-version = "0.2.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426"
-
-[[package]]
-name = "version_check"
-version = "0.9.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
-
-[[package]]
->>>>>>> 84e6d3b (feat: downgraded ndarray to 0.16 everywhere, added testresult enum unpacking for r)
 name = "wait-timeout"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1724,36 +1295,6 @@ dependencies = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-=======
-name = "webpki-root-certs"
-version = "1.0.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f31141ce3fc3e300ae89b78c0dd67f9708061d1d2eda54b8209346fd6be9a92c"
-dependencies = [
- "rustls-pki-types",
-]
-
-[[package]]
-name = "webpki-roots"
-version = "0.26.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "521bc38abb08001b01866da9f51eb7c5d647a19260e00054a8c7fd5f9e57f7a9"
-dependencies = [
- "webpki-roots 1.0.7",
-]
-
-[[package]]
-name = "webpki-roots"
-version = "1.0.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52f5ee44c96cf55f1b349600768e3ece3a8f26010c05265ab73f945bb1a2eb9d"
-dependencies = [
- "rustls-pki-types",
-]
-
-[[package]]
->>>>>>> 84e6d3b (feat: downgraded ndarray to 0.16 everywhere, added testresult enum unpacking for r)
 name = "wide"
 version = "0.7.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
