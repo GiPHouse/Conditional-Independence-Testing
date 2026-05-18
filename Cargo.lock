@@ -108,6 +108,7 @@ dependencies = [
 name = "ci_js"
 version = "0.1.0"
 dependencies = [
+ "ci_core",
  "js-sys",
  "ndarray",
  "wasm-bindgen",
