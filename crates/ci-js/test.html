@@ -9,6 +9,7 @@ import init, { JSCITest } from "./pkg/ci_js.js";
 await init();
 
 const result = JSCITest.run_test(
+    "pearson_correlation",
     new Float64Array([]),   // z_flat — empty = unconditional
     0, 0,                   // z_rows, z_cols
     new Float64Array([1, 2, 3, 4, 5]),
@@ -18,7 +19,7 @@ const result = JSCITest.run_test(
 );
 
 document.getElementById("result").textContent = 
-    `p_value: ${result[0]}, coefficient: ${result[1]}`;
+    `p_value: ${result[0]}, coefficient: ${result[1]}, dof: ${result[2]}`;
 </script>
 </body>
 </html>

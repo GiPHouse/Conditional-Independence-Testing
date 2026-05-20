@@ -42,9 +42,9 @@ impl JSCITest {
             "freeman_tukey" => Box::new(FreemanTukey::new(boolean, significance_level)),
             "modified_likelihood" => Box::new(ModifiedLikelihood::new(boolean, significance_level)),
             _ => {
-                return Err(JsError::new(&format!(
+                return Err(JsValue::from(&format!(
                     "Unknown test: '{name}'"
-                )))
+                )));
             }
         };
 
