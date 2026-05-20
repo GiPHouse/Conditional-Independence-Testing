@@ -1,5 +1,9 @@
 use ci_core::strategy::{TestResult, CITest};
-use ci_core::ci_tests::pearson_correlation::PearsonCorrelation;
+use ci_core::ci_tests::{
+    chi_squared::ChiSquared, cressie_read::CressieRead, freeman_tukey::FreemanTukey,
+    log_likelihood::LogLikelihood, modified_likelihood::ModifiedLikelihood,
+    pearson_correlation::PearsonCorrelation,
+};
 use js_sys::{Array, Float64Array};
 use ndarray::{Array1, Array2};
 use wasm_bindgen::prelude::*;
@@ -11,6 +15,7 @@ pub struct JSCITest {}
 impl JSCITest {
     #[wasm_bindgen]
     pub fn run_test(
+        name: &str,
         z_flat: &Float64Array,
         z_rows: usize,
         z_cols: usize,
@@ -29,9 +34,21 @@ impl JSCITest {
         let x: Array1<f64> = Array1::from_vec(x_vec);
         let y: Array1<f64> = Array1::from_vec(y_vec);
 
-        let test = PearsonCorrelation::new(boolean, significance_level);
+        let tests: Box<dyn CITest> = match name {
+            "chi_squared" => Box::new(ChiSquared::new(boolean, significance_level)),
+            "log_likelihood" => Box::new(LogLikelihood::new(boolean, significance_level)),
+            "cressie_read" => Box::new(CressieRead::new(boolean, significance_level)),
+            "pearson_correlation" => Box::new(PearsonCorrelation::new(boolean, significance_level)),
+            "freeman_tukey" => Box::new(FreemanTukey::new(boolean, significance_level)),
+            "modified_likelihood" => Box::new(ModifiedLikelihood::new(boolean, significance_level)),
+            _ => {
+                return Err(JsError::new(&format!(
+                    "Unknown test: '{name}'"
+                )))
+            }
+        };
 
-        let result = test
+        let result = tests
             .run_test(x, y, z)
             .map_err(|e| JsError::new(&e.to_string()))?;
 
