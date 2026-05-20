@@ -23,7 +23,7 @@ module-name = "ci_python._ci_python"
 python-source = "."
 
 [tool.pyo3-stub-gen]
-generate-init-py = false
+generate-init-py = true
 
 [project.optional-dependencies]
 test = [

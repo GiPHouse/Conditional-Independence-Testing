@@ -6,13 +6,13 @@ mod modified_likelihood;
 mod pearson_correlation;
 mod pearson_equivalence;
 
-use chi_squared::ChiSquared;
-use cressie_read::CressieRead;
-use freeman_tukey::FreemanTukey;
-use log_likelihood::LogLikelihood;
-use modified_likelihood::ModifiedLikelihood;
-use pearson_correlation::PearsonCorrelation;
-use pearson_equivalence::PearsonEquivalence;
+pub use chi_squared::ChiSquared;
+pub use cressie_read::CressieRead;
+pub use freeman_tukey::FreemanTukey;
+pub use log_likelihood::LogLikelihood;
+pub use modified_likelihood::ModifiedLikelihood;
+pub use pearson_correlation::PearsonCorrelation;
+pub use pearson_equivalence::PearsonEquivalence;
 
 use crate::registry::Registry;
 
