@@ -1,4 +1,5 @@
-use ci_core::strategy::TestResult;
+use ci_core::strategy::{TestResult, CITest};
+use ci_core::ci_tests::pearson_correlation::PearsonCorrelation;
 use js_sys::{Array, Float64Array};
 use ndarray::{Array1, Array2};
 use wasm_bindgen::prelude::*;
@@ -8,9 +9,8 @@ pub struct JSCITest {}
 
 #[wasm_bindgen]
 impl JSCITest {
-    #[wasm_bindgen(js_name = "run_test")]
+    #[wasm_bindgen]
     pub fn run_test(
-        &self,
         z_flat: &Float64Array,
         z_rows: usize,
         z_cols: usize,
@@ -29,7 +29,7 @@ impl JSCITest {
         let x: Array1<f64> = Array1::from_vec(x_vec);
         let y: Array1<f64> = Array1::from_vec(y_vec);
 
-        let test = PearsonCorrelation::new(&boolean, &significance_level);
+        let test = PearsonCorrelation::new(boolean, significance_level);
 
         let result = test
             .run_test(x, y, z)

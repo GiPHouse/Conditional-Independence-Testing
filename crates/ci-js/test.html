@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<body>
+<pre id="result"></pre>
+<script type="module">
+import init, { JSCITest } from "./pkg/ci_js.js";
+
+// Must call init() first to load the WASM binary
+await init();
+
+const result = JSCITest.run_test(
+    new Float64Array([]),   // z_flat — empty = unconditional
+    0, 0,                   // z_rows, z_cols
+    new Float64Array([1, 2, 3, 4, 5]),
+    new Float64Array([1, 2, 3, 4, 5]),
+    false,                  // boolean
+    0.05                    // significance_level
+);
+
+document.getElementById("result").textContent = 
+    `p_value: ${result[0]}, coefficient: ${result[1]}`;
+</script>
+</body>
+</html>
