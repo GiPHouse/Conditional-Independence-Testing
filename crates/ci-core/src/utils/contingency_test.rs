@@ -44,11 +44,16 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                     continue;
                 }
                 temp_stat += temp_observed
-                    * (temp_observed.ln() + ln_total - ln_row_sums[i] + ln_col_sums[i]);
+                    * (temp_observed.ln() + ln_total - ln_row_sums[i] - ln_col_sums[j]);
                 //used logarithmic rules to get rid of division and mulitplication
             }
         }
-        2.0 * temp_stat
+        let final_stat = 2.0 * temp_stat;
+        //make sure it bails when there is a big negative number, otherwise make sure it clamps it zero as -0.00004 should be 0
+        if final_stat < -1e-9 {
+            bail!("Statistic evaluated to {}, which should be impossible.", final_stat);
+        }
+        final_stat.max(0.0)
     } else if (lambda + 1.).abs() < 1e-12 {
         // Modified log-likelihood ratio test
         let mut temp_stat: f64 = 0.0;
@@ -62,11 +67,15 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 if temp_observed == 0. {
                     bail!("Observed value is zero at position [{i}, {j}]");
                 }
-                temp_stat += temp_observed
-                    * (temp_observed.ln() + ln_total - ln_row_sums[i] + ln_col_sums[i]);
+                temp_stat += temp_expected
+                    * (ln_row_sums[i] + ln_col_sums[j] - temp_observed.ln() - ln_total);
             }
         }
-        2.0 * temp_stat
+        let final_stat = 2.0 * temp_stat;
+        if final_stat < -1e-9 {
+            bail!("Statistic evaluated to {}, which should be impossible.", final_stat);
+        }
+        final_stat.max(0.0)
     } else {
         // Cressie-Read
         let mut temp_stat: f64 = 0.0;
@@ -80,8 +89,12 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
                 temp_stat += temp_observed * ((temp_observed / temp_expected).powf(lambda) - 1.0);
             }
         }
-        let statistic_raw = (2.0 * temp_stat) / (lambda * (lambda + 1.0));
-        statistic_raw.max(0.0)
+        let final_stat = (2.0 * temp_stat) / (lambda * (lambda + 1.0));
+        //make sure it bails when there is a big negative number, otherwise make sure it clamps it zero as -0.00004 should be 0
+        if final_stat < -1e-9 {
+            bail!("Statistic evaluated to {}, which should be impossible.", final_stat);
+        }
+        final_stat.max(0.0)
     };
 
     let degrees_of_freedom = if nrows < 2 || ncols < 2 {
@@ -172,27 +185,27 @@ mod tests {
 
     /// 4a. Simple valid test for G-test (lambda = 0)
     #[test]
-    fn test_g_test_valid() {
-        let observed = array![[10.0, 20.0], [20.0, 40.0]];
-        let result = contingency_test(&observed, 0.0).unwrap();
+        fn test_g_test_valid() {
+            let observed = array![[10.0, 20.0], [20.0, 40.0]];
+            let result = contingency_test(&observed, 0.0).unwrap();
 
-        let (stat, p, dof) = result;
-        assert!(stat >= 0.0);
-        assert!((0.0..=1.0).contains(&p));
-        assert_eq!(dof, 1);
-    }
+            let (stat, p, dof) = result;
+            assert!(stat >= 0.0);
+            assert!((0.0..=1.0).contains(&p));
+            assert_eq!(dof, 1);
+        }
 
-    /// 4b. Simple valid test for Modified log-likelihood (lambda = -1)
-    #[test]
-    fn test_modified_log_likelihood_valid() {
-        let observed = array![[10.0, 20.0], [20.0, 40.0]];
-        let result = contingency_test(&observed, -1.0).unwrap();
+        /// 4b. Simple valid test for Modified log-likelihood (lambda = -1)
+        #[test]
+        fn test_modified_log_likelihood_valid() {
+            let observed = array![[10.0, 20.0], [20.0, 40.0]];
+            let result = contingency_test(&observed, -1.0).unwrap();
 
-        let (stat, p, dof) = result;
-        assert!(stat >= 0.0);
-        assert!((0.0..=1.0).contains(&p));
-        assert_eq!(dof, 1);
-    }
+            let (stat, p, dof) = result;
+            assert!(stat >= 0.0);
+            assert!((0.0..=1.0).contains(&p));
+            assert_eq!(dof, 1);
+        }
 
     /// 4c. Simple valid test for general Cressie-Read (lambda != 0, -1)
     #[test]
