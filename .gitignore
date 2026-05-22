@@ -215,3 +215,6 @@ todo.txt
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode
 
 *.code-workspace
+
+#Javscrip node_modules
+node_modules/*
