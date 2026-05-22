@@ -24,11 +24,13 @@ def make_data(size, rng):
 
     return df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond
 
+
 # ---------------------------------------------------------------------------
 # Pearson correlation bench
 # ---------------------------------------------------------------------------
 
 pearsonr_test = CITest("pearson_correlation")
+
 
 def bench_pearsonr(size):
     rng = np.random.default_rng(seed=42)
@@ -78,7 +80,7 @@ def bench_pearsonr(size):
 for size in [1_000, 10_000]:
     print(f"\n{'=' * 60}")
     print(f"N={size:,}  ({N_ITER} iterations)")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     bench_pearsonr(size)
 
 # ---------------------------------------------------------------------------
@@ -87,11 +89,10 @@ for size in [1_000, 10_000]:
 
 pearson_equivalence_test = CITest("pearson_equivalence")
 
+
 def bench_pearson_equivalence(size):
     rng = np.random.default_rng(seed=42)
-    df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond = make_data(
-        size, rng
-    )
+    df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond = make_data(size, rng)
 
     # Warmup
     pearson_equivalence_test(x_ind, y_ind, array_empty)
@@ -132,17 +133,17 @@ def bench_pearson_equivalence(size):
     pgmpy_z = (time.perf_counter() - t0) / N_ITER
 
     print(
-        f" Pearson equivalence empty Z:  Rust={rust_empty*1000:.4f}ms  pgmpy={pgmpy_empty*1000:.4f}ms  speedup={pgmpy_empty/rust_empty:.2f}x"
+        f" Pearson equivalence empty Z:  Rust={rust_empty * 1000:.4f}ms  pgmpy={pgmpy_empty * 1000:.4f}ms  speedup={pgmpy_empty / rust_empty:.2f}x"
     )
     print(
-        f" Pearson equivalence with  Z:  Rust={rust_z*1000:.4f}ms  pgmpy={pgmpy_z*1000:.4f}ms  speedup={pgmpy_z/rust_z:.2f}x"
+        f" Pearson equivalence with  Z:  Rust={rust_z * 1000:.4f}ms  pgmpy={pgmpy_z * 1000:.4f}ms  speedup={pgmpy_z / rust_z:.2f}x"
     )
 
 
 for size in [1_000, 10_000]:
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"N={size:,}  ({N_ITER} iterations)")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     bench_pearson_equivalence(size)
 
 # ---------------------------------------------------------------------------
