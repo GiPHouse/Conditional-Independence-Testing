@@ -63,8 +63,9 @@ fn parse_dir(dir: &Path, collector: &mut CITestCollector) {
     }
 }
 
-/// Generate the ``TokenStream`` for the specified struct ``s`` with name ``struct_name``.
-fn generate_pyo3_wrapper(struct_name: &str, s: &ItemStruct) -> TokenStream {
+/// Generate the ``TokenStream`` for the specified struct ``s``.
+fn generate_pyo3_wrapper(s: &ItemStruct) -> TokenStream {
+    let struct_name = &s.ident.to_string();
     let struct_ident = format_ident!("{}", struct_name);
     let py_ident = format_ident!("Py{}", struct_name);
     let py_name = syn::LitStr::new(struct_name, proc_macro2::Span::call_site());
@@ -147,7 +148,7 @@ fn main() {
 
     for name in &collector.citest_structs {
         if let Some(def) = collector.struct_defs.get(name) {
-            tokens.extend(generate_pyo3_wrapper(name, def));
+            tokens.extend(generate_pyo3_wrapper(def));
         } else {
             panic!("Struct `{name}` implements `CITest` but its definition was not found in `ci-core/src`.");
         }
