@@ -214,16 +214,47 @@ jobs:
         with:
           node-version: lts/*
           cache: npm
-          cache-dependency-path: ci_js/package-lock.json
+          cache-dependency-path: crates/ci-js/package-lock.json
 
       - name: Install dependencies
-        working-directory: ci_js
+        working-directory: crates/ci-js
         run: npm ci
 
       - name: Check formatting
-        working-directory: ci_js
+        working-directory: crates/ci-js
         run: npx prettier --check .
 
       - name: Run ESLint
-        working-directory: ci_js
+        working-directory: crates/ci-js
         run: npx eslint .
+
+  js-test:
+    name: JS Tests
+    needs: [js-lint]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: crates/ci-js/package-lock.json
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install dependencies
+        working-directory: crates/ci-js
+        run: npm ci
+
+      - name: Run tests
+        working-directory: crates/ci-js
+        run: npx vitest run --passWithNoTests
+        
