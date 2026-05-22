@@ -8,7 +8,8 @@ mod util;
 
 use crate::util::test_result_to_pyobj;
 use ci_core::ci_tests::{
-    ChiSquared, CressieRead, FreemanTukey, LogLikelihood, ModifiedLikelihood, PearsonCorrelation, PearsonEquivalence,
+    ChiSquared, CressieRead, FreemanTukey, LogLikelihood, ModifiedLikelihood, PearsonCorrelation,
+    PearsonEquivalence,
 };
 use ci_core::strategy::CITest as CITestTrait;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2};
@@ -68,7 +69,12 @@ impl CITest {
     /// Returns `PyValueError` if `name` does not match any known CI test.
     #[new]
     #[pyo3(signature = (name, boolean = false, significance_level = 0.05, delta_threshold = 0.1))]
-    pub fn new(name: &str, boolean: bool, significance_level: f64, delta_threshold: f64) -> PyResult<Self> {
+    pub fn new(
+        name: &str,
+        boolean: bool,
+        significance_level: f64,
+        delta_threshold: f64,
+    ) -> PyResult<Self> {
         let inner: Box<dyn CITestTrait> = match name {
             "chi_squared" => Box::new(ChiSquared::new(boolean, significance_level)),
             "log_likelihood" => Box::new(LogLikelihood::new(boolean, significance_level)),
@@ -76,7 +82,11 @@ impl CITest {
             "pearson_correlation" => Box::new(PearsonCorrelation::new(boolean, significance_level)),
             "freeman_tukey" => Box::new(FreemanTukey::new(boolean, significance_level)),
             "modified_likelihood" => Box::new(ModifiedLikelihood::new(boolean, significance_level)),
-            "pearson_equivalence" => Box::new(PearsonEquivalence::new(boolean, significance_level, delta_threshold)),
+            "pearson_equivalence" => Box::new(PearsonEquivalence::new(
+                boolean,
+                significance_level,
+                delta_threshold,
+            )),
             _ => {
                 return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
                     "Unknown test: '{name}'"
