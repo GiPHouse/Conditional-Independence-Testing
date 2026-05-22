@@ -49,7 +49,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
             }
         }
         let final_stat = 2.0 * temp_stat;
-        //make sure it bails when there is a big negative number, otherwise make sure it clamps it zero as -0.00004 should be 0
+        //make sure it bails when the negative number is not small, otherwise make sure it clamps it zero as -0.00004 should be 0
         if final_stat < -1e-9 {
             bail!("Statistic evaluated to {final_stat}, which should be impossible.");
         }
@@ -90,7 +90,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
             }
         }
         let final_stat = (2.0 * temp_stat) / (lambda * (lambda + 1.0));
-        //make sure it bails when there is a big negative number, otherwise make sure it clamps it zero as -0.00004 should be 0
+        //make sure it bails when the negative number is not small, otherwise make sure it clamps it zero as -0.00004 should be 0
         if final_stat < -1e-9 {
             bail!("Statistic evaluated to {final_stat}, which should be impossible.");
         }
