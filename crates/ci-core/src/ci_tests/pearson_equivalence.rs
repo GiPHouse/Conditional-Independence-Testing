@@ -4,6 +4,7 @@ use anyhow::bail;
 use ndarray::{Array1, Array2, Axis};
 use statrs::distribution::{ContinuousCDF, Normal};
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct PearsonEquivalence {
     pub boolean: bool,
     pub significance_level: f64,
