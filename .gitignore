@@ -217,4 +217,4 @@ todo.txt
 *.code-workspace
 
 #Javscrip node_modules
-node_modules/*
+crates/ci-js/tests/node_modules/
