@@ -11,6 +11,11 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub struct JSCITest {}
 
+#[wasm_bindgen(start)]
+pub fn init() {
+    console_error_panic_hook::set_once();
+}
+
 #[wasm_bindgen]
 impl JSCITest {
     #[wasm_bindgen]
@@ -29,10 +34,15 @@ impl JSCITest {
         let x_vec: Vec<f64> = x.to_vec();
         let y_vec: Vec<f64> = y.to_vec();
 
-        let z: Array2<f64> = Array2::from_shape_vec((z_rows, z_cols), z_vec)
-            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        let z: Array2<f64> = if z_vec.is_empty() {
+            Array2::zeros((x_vec.len(), 0))  // correct empty shape
+        } else {
+                Array2::from_shape_vec((z_rows, z_cols), z_vec)
+                .map_err(|e| JsValue::from_str(&e.to_string()))?
+        };
         let x: Array1<f64> = Array1::from_vec(x_vec);
         let y: Array1<f64> = Array1::from_vec(y_vec);
+
 
         let tests: Box<dyn CITest> = match name {
             "chi_squared" => Box::new(ChiSquared::new(boolean, significance_level)),
@@ -42,7 +52,7 @@ impl JSCITest {
             "freeman_tukey" => Box::new(FreemanTukey::new(boolean, significance_level)),
             "modified_likelihood" => Box::new(ModifiedLikelihood::new(boolean, significance_level)),
             _ => {
-                return Err(JsValue::from(&format!(
+                return Err(JsValue::from_str(&format!(
                     "Unknown test: '{name}'"
                 )));
             }
@@ -53,7 +63,7 @@ impl JSCITest {
             .map_err(|e| JsError::new(&e.to_string()))?;
 
         match result {
-            TestResult::Boolean(b) => Ok(JsValue::from_bool(b)),
+            TestResult::Boolean(b) => {Ok(JsValue::from_bool(b))},
             TestResult::PValue(p_value, coefficient) => {
                 let array = Array::new();
                 array.push(&JsValue::from_f64(p_value));
