@@ -5,9 +5,8 @@
 //! a named R list whose shape depends on whether the test runs in boolean or numeric mode.
 
 use ci_core::ci_tests::{
-    chi_squared::ChiSquared, cressie_read::CressieRead, freeman_tukey::FreemanTukey,
-    log_likelihood::LogLikelihood, modified_likelihood::ModifiedLikelihood,
-    pearson_correlation::PearsonCorrelation, ALL_CI_TESTS,
+    ChiSquared, CressieRead, FreemanTukey, LogLikelihood, ModifiedLikelihood, PearsonCorrelation,
+    ALL_CI_TESTS,
 };
 use ci_core::strategy::{CITest, CITestDataType};
 use extendr_api::prelude::*;

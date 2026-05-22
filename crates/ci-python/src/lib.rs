@@ -8,9 +8,7 @@ mod util;
 
 use crate::util::test_result_to_pyobj;
 use ci_core::ci_tests::{
-    chi_squared::ChiSquared, cressie_read::CressieRead, freeman_tukey::FreemanTukey,
-    log_likelihood::LogLikelihood, modified_likelihood::ModifiedLikelihood,
-    pearson_correlation::PearsonCorrelation,
+    ChiSquared, CressieRead, FreemanTukey, LogLikelihood, ModifiedLikelihood, PearsonCorrelation,
 };
 use ci_core::strategy::CITest as CITestTrait;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2};
