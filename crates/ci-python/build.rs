@@ -10,12 +10,15 @@ use syn::{
     Fields, File, ItemImpl, ItemStruct, Type, TypePath,
 };
 
+/// Visitor that traverses the AST and collects all structs implementing ``CITest`` (``citest_structs``)
+/// all struct definitions (``struct_defs``).
 struct CITestCollector {
     citest_structs: Vec<String>,
     struct_defs: HashMap<String, ItemStruct>,
 }
 
 impl<'ast> Visit<'ast> for CITestCollector {
+    /// Collect all structs implementing ``CITest``.
     fn visit_item_impl(&mut self, node: &'ast ItemImpl) {
         if let Some((None, trait_path, _)) = &node.trait_ {
             let is_citest = trait_path
@@ -34,6 +37,7 @@ impl<'ast> Visit<'ast> for CITestCollector {
         visit::visit_item_impl(self, node);
     }
 
+    /// Collect all struct definitions.
     fn visit_item_struct(&mut self, node: &'ast ItemStruct) {
         self.struct_defs
             .insert(node.ident.to_string(), node.clone());
@@ -41,6 +45,7 @@ impl<'ast> Visit<'ast> for CITestCollector {
     }
 }
 
+/// Run the ``CITestCollector`` recursively on the specified directory.
 fn parse_dir(dir: &Path, collector: &mut CITestCollector) {
     for entry in fs::read_dir(dir).expect(format!("Failed to read {}", dir.display()).as_str()) {
         let path = entry.unwrap().path();
@@ -58,6 +63,7 @@ fn parse_dir(dir: &Path, collector: &mut CITestCollector) {
     }
 }
 
+/// Generate the ``TokenStream`` for the specified struct ``s`` with name ``struct_name``.
 fn generate_pyo3_wrapper(struct_name: &str, s: &ItemStruct) -> TokenStream {
     let struct_ident = format_ident!("{}", struct_name);
     let py_ident = format_ident!("Py{}", struct_name);
