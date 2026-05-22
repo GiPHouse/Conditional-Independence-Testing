@@ -14,7 +14,7 @@ pub fn contingency_table(col1: &Array1<f64>, col2: &Array1<f64>) -> Array2<f64> 
 }
 
 //Great replacement of the contingency_table_with_categories function in power divergence, but cannot
-//be used when contingency_table_with_categories is needed within another function???? i think im not sure
+//be used when contingency_table_with_categories is needed within another function
 #[must_use]
 pub fn contingency_table_from_indices<S1: BuildHasher, S2: BuildHasher>(
     indices: &[usize],
