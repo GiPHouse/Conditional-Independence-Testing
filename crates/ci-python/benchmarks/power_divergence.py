@@ -141,10 +141,7 @@ def bench_pearson_equivalence(size):
         f" Pearson equivalence empty Z:  Rust={rust_empty_ms:.4f}ms"
         f"  pgmpy={pgmpy_empty_ms:.4f}ms  speedup={speedup_empty:.2f}x"
     )
-    print(
-        f" Pearson equivalence with  Z:  Rust={rust_z_ms:.4f}ms"
-        f"  pgmpy={pgmpy_z_ms:.4f}ms  speedup={speedup_z:.2f}x"
-    )
+    print(f" Pearson equivalence with  Z:  Rust={rust_z_ms:.4f}ms  pgmpy={pgmpy_z_ms:.4f}ms  speedup={speedup_z:.2f}x")
 
 
 for size in [1_000, 10_000]:
