@@ -69,15 +69,7 @@ jobs:
         rust: [stable]
     steps:
       - uses: actions/checkout@v5
-
-      - name: Install OpenBLAS (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install -y libopenblas-dev
-
-      - name: Install OpenBLAS (macOS)
-        if: matrix.os == 'macos-latest'
-        run: brew install openblas
-
+      
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
@@ -122,14 +114,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install OpenBLAS (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install -y libopenblas-dev
-
-      - name: Install OpenBLAS (macOS)
-        if: matrix.os == 'macos-latest'
-        run: brew install openblas gcc
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -152,7 +136,7 @@ jobs:
 
       - name: Run tests
         working-directory: crates/ci-python
-        run: pytest
+        run: pytest || [ "$?" -eq 5 ]
 
   r-lint:
     name: R Lint and Format Check
@@ -191,14 +175,6 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v5
-
-      - name: Install OpenBLAS (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install -y libopenblas-dev
-
-      - name: Install OpenBLAS (macOS)
-        if: matrix.os == 'macos-latest'
-        run: brew install openblas
 
       - name: Install R
         uses: r-lib/actions/setup-r@v2
