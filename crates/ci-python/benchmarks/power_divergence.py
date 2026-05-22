@@ -1,9 +1,10 @@
-from pgmpy.estimators.CITests import pearsonr, power_divergence
-from pgmpy.ci_tests import PearsonrEquivalence
-import numpy as np
-from ci_python import CITest
 import time
+
+import numpy as np
 import pandas as pd
+from ci_python import CITest
+from pgmpy.ci_tests import PearsonrEquivalence
+from pgmpy.estimators.CITests import pearsonr, power_divergence
 
 N_ITER = 50
 
@@ -25,17 +26,17 @@ def make_data(size, rng):
 
     return df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond
 
+
 # ---------------------------------------------------------------------------
 # Pearson correlation bench
 # ---------------------------------------------------------------------------
 
 pearsonr_test = CITest("pearson_correlation")
 
+
 def bench_pearsonr(size):
     rng = np.random.default_rng(seed=42)
-    df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond = make_data(
-        size, rng
-    )
+    df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond = make_data(size, rng)
 
     # Warmup
     pearsonr_test(x_ind, y_ind, array_empty)
@@ -70,18 +71,18 @@ def bench_pearsonr(size):
         pearsonr(X="X", Y="Y", Z=["Z1", "Z2"], data=df_cind, boolean=False)
     pgmpy_z = (time.perf_counter() - t0) / N_ITER
 
+    rust_empty_ms, pgmpy_empty_ms = rust_empty * 1000, pgmpy_empty * 1000
+    rust_z_ms, pgmpy_z_ms = rust_z * 1000, pgmpy_z * 1000
     print(
-        f"  Empty Z:  Rust={rust_empty*1000:.4f}ms  pgmpy={pgmpy_empty*1000:.4f}ms  speedup={pgmpy_empty/rust_empty:.2f}x"
+        f"  Empty Z:  Rust={rust_empty_ms:.4f}ms  pgmpy={pgmpy_empty_ms:.4f}ms  speedup={pgmpy_empty / rust_empty:.2f}x"
     )
-    print(
-        f"  With  Z:  Rust={rust_z*1000:.4f}ms  pgmpy={pgmpy_z*1000:.4f}ms  speedup={pgmpy_z/rust_z:.2f}x"
-    )
+    print(f"  With  Z:  Rust={rust_z_ms:.4f}ms  pgmpy={pgmpy_z_ms:.4f}ms  speedup={pgmpy_z / rust_z:.2f}x")
 
 
 for size in [1_000, 10_000]:
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"N={size:,}  ({N_ITER} iterations)")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     bench_pearsonr(size)
 
 # ---------------------------------------------------------------------------
@@ -90,11 +91,10 @@ for size in [1_000, 10_000]:
 
 pearson_equivalence_test = CITest("pearson_equivalence")
 
+
 def bench_pearson_equivalence(size):
     rng = np.random.default_rng(seed=42)
-    df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond = make_data(
-        size, rng
-    )
+    df_ind, df_cind, array_empty, array_z, x_ind, y_ind, x_cond, y_cond = make_data(size, rng)
 
     # Warmup
     pearson_equivalence_test(x_ind, y_ind, array_empty)
@@ -134,18 +134,20 @@ def bench_pearson_equivalence(size):
         pearson_eqvuivalence_cind.run_test(X="X", Y="Y", Z=["Z1", "Z2"])
     pgmpy_z = (time.perf_counter() - t0) / N_ITER
 
+    rust_empty_ms, pgmpy_empty_ms = rust_empty * 1000, pgmpy_empty * 1000
+    rust_z_ms, pgmpy_z_ms = rust_z * 1000, pgmpy_z * 1000
+    speedup_empty, speedup_z = pgmpy_empty / rust_empty, pgmpy_z / rust_z
     print(
-        f" Pearson equivalence empty Z:  Rust={rust_empty*1000:.4f}ms  pgmpy={pgmpy_empty*1000:.4f}ms  speedup={pgmpy_empty/rust_empty:.2f}x"
+        f" Pearson equivalence empty Z:  Rust={rust_empty_ms:.4f}ms"
+        f"  pgmpy={pgmpy_empty_ms:.4f}ms  speedup={speedup_empty:.2f}x"
     )
-    print(
-        f" Pearson equivalence with  Z:  Rust={rust_z*1000:.4f}ms  pgmpy={pgmpy_z*1000:.4f}ms  speedup={pgmpy_z/rust_z:.2f}x"
-    )
+    print(f" Pearson equivalence with  Z:  Rust={rust_z_ms:.4f}ms  pgmpy={pgmpy_z_ms:.4f}ms  speedup={speedup_z:.2f}x")
 
 
 for size in [1_000, 10_000]:
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"N={size:,}  ({N_ITER} iterations)")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     bench_pearson_equivalence(size)
 
 # ---------------------------------------------------------------------------
@@ -167,9 +169,7 @@ def bench_scaling(size, n_z_vars, n_iter=20):
 
     # Warmup
     cressie_test(x, y, array_z)
-    power_divergence(
-        X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read"
-    )
+    power_divergence(X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read")
 
     t0 = time.perf_counter()
     for _ in range(n_iter):
@@ -178,18 +178,15 @@ def bench_scaling(size, n_z_vars, n_iter=20):
 
     t0 = time.perf_counter()
     for _ in range(n_iter):
-        power_divergence(
-            X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read"
-        )
+        power_divergence(X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read")
     pgmpy_t = (time.perf_counter() - t0) / n_iter
+    rust_t = rust_t * 1000
 
-    print(
-        f"  |Z|={n_z_vars:2d}  Rust={rust_t*1000:8.4f}ms  pgmpy={pgmpy_t*1000:8.4f}ms  speedup={pgmpy_t/rust_t:6.2f}x"
-    )
+    print(f"  |Z|={n_z_vars:2d}  Rust={rust_t:8.4f}ms  pgmpy={pgmpy_t * 1000:8.4f}ms  speedup={pgmpy_t / rust_t:6.2f}x")
 
 
-print(f"\n{'='*60}")
+print(f"\n{'=' * 60}")
 print("Cressie-Read scaling benchmark: N=10,000, increasing |Z|")
-print(f"{'='*60}")
+print(f"{'=' * 60}")
 for n_z in [2, 4, 6, 8, 10, 15]:
     bench_scaling(10_000, n_z)
