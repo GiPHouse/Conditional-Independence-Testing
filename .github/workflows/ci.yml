@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [master, development]
   pull_request:
 
 concurrency:
@@ -257,4 +257,3 @@ jobs:
       - name: Run tests
         working-directory: crates/ci-js
         run: npx vitest run --passWithNoTests
-        
