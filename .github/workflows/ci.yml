@@ -136,6 +136,7 @@ jobs:
 
       - name: Run tests
         working-directory: crates/ci-python
+        shell: bash
         run: pytest || [ "$?" -eq 5 ]
 
   r-lint:
