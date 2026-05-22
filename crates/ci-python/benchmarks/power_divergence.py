@@ -1,10 +1,9 @@
 import time
 
 import numpy as np
-from ci_python import CITest
-import time
 import pandas as pd
-
+from ci_python import CITest
+from pgmpy.estimators.CITests import pearsonr, power_divergence
 
 test = CITest("pearson_correlation")
 
@@ -100,9 +99,7 @@ def bench_scaling(size, n_z_vars, n_iter=20):
 
     # Warmup
     cressie_test(x, y, array_z)
-    power_divergence(
-        X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read"
-    )
+    power_divergence(X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read")
 
     t0 = time.perf_counter()
     for _ in range(n_iter):
