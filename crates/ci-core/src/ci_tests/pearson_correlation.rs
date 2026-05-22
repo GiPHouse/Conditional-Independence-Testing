@@ -15,6 +15,7 @@ use statrs::statistics::Statistics;
 ///
 /// - [Pearson correlation coefficient](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient)
 /// - [Partial correlation using linear regression](https://en.wikipedia.org/wiki/Partial_correlation#Using_linear_regression)
+#[derive(Debug, Clone, PartialEq)]
 pub struct PearsonCorrelation {
     pub boolean: bool,
     pub significance_level: f64,
