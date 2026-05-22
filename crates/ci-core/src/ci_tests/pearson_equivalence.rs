@@ -1,4 +1,4 @@
-use crate::ci_tests::pearson_correlation::PearsonCorrelation;
+use crate::ci_tests::PearsonCorrelation;
 use crate::strategy::{CITest, CITestDataType, TestResult};
 use anyhow::bail;
 use ndarray::{Array1, Array2, Axis};
