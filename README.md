@@ -5,8 +5,6 @@
 
 A fast, multi-language library for statistical conditional independence testing. The Rust core implements several well-known tests from the power-divergence family (for discrete data) and Pearson-correlation-based tests (for continuous data), with bindings for Python and R.
 
-Primarily intended as a building block for causal discovery algorithms such as PC and FCI.
-
 ## Available Tests
 
 | Test | Data type | Output |
@@ -27,7 +25,7 @@ All tests accept an optional conditioning matrix Z. Pass an empty matrix for unc
 ci-core      Core test implementations and CITest trait (Rust library)
 ci-python    PyO3 bindings — importable as ci_python
 cir          extendr bindings — importable as an R package
-ci-js        wasm-pack bindings (planned)
+ci-js        wasm-pack bindings
 ```
 
 Downstream crates depend only on `ci-core`. The bindings crates are thin wrappers that handle type conversion.
@@ -94,7 +92,7 @@ x = np.array([0.0, 1.0, 0.0, 1.0, 0.0])
 y = np.array([1.0, 0.0, 1.0, 0.0, 1.0])
 z = np.empty((len(x), 0))  # unconditional
 
-p_value, statistic, dof = test(z, x, y)
+p_value, statistic, dof = test(x, y, z)
 print(f"p={p_value:.4f}, χ²={statistic:.4f}, df={dof}")
 ```
 
@@ -102,7 +100,7 @@ For continuous data:
 
 ```python
 test = registry.get_test("pearson_correlation")
-p_value, coefficient = test(z, x, y)
+p_value, coefficient = test(x, y, z)
 ```
 
 ### R
@@ -131,18 +129,6 @@ Boolean mode returns only an independence verdict:
 result <- pearson_correlation_test(x, y, z, boolean = TRUE, significance_level = 0.05)
 cat("independent:", result$independent, "\n")
 ```
-
-## Platform Notes
-
-The `pearson_correlation` and `pearson_equivalence` tests use `ndarray-linalg` for least-squares regression. The LAPACK backend is selected automatically per platform:
-
-| Platform | Backend |
-|----------|---------|
-| Linux | OpenBLAS (system) |
-| macOS | OpenBLAS (system) |
-| Windows | Intel MKL (static) |
-
-On Linux and macOS, OpenBLAS must be available system-wide (e.g. `apt install libopenblas-dev` or `brew install openblas`). Discrete tests have no native dependencies.
 
 ## Contributing
 
