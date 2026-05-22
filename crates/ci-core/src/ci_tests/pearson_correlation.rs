@@ -1,7 +1,7 @@
 use crate::strategy::{CITest, CITestDataType, TestResult};
 use anyhow::{ensure, Context};
+use nalgebra::{DMatrix, DVector};
 use ndarray::{Array1, Array2, ArrayView1};
-use ndarray_linalg::LeastSquaresSvd;
 use statrs::distribution::{ContinuousCDF, StudentsT};
 use statrs::statistics::Statistics;
 
@@ -62,13 +62,23 @@ impl CITest for PearsonCorrelation {
                 self.significance_level,
             ))
         } else {
-            // Use linear regression to compute residuals and test independence on it.
-            let x_coefficient = z.view().least_squares(&x_values.view())?.solution;
+            let z_na = DMatrix::from_row_iterator(z.nrows(), z.ncols(), z.iter().copied());
+            let x_na = DVector::from_iterator(x_values.len(), x_values.iter().copied());
+            let y_na = DVector::from_iterator(y_values.len(), y_values.iter().copied());
 
-            let y_coefficient = z.view().least_squares(&y_values.view())?.solution;
+            let svd = z_na.svd(true, true);
+            let x_coefficient = svd
+                .solve(&x_na, 1e-10)
+                .map_err(|e| anyhow::anyhow!("least squares failed for x: {e}"))?;
+            let y_coefficient = svd
+                .solve(&y_na, 1e-10)
+                .map_err(|e| anyhow::anyhow!("least squares failed for y: {e}"))?;
 
-            let residual_x = x_values - z.dot(&x_coefficient);
-            let residual_y = y_values - z.dot(&y_coefficient);
+            let x_coef_nd = Array1::from_vec(x_coefficient.iter().copied().collect());
+            let y_coef_nd = Array1::from_vec(y_coefficient.iter().copied().collect());
+
+            let residual_x = x_values - z.dot(&x_coef_nd);
+            let residual_y = y_values - z.dot(&y_coef_nd);
 
             let (coefficient, p_value) = pearsonr(&residual_x.view(), &residual_y.view())?;
             Ok(wrap_result(
