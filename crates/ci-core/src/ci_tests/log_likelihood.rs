@@ -4,6 +4,7 @@ use ndarray::{Array1, Array2};
 
 const LOG_LIKELIHOOD_LAMBDA: f64 = 0.0;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct LogLikelihood {
     pub boolean: bool,
     pub significance_level: f64,

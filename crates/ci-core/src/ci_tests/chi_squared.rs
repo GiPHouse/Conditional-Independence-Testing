@@ -4,6 +4,7 @@ use ndarray::{Array1, Array2};
 
 const CHI_SQUARED_LAMBDA: f64 = 1.0;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct ChiSquared {
     pub boolean: bool,
     pub significance_level: f64,

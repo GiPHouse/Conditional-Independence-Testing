@@ -4,6 +4,7 @@ use ndarray::{Array1, Array2};
 
 const MODIFIED_LIKELIHOOD_LAMBDA: f64 = -1.0;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct ModifiedLikelihood {
     pub boolean: bool,
     pub significance_level: f64,
