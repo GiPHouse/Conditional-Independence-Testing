@@ -1,4 +1,5 @@
 use anyhow::{bail, Result};
+use nalgebra::ComplexField;
 use ndarray::{Array2, Axis};
 use statrs::distribution::{ChiSquared, ContinuousCDF};
 
@@ -72,6 +73,24 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
             }
         }
         let final_stat = 2.0 * temp_stat;
+        if final_stat < -1e-9 {
+            bail!("Statistic evaluated to {final_stat}, which should be impossible.");
+        }
+        final_stat.max(0.0)
+    } else if (lambda + 0.5).abs() < 1e-12 {
+        // Freeman-Tukey
+        let mut temp_stat: f64 = 0.0;
+        for i in 0..nrows {
+            for j in 0..ncols {
+                let temp_expected: f64 = row_sums[i] * col_times_total[j]; //again the multiplication instead of division
+                let temp_observed = observed[[i, j]];
+                if temp_expected == 0.0 {
+                    bail!("Expected frequency is zero at position [{i}, {j}]");
+                }
+                temp_stat += temp_observed.sqrt() * temp_expected.sqrt() - temp_observed;
+            }
+        }
+        let final_stat = (2.0 * temp_stat) / (lambda * (lambda + 1.0));
         if final_stat < -1e-9 {
             bail!("Statistic evaluated to {final_stat}, which should be impossible.");
         }
@@ -207,7 +226,43 @@ mod tests {
         assert_eq!(dof, 1);
     }
 
-    /// 4c. Simple valid test for general Cressie-Read (lambda != 0, -1)
+    /// 4c. Simple valid test for Freeman-Tukey (lambda = -0.5)
+    #[test]
+    fn test_freeman_tukey_valid() {
+        let observed = array![[5.0, 1.0], [1.0, 5.0]];
+        let result = contingency_test(&observed, -0.5).unwrap();
+
+        let (stat, p, dof) = result;
+        assert!(stat >= 0.0);
+        assert!((stat - 6.319_453_539_579_289).abs() < 1e-9); // Validated against scipy
+        assert!((0.0..=1.0).contains(&p));
+        assert_eq!(dof, 1);
+    }
+
+    /// 4d. Test zero observed value in Freeman-Tukey (lambda = -0.5)
+    #[test]
+    fn test_freeman_tukey_zero_observed() {
+        let observed = array![[2.0, 1.0], [0.0, 3.0]]; // contains zero observed
+        let result = contingency_test(&observed, -0.5);
+
+        assert!(result.is_ok());
+        let (stat, p, dof) = result.unwrap();
+
+        assert!(stat >= 0.0);
+        assert!((0.0..=1.0).contains(&p));
+        assert_eq!(dof, 1);
+
+        // Manual calculation
+        let expected_stat = 4.0 * (
+            (2.0f64.sqrt() - 1.0).powi(2) +
+            (1.0 - 2.0f64.sqrt()).powi(2) +
+            1.0 + // (0.0 - sqrt(1.0))^2
+            (3.0f64.sqrt() - 2.0f64.sqrt()).powi(2)
+        );
+        assert!((stat - expected_stat).abs() < 1e-9);
+    }
+
+    /// 4e. Simple valid test for general Cressie-Read (lambda != 0, -1)
     #[test]
     fn test_cressie_read_valid() {
         let observed = array![[10.0, 20.0], [20.0, 40.0]];
