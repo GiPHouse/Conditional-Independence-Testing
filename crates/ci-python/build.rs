@@ -24,7 +24,7 @@ impl<'ast> Visit<'ast> for CITestCollector {
             let is_citest = trait_path
                 .segments
                 .last()
-                .map_or(false, |s| s.ident == "CITest");
+                .is_some_and(|s| s.ident == "CITest");
 
             if is_citest {
                 if let Type::Path(TypePath { path, .. }) = node.self_ty.as_ref() {
@@ -47,16 +47,15 @@ impl<'ast> Visit<'ast> for CITestCollector {
 
 /// Run the ``CITestCollector`` recursively on the specified directory.
 fn parse_dir(dir: &Path, collector: &mut CITestCollector) {
-    for entry in fs::read_dir(dir).expect(format!("Failed to read {}", dir.display()).as_str()) {
+    for entry in fs::read_dir(dir).unwrap_or_else(|_| panic!("Failed to read {}", dir.display())) {
         let path = entry.unwrap().path();
         if path.is_dir() {
             parse_dir(&path, collector);
-        } else if path.extension().map_or(false, |e| e == "rs") {
+        } else if path.extension().is_some_and(|e| e == "rs") {
             let src = fs::read_to_string(&path)
-                .unwrap_or_else(|e| panic!("Failed to read {}: {}", path.display(), e.to_string()));
-            let file: File = syn::parse_file(&src).unwrap_or_else(|e| {
-                panic!("Failed to parse {}: {}", path.display(), e.to_string())
-            });
+                .unwrap_or_else(|e| panic!("Failed to read {}: {}", path.display(), e));
+            let file: File = syn::parse_file(&src)
+                .unwrap_or_else(|e| panic!("Failed to parse {}: {}", path.display(), e));
             visit::visit_file(collector, &file);
             println!("cargo::rerun-if-changed={}", path.display());
         }
@@ -72,8 +71,7 @@ fn generate_pyo3_wrapper(s: &ItemStruct) -> TokenStream {
 
     let Fields::Named(named) = &s.fields else {
         panic!(
-            "Encountered tuple field when processing `{}`. Tuples aren't supported (yet).",
-            struct_name
+            "Encountered tuple field when processing `{struct_name}`. Tuples aren't supported (yet).",
         )
     };
 
@@ -90,13 +88,13 @@ fn generate_pyo3_wrapper(s: &ItemStruct) -> TokenStream {
         let setter_ident = format_ident!("set_{}", fname);
         quote! {
             #[getter]
-            pub fn #fname(&self) -> PyResult<#ftype> {
-                Ok(self.inner.#fname.clone())
+            pub fn #fname(&self) -> #ftype {
+                #[allow(clippy::clone_on_copy)]  // The object does not necessarily implement `Copy` and this is easier than case distinction.
+                self.inner.#fname.clone()
             }
             #[setter]
-            pub fn #setter_ident(&mut self, #fname: #ftype) -> PyResult<()>{
+            pub fn #setter_ident(&mut self, #fname: #ftype) {
                 self.inner.#fname = #fname;
-                Ok(())
             }
         }
     });
@@ -122,7 +120,10 @@ fn generate_pyo3_wrapper(s: &ItemStruct) -> TokenStream {
                     inner: ::ci_core::ci_tests::#struct_ident { #(#constructor_init),* },
                 }
             }
-            
+
+            // Raises e.g. the following if passed by reference:
+            // the trait `pyo3::impl_::extract_argument::PyFunctionArgument<'_, '_, '_, _>` is not implemented for `&numpy::PyReadonlyArray<'_, f64, numpy::ndarray::Dim<[usize; 2]>>`
+            #[allow(clippy::needless_pass_by_value)]
             fn run_test(
                 &self,
                 py: Python<'_>,
@@ -157,8 +158,8 @@ fn main() {
     let ci_core_src = manifest_dir.join("../ci-core/src");
     assert!(
         ci_core_src.exists(),
-        "`ci-core/src` not found at {:?}",
-        ci_core_src
+        "`ci-core/src` not found at {}",
+        ci_core_src.display()
     );
 
     let mut collector = CITestCollector {
