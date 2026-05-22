@@ -1,0 +1,99 @@
+import init, { JSCITest } from '../pkg/ci_js.js';
+import { describe, test, expect } from "vitest";
+
+const toFloat64 = (...vals) => new Float64Array(vals);
+
+describe('cressie_read_test', () => {
+
+  test('unconditional independent data is not rejected', () => {
+    const x = toFloat64(1, 1, 2, 2, 1, 1, 2, 2);
+    const y = toFloat64(1, 2, 1, 2, 1, 2, 1, 2);
+    const z = new Float64Array(0);
+
+    const [p_value, statistic, dof] = JSCITest.run_test(
+      'cressie_read', z, 0, 0, x, y, false, 0.05
+    );
+
+    expect(statistic).toBeLessThan(1e-9);
+    expect(p_value).toBeGreaterThanOrEqual(0.99);
+    expect(dof).toBe(1);
+  });
+
+  test('unconditional boolean accepts independent data', () => {
+    const x = toFloat64(1, 1, 1, 1, 2, 2, 2, 2);
+    const y = toFloat64(1, 2, 1, 2, 1, 2, 1, 2);
+    const z = new Float64Array(0);
+
+    const result = JSCITest.run_test(
+      'cressie_read', z, 0, 0, x, y, true, 0.05
+    );
+
+    expect(result).toBe(true);
+  });
+
+  test('unconditional dependent data is rejected', () => {
+    const x = new Float64Array([1, 1, 1, 1, 2, 2, 2, 2]);
+    const y = new Float64Array([1, 1, 1, 1, 2, 2, 2, 2]);
+    const z = new Float64Array(0);
+
+    const [p_value, statistic, dof] = JSCITest.run_test(
+      'cressie_read', z, 0, 0, x, y, false, 0.05
+    );
+
+    expect(statistic).toBeGreaterThan(5.0);
+    expect(p_value).toBeLessThan(0.05);
+    expect(dof).toBe(1);
+  });
+
+  test('unconditional boolean rejects dependent data', () => {
+    const x = new Float64Array([1, 1, 1, 1, 2, 2, 2, 2]);
+    const y = new Float64Array([1, 1, 1, 1, 2, 2, 2, 2]);
+    const z = new Float64Array(0);
+
+    const result = JSCITest.run_test(
+      'cressie_read', z, 0, 0, x, y, true, 0.05
+    );
+
+    expect(result).toBe(false);
+  });
+
+  test('conditional independent data is not rejected', () => {
+    const x = new Float64Array([1, 1, 2, 2, 1, 1, 2, 2]);
+    const y = new Float64Array([1, 2, 1, 2, 1, 2, 1, 2]);
+    const z = new Float64Array([0, 0, 0, 0, 1, 1, 1, 1]);  // 8×1, row-major
+
+    const [p_value, statistic, dof] = JSCITest.run_test(
+      'cressie_read', z, 8, 1, x, y, false, 0.05
+    );
+
+    expect(statistic).toBeLessThan(1e-9);
+    expect(p_value).toBeGreaterThan(0.99);
+    expect(dof).toBe(2);
+  });
+
+  test('conditional boolean accepts conditionally independent data', () => {
+    const x = new Float64Array([1, 1, 2, 2, 1, 1, 2, 2]);
+    const y = new Float64Array([1, 2, 1, 2, 1, 2, 1, 2]);
+    const z = new Float64Array([0, 0, 0, 0, 1, 1, 1, 1]);
+
+    const result = JSCITest.run_test(
+      'cressie_read', z, 8, 1, x, y, true, 0.05
+    );
+
+    expect(result).toBe(true);
+  });
+
+  test('conditional dependent data is rejected', () => {
+    const x = new Float64Array([1, 1, 2, 2, 1, 1, 2, 2]);
+    const y = new Float64Array([1, 1, 2, 2, 1, 1, 2, 2]);
+    const z = new Float64Array([0, 0, 0, 0, 1, 1, 1, 1]);
+
+    const [p_value, statistic] = JSCITest.run_test(
+      'cressie_read', z, 8, 1, x, y, false, 0.05
+    );
+
+    expect(statistic).toBeGreaterThan(5.0);
+    expect(p_value).toBeLessThan(0.05);
+  });
+
+});
