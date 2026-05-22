@@ -1,6 +1,7 @@
 use ndarray::{Array1, Array2};
 
 /// The outcome of a conditional independence test.
+#[derive(Debug, Clone, PartialEq)]
 pub enum TestResult {
     PValue(f64, f64),
     Statistic(f64, f64, usize),
