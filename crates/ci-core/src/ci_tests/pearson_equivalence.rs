@@ -1,9 +1,10 @@
-use crate::ci_tests::pearson_correlation::PearsonCorrelation;
+use crate::ci_tests::PearsonCorrelation;
 use crate::strategy::{CITest, CITestDataType, TestResult};
 use anyhow::bail;
 use ndarray::{Array1, Array2, Axis};
 use statrs::distribution::{ContinuousCDF, Normal};
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct PearsonEquivalence {
     pub boolean: bool,
     pub significance_level: f64,
@@ -11,6 +12,7 @@ pub struct PearsonEquivalence {
 }
 
 impl PearsonEquivalence {
+    #[must_use]
     pub fn new(boolean: bool, significance_level: f64, delta_threshold: f64) -> Self {
         Self {
             boolean,
@@ -87,6 +89,7 @@ impl CITest for PearsonEquivalence {
     }
 }
 
+#[must_use]
 pub fn wrap_result(
     boolean: bool,
     p_value: f64,

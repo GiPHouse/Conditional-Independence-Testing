@@ -4,12 +4,14 @@ use ndarray::{Array1, Array2};
 
 const CRESSIE_READ_LAMBDA: f64 = 2.0 / 3.0;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct CressieRead {
     pub boolean: bool,
     pub significance_level: f64,
 }
 
 impl CressieRead {
+    #[must_use]
     pub fn new(boolean: bool, significance_level: f64) -> Self {
         Self {
             boolean,
