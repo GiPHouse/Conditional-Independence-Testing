@@ -4,6 +4,7 @@ use ndarray::{Array1, Array2};
 
 const FREEMAN_TUKEY_LAMBDA: f64 = -1.0 / 2.0;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct FreemanTukey {
     pub boolean: bool,
     pub significance_level: f64,
