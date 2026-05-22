@@ -36,6 +36,7 @@ line-length = 120
 # Exclude generated files.
 extend-exclude = [
     "ci_python/_ci_python",
+    "ci_python/__init__.py",
 ]
 
 [tool.ruff.lint]
