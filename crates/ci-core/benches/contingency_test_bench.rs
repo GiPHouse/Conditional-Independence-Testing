@@ -1,3 +1,8 @@
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_lossless)]
+//otherwise we run into problems with clippy, but actual problems would only occur after 9 quadrillion
+
 use ci_core::utils::contingency_test::contingency_test;
 use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
 use ndarray::Array2;
@@ -16,7 +21,7 @@ fn bench_lambda(c: &mut Criterion, name: &str, lambda: f64, observed: &Array2<f6
                 black_box(result)
             },
             BatchSize::SmallInput,
-        )
+        );
     });
 }
 

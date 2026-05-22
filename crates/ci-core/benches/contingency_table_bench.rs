@@ -1,4 +1,9 @@
-use ci_core::utils::contingency_table::{contingency_table, contingency_table_optimized};
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_lossless)]
+//otherwise we run into problems with clippy, but actual problems would only occur after 9 quadrillion
+
+use ci_core::utils::contingency_table::contingency_table;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use ndarray::Array1;
 
@@ -19,14 +24,6 @@ fn benchmark_contingency_table(c: &mut Criterion) {
     group.bench_function("contingency_original", |b| {
         b.iter(|| {
             let result = contingency_table(black_box(&col1), black_box(&col2));
-            black_box(result)
-        });
-    });
-
-    //call optimized function to see performance
-    group.bench_function("contingency_optimized", |b| {
-        b.iter(|| {
-            let result = contingency_table_optimized(black_box(&col1), black_box(&col2));
             black_box(result)
         });
     });

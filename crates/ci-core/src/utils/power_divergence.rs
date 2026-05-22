@@ -1,6 +1,6 @@
 use crate::strategy::TestResult;
 use crate::utils::contingency_table::{
-    build_global_category_map, contingency_table, contingency_table_from_indices, contingency_table_optimized
+    build_global_category_map, contingency_table, contingency_table_from_indices,
 };
 use crate::utils::contingency_test::contingency_test;
 use crate::utils::partition_indices::partition_indices;
@@ -21,7 +21,7 @@ pub fn power_divergence(
     lambda: f64,
 ) -> anyhow::Result<TestResult> {
     if z.ncols() == 0 {
-        let table = contingency_table_optimized(x_values, y_values);
+        let table = contingency_table(x_values, y_values);
         let (statistic, p_value, degrees_of_freedom) = contingency_test(&table, lambda)?;
         return Ok(wrap_result(
             boolean,
@@ -37,8 +37,15 @@ pub fn power_divergence(
 
     let mut statistic = 0.0;
     let mut degrees_of_freedom = 0;
+
     for indices in partition_indices(z) {
-        let table = contingency_table_from_indices(&indices, &x_values, &y_values, &x_categories, &y_categories);
+        let table = contingency_table_from_indices(
+            &indices,
+            x_values,
+            y_values,
+            &x_categories,
+            &y_categories,
+        );
         let Ok((stat, _p, dof)) = contingency_test(&table, lambda) else {
             continue;
         };

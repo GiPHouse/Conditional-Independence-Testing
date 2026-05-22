@@ -13,12 +13,8 @@ pub fn contingency_table(col1: &Array1<f64>, col2: &Array1<f64>) -> Array2<f64> 
     contingency_table_with_categories(col1, col2, &col1_map, &col2_map)
 }
 
-pub fn contingency_table_optimized(col1: &Array1<f64>, col2: &Array1<f64>) -> Array2<f64> {
-    let col1_map = build_global_category_map(col1);
-    let col2_map = build_global_category_map(col2);
-    contingency_table_with_categories_optimized(col1, col2, &col1_map, &col2_map)
-}
-
+//Great replacement of the contingency_table_with_categories function in power divergence, but cannot
+//be used when contingency_table_with_categories is needed within another function???? i think im not sure
 #[must_use]
 pub fn contingency_table_from_indices<S1: BuildHasher, S2: BuildHasher>(
     indices: &[usize],
@@ -27,10 +23,7 @@ pub fn contingency_table_from_indices<S1: BuildHasher, S2: BuildHasher>(
     x_categories: &HashMap<OrderedFloat<f64>, usize, S1>,
     y_categories: &HashMap<OrderedFloat<f64>, usize, S2>,
 ) -> Array2<f64> {
-    let mut table = Array2::<f64>::zeros((
-        x_categories.len(),
-        y_categories.len(),
-    ));
+    let mut table = Array2::<f64>::zeros((x_categories.len(), y_categories.len()));
 
     for &i in indices {
         let r = x_categories[&OrderedFloat(x_values[i])];
@@ -46,6 +39,7 @@ pub fn contingency_table_from_indices<S1: BuildHasher, S2: BuildHasher>(
 /// and so on). Pass the same map to several calls of
 /// `contingency_table_with_categories` to get tables that share the
 /// exact same rows and columns.
+#[must_use]
 pub fn build_global_category_map(arr: &Array1<f64>) -> HashMap<OrderedFloat<f64>, usize> {
     let mut map = HashMap::new();
 
@@ -77,40 +71,6 @@ pub fn contingency_table_with_categories<S1: BuildHasher, S2: BuildHasher>(
             result[[r, c]] += 1.;
         }
     }
-    result
-}
-
-pub fn contingency_table_with_categories_optimized<S1: BuildHasher, S2: BuildHasher>(
-    col1: &Array1<f64>,
-    col2: &Array1<f64>,
-    col1_map: &HashMap<OrderedFloat<f64>, usize, S1>,
-    col2_map: &HashMap<OrderedFloat<f64>, usize, S2>,
-) -> Array2<f64> {
-    let mut result = Array2::zeros((col1_map.len(), col2_map.len()));
-
-    //array1 is usually contiguous in memory, so using slices is faster as it removes ndarray overhead
-    if let (Some(slice1), Some(slice2)) = (col1.as_slice(), col2.as_slice()) {
-        let len = slice1.len().min(slice2.len());
-
-        for i in 0..len {
-            //if the first one is not in the map, we do not waste time finding the second one due to nested if
-            if let Some(&r) = col1_map.get(&OrderedFloat(slice1[i])) {
-                if let Some(&c) = col2_map.get(&OrderedFloat(slice2[i])) {
-                    result[[r, c]] += 1.0;
-                }
-            }
-        }
-    } else {
-        //in case arrays are not contiguous in memory
-        for i in 0..col1.len() {
-            if let Some(&r) = col1_map.get(&OrderedFloat(col1[i])) {
-                if let Some(&c) = col2_map.get(&OrderedFloat(col2[i])) {
-                    result[[r, c]] += 1.0;
-                }
-            }
-        }
-    }
-
     result
 }
 
