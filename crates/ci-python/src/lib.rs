@@ -13,6 +13,8 @@ use ci_core::ci_tests::{
 use ci_core::strategy::CITest as CITestTrait;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2};
 use pyo3::prelude::*;
+use pyo3_stub_gen_derive::{gen_stub_pyclass, gen_stub_pymethods, gen_stub_pyfunction};
+use pyo3_stub_gen::{define_stub_info_gatherer, reexport_module_members};
 
 /// Generates an Python-callable wrapper for a [`CITest`] implementation.
 ///
@@ -27,6 +29,7 @@ use pyo3::prelude::*;
 /// - `significance_level`: threshold used only when `boolean` is `true`.
 macro_rules! python_ci_test {
     ($fn_name:ident, $inner:ty) => {
+        #[gen_stub_pyfunction]
         #[pyfunction]
         fn $fn_name(
             py: Python<'_>,
@@ -56,6 +59,7 @@ python_ci_test!(pearson_correlation_test, PearsonCorrelation);
 python_ci_test!(freeman_tukey_test, FreemanTukey);
 python_ci_test!(modified_likelihood_test, ModifiedLikelihood);
 
+#[gen_stub_pyclass]
 #[pyclass(frozen)]
 pub struct CITest {
     inner: Box<dyn CITestTrait>,
@@ -111,7 +115,7 @@ impl CITest {
 }
 
 #[pymodule]
-fn ci_python(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn _ci_python(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<CITest>()?;
     m.add_function(wrap_pyfunction!(chi_squared_test, m)?)?;
     m.add_function(wrap_pyfunction!(log_likelihood_test, m)?)?;
