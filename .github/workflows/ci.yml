@@ -202,3 +202,28 @@ jobs:
         working-directory: crates/cir
         run: devtools::test(reporter = "summary")
         shell: Rscript {0}
+
+  js-lint:
+    name: JS Lint & Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: ci_js/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ci_js
+        run: npm ci
+
+      - name: Check formatting
+        working-directory: ci_js
+        run: npx prettier --check .
+
+      - name: Run ESLint
+        working-directory: ci_js
+        run: npx eslint .
