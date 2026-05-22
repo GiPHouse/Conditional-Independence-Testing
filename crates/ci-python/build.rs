@@ -90,12 +90,13 @@ fn generate_pyo3_wrapper(s: &ItemStruct) -> TokenStream {
         let setter_ident = format_ident!("set_{}", fname);
         quote! {
             #[getter]
-            pub fn #fname(&self) -> #ftype {
-                self.inner.#fname.clone()
+            pub fn #fname(&self) -> PyResult<#ftype> {
+                Ok(self.inner.#fname.clone())
             }
             #[setter]
-            pub fn #setter_ident(&mut self, #fname: #ftype) {
+            pub fn #setter_ident(&mut self, #fname: #ftype) -> PyResult<()>{
                 self.inner.#fname = #fname;
+                Ok(())
             }
         }
     });
@@ -121,6 +122,28 @@ fn generate_pyo3_wrapper(s: &ItemStruct) -> TokenStream {
                     inner: ::ci_core::ci_tests::#struct_ident { #(#constructor_init),* },
                 }
             }
+            
+            fn run_test(
+                &self,
+                py: Python<'_>,
+                x_values: PyReadonlyArray1<'_, f64>,
+                y_values: PyReadonlyArray1<'_, f64>,
+                z: PyReadonlyArray2<'_, f64>,
+            ) -> PyResult<Py<PyAny>> {
+                test_result_to_pyobj(
+                    &self.inner
+                        .run_test(
+                            x_values.as_array().to_owned(),
+                            y_values.as_array().to_owned(),
+                            z.as_array().to_owned(),
+                        )
+                        .map_err(|e| {
+                            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string())
+                        })?,
+                    py
+                )
+            }
+
             #(#getters_setters)*
         }
     }

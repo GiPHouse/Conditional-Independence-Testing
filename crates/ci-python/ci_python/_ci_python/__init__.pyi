@@ -6,7 +6,6 @@ import numpy
 import numpy.typing
 import typing
 __all__ = [
-    "CITest",
     "ChiSquared",
     "CressieRead",
     "FreemanTukey",
@@ -14,19 +13,7 @@ __all__ = [
     "ModifiedLikelihood",
     "PearsonCorrelation",
     "PearsonEquivalence",
-    "Registry",
 ]
-
-@typing.final
-class CITest:
-    def __call__(self, z: numpy.typing.NDArray[numpy.float64], x: numpy.typing.NDArray[numpy.float64], y: numpy.typing.NDArray[numpy.float64]) -> typing.Any:
-        r"""
-        Run the conditional independence test on the given data.
-        
-        # Errors
-        
-        Returns `PyRuntimeError` if the test lookup fails or the test itself returns an error.
-        """
 
 @typing.final
 class ChiSquared:
@@ -39,6 +26,7 @@ class ChiSquared:
     @significance_level.setter
     def significance_level(self, value: builtins.float) -> None: ...
     def __new__(cls, boolean: builtins.bool, significance_level: builtins.float) -> ChiSquared: ...
+    def run_test(self, x_values: numpy.typing.NDArray[numpy.float64], y_values: numpy.typing.NDArray[numpy.float64], z: numpy.typing.NDArray[numpy.float64]) -> typing.Any: ...
 
 @typing.final
 class CressieRead:
@@ -51,6 +39,7 @@ class CressieRead:
     @significance_level.setter
     def significance_level(self, value: builtins.float) -> None: ...
     def __new__(cls, boolean: builtins.bool, significance_level: builtins.float) -> CressieRead: ...
+    def run_test(self, x_values: numpy.typing.NDArray[numpy.float64], y_values: numpy.typing.NDArray[numpy.float64], z: numpy.typing.NDArray[numpy.float64]) -> typing.Any: ...
 
 @typing.final
 class FreemanTukey:
@@ -63,6 +52,7 @@ class FreemanTukey:
     @significance_level.setter
     def significance_level(self, value: builtins.float) -> None: ...
     def __new__(cls, boolean: builtins.bool, significance_level: builtins.float) -> FreemanTukey: ...
+    def run_test(self, x_values: numpy.typing.NDArray[numpy.float64], y_values: numpy.typing.NDArray[numpy.float64], z: numpy.typing.NDArray[numpy.float64]) -> typing.Any: ...
 
 @typing.final
 class LogLikelihood:
@@ -75,6 +65,7 @@ class LogLikelihood:
     @significance_level.setter
     def significance_level(self, value: builtins.float) -> None: ...
     def __new__(cls, boolean: builtins.bool, significance_level: builtins.float) -> LogLikelihood: ...
+    def run_test(self, x_values: numpy.typing.NDArray[numpy.float64], y_values: numpy.typing.NDArray[numpy.float64], z: numpy.typing.NDArray[numpy.float64]) -> typing.Any: ...
 
 @typing.final
 class ModifiedLikelihood:
@@ -87,6 +78,7 @@ class ModifiedLikelihood:
     @significance_level.setter
     def significance_level(self, value: builtins.float) -> None: ...
     def __new__(cls, boolean: builtins.bool, significance_level: builtins.float) -> ModifiedLikelihood: ...
+    def run_test(self, x_values: numpy.typing.NDArray[numpy.float64], y_values: numpy.typing.NDArray[numpy.float64], z: numpy.typing.NDArray[numpy.float64]) -> typing.Any: ...
 
 @typing.final
 class PearsonCorrelation:
@@ -99,6 +91,7 @@ class PearsonCorrelation:
     @significance_level.setter
     def significance_level(self, value: builtins.float) -> None: ...
     def __new__(cls, boolean: builtins.bool, significance_level: builtins.float) -> PearsonCorrelation: ...
+    def run_test(self, x_values: numpy.typing.NDArray[numpy.float64], y_values: numpy.typing.NDArray[numpy.float64], z: numpy.typing.NDArray[numpy.float64]) -> typing.Any: ...
 
 @typing.final
 class PearsonEquivalence:
@@ -110,11 +103,10 @@ class PearsonEquivalence:
     def significance_level(self) -> builtins.float: ...
     @significance_level.setter
     def significance_level(self, value: builtins.float) -> None: ...
-    def __new__(cls, boolean: builtins.bool, significance_level: builtins.float) -> PearsonEquivalence: ...
-
-@typing.final
-class Registry:
-    def __new__(cls) -> Registry: ...
-    def list_all_tests(self) -> builtins.list[builtins.str]: ...
-    def get_test(self, test_name: builtins.str) -> CITest: ...
+    @property
+    def delta_threshold(self) -> builtins.float: ...
+    @delta_threshold.setter
+    def delta_threshold(self, value: builtins.float) -> None: ...
+    def __new__(cls, boolean: builtins.bool, significance_level: builtins.float, delta_threshold: builtins.float) -> PearsonEquivalence: ...
+    def run_test(self, x_values: numpy.typing.NDArray[numpy.float64], y_values: numpy.typing.NDArray[numpy.float64], z: numpy.typing.NDArray[numpy.float64]) -> typing.Any: ...
 
