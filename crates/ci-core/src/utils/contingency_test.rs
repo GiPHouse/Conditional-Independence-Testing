@@ -1,6 +1,5 @@
 use anyhow::{bail, Result};
-use nalgebra::ComplexField;
-use ndarray::{Array2, Axis};
+use ndarray::{Array1, Array2, Axis};
 use statrs::distribution::{ChiSquared, ContinuousCDF};
 
 /// Compute a Cressie-Read power-divergence statistic for a contingency table.
@@ -32,88 +31,27 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
     }
 
     let statistic: f64 = if lambda.abs() < 1e-12 {
-        // G-test: 2 * sum(O * ln(O / E))
-        let mut temp_stat: f64 = 0.0;
-        for i in 0..nrows {
-            for j in 0..ncols {
-                let temp_expected: f64 = row_sums[i] * col_times_total[j]; // division is worse than multiplication in rust
-                let temp_observed = observed[[i, j]];
-                if temp_expected == 0. {
-                    bail!("Expected frequency is zero at position [{i}, {j}]");
-                }
-                if temp_observed == 0. {
-                    continue;
-                }
-                temp_stat += temp_observed
-                    * (temp_observed.ln() + ln_total - ln_row_sums[i] - ln_col_sums[j]);
-                //used logarithmic rules to get rid of division and mulitplication
-            }
-        }
-        let final_stat = 2.0 * temp_stat;
-        //make sure it bails when the negative number is not small, otherwise make sure it clamps it zero as -0.00004 should be 0
-        if final_stat < -1e-9 {
-            bail!("Statistic evaluated to {final_stat}, which should be impossible.");
-        }
-        final_stat.max(0.0)
+        g_test(
+            observed,
+            &row_sums,
+            &col_times_total,
+            ln_total,
+            &ln_row_sums,
+            &ln_col_sums,
+        )?
     } else if (lambda + 1.).abs() < 1e-12 {
-        // Modified log-likelihood ratio test
-        let mut temp_stat: f64 = 0.0;
-        for i in 0..nrows {
-            for j in 0..ncols {
-                let temp_expected: f64 = row_sums[i] * col_times_total[j]; //multiplication instead of division
-                let temp_observed = observed[[i, j]];
-                if temp_expected == 0. {
-                    continue;
-                }
-                if temp_observed == 0. {
-                    bail!("Observed value is zero at position [{i}, {j}]");
-                }
-                temp_stat += temp_expected
-                    * (ln_row_sums[i] + ln_col_sums[j] - temp_observed.ln() - ln_total);
-            }
-        }
-        let final_stat = 2.0 * temp_stat;
-        if final_stat < -1e-9 {
-            bail!("Statistic evaluated to {final_stat}, which should be impossible.");
-        }
-        final_stat.max(0.0)
+        modified_log_likelihood_ratio_test(
+            observed,
+            &row_sums,
+            &col_times_total,
+            ln_total,
+            &ln_row_sums,
+            &ln_col_sums,
+        )?
     } else if (lambda + 0.5).abs() < 1e-12 {
-        // Freeman-Tukey
-        let mut temp_stat: f64 = 0.0;
-        for i in 0..nrows {
-            for j in 0..ncols {
-                let temp_expected: f64 = row_sums[i] * col_times_total[j]; //again the multiplication instead of division
-                let temp_observed = observed[[i, j]];
-                if temp_expected == 0.0 {
-                    bail!("Expected frequency is zero at position [{i}, {j}]");
-                }
-                temp_stat += temp_observed.sqrt() * temp_expected.sqrt() - temp_observed;
-            }
-        }
-        let final_stat = (2.0 * temp_stat) / (lambda * (lambda + 1.0));
-        if final_stat < -1e-9 {
-            bail!("Statistic evaluated to {final_stat}, which should be impossible.");
-        }
-        final_stat.max(0.0)
+        freeman_tukey(lambda, observed, &row_sums, &col_times_total)?
     } else {
-        // Cressie-Read
-        let mut temp_stat: f64 = 0.0;
-        for i in 0..nrows {
-            for j in 0..ncols {
-                let temp_expected: f64 = row_sums[i] * col_times_total[j]; //again the multiplication instead of division
-                let temp_observed = observed[[i, j]];
-                if temp_expected == 0.0 {
-                    bail!("Expected frequency is zero at position [{i}, {j}]");
-                }
-                temp_stat += temp_observed * ((temp_observed / temp_expected).powf(lambda) - 1.0);
-            }
-        }
-        let final_stat = (2.0 * temp_stat) / (lambda * (lambda + 1.0));
-        //make sure it bails when the negative number is not small, otherwise make sure it clamps it zero as -0.00004 should be 0
-        if final_stat < -1e-9 {
-            bail!("Statistic evaluated to {final_stat}, which should be impossible.");
-        }
-        final_stat.max(0.0)
+        cressie_read(lambda, observed, &row_sums, &col_times_total)?
     };
 
     let degrees_of_freedom = if nrows < 2 || ncols < 2 {
@@ -130,6 +68,137 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
     };
 
     Ok((statistic, p_value, degrees_of_freedom))
+}
+
+/// # Errors
+///
+/// Returns an error if an expected frequency evaluates to zero, or if the
+/// calculated statistic results in a mathematically impossible value.
+pub fn g_test(
+    observed: &Array2<f64>,
+    row_sums: &Array1<f64>,
+    col_times_total: &Array1<f64>,
+    ln_total: f64,
+    ln_row_sums: &Array1<f64>,
+    ln_col_sums: &Array1<f64>,
+) -> anyhow::Result<f64> {
+    // G-test: 2 * sum(O * ln(O / E))
+    let (nrows, ncols) = observed.dim();
+    let mut temp_stat: f64 = 0.0;
+    for i in 0..nrows {
+        for j in 0..ncols {
+            let temp_expected: f64 = row_sums[i] * col_times_total[j]; // division is worse than multiplication in rust
+            let temp_observed = observed[[i, j]];
+            if temp_expected == 0. {
+                bail!("Expected frequency is zero at position [{i}, {j}]");
+            }
+            if temp_observed == 0. {
+                continue;
+            }
+            temp_stat +=
+                temp_observed * (temp_observed.ln() + ln_total - ln_row_sums[i] - ln_col_sums[j]);
+            //used logarithmic rules to get rid of division and mulitplication
+        }
+    }
+    let final_stat = 2.0 * temp_stat;
+    if final_stat < -1e-9 {
+        bail!("Statistic evaluated to {final_stat}, which should be impossible.");
+        //make sure it bails when the negative number is not small
+    }
+    Ok(final_stat.max(0.0)) //make sure it clamps it zero as -0.00004 should be 0
+}
+
+/// # Errors
+///
+/// Returns an error if an expected frequency evaluates to zero, or if the
+/// calculated statistic results in a mathematically impossible value.
+pub fn modified_log_likelihood_ratio_test(
+    observed: &Array2<f64>,
+    row_sums: &Array1<f64>,
+    col_times_total: &Array1<f64>,
+    ln_total: f64,
+    ln_row_sums: &Array1<f64>,
+    ln_col_sums: &Array1<f64>,
+) -> anyhow::Result<f64> {
+    let (nrows, ncols) = observed.dim();
+    let mut temp_stat: f64 = 0.0;
+    for i in 0..nrows {
+        for j in 0..ncols {
+            let temp_expected: f64 = row_sums[i] * col_times_total[j]; //multiplication instead of division
+            let temp_observed = observed[[i, j]];
+            if temp_expected == 0. {
+                continue;
+            }
+            if temp_observed == 0. {
+                bail!("Observed value is zero at position [{i}, {j}]");
+            }
+            temp_stat +=
+                temp_expected * (ln_row_sums[i] + ln_col_sums[j] - temp_observed.ln() - ln_total);
+        }
+    }
+    let final_stat = 2.0 * temp_stat;
+    if final_stat < -1e-9 {
+        bail!("Statistic evaluated to {final_stat}, which should be impossible.");
+    }
+    Ok(final_stat.max(0.0))
+}
+
+/// # Errors
+///
+/// Returns an error if an expected frequency evaluates to zero, or if the
+/// calculated statistic results in a mathematically impossible value.
+pub fn freeman_tukey(
+    lambda: f64,
+    observed: &Array2<f64>,
+    row_sums: &Array1<f64>,
+    col_times_total: &Array1<f64>,
+) -> anyhow::Result<f64> {
+    let (nrows, ncols) = observed.dim();
+    let mut temp_stat: f64 = 0.0;
+    for i in 0..nrows {
+        for j in 0..ncols {
+            let temp_expected: f64 = row_sums[i] * col_times_total[j]; //again the multiplication instead of division
+            let temp_observed = observed[[i, j]];
+            if temp_expected == 0.0 {
+                bail!("Expected frequency is zero at position [{i}, {j}]");
+            }
+            temp_stat += temp_observed.sqrt() * temp_expected.sqrt() - temp_observed;
+        }
+    }
+    let final_stat = (2.0 * temp_stat) / (lambda * (lambda + 1.0));
+    if final_stat < -1e-9 {
+        bail!("Statistic evaluated to {final_stat}, which should be impossible.");
+    }
+    Ok(final_stat.max(0.0))
+}
+
+/// # Errors
+///
+/// Returns an error if an expected frequency evaluates to zero, or if the
+/// calculated statistic results in a mathematically impossible value.
+pub fn cressie_read(
+    lambda: f64,
+    observed: &Array2<f64>,
+    row_sums: &Array1<f64>,
+    col_times_total: &Array1<f64>,
+) -> anyhow::Result<f64> {
+    let (nrows, ncols) = observed.dim();
+    let mut temp_stat: f64 = 0.0;
+    for i in 0..nrows {
+        for j in 0..ncols {
+            let temp_expected: f64 = row_sums[i] * col_times_total[j]; //again the multiplication instead of division
+            let temp_observed = observed[[i, j]];
+            if temp_expected == 0.0 {
+                bail!("Expected frequency is zero at position [{i}, {j}]");
+            }
+            temp_stat += temp_observed * ((temp_observed / temp_expected).powf(lambda) - 1.0);
+        }
+    }
+    let final_stat = (2.0 * temp_stat) / (lambda * (lambda + 1.0));
+    if final_stat < -1e-9 {
+        bail!("Statistic evaluated to {final_stat}, which should be impossible.");
+    }
+    Ok(final_stat.max(0.0))
 }
 
 #[cfg(test)]
@@ -253,12 +322,11 @@ mod tests {
         assert_eq!(dof, 1);
 
         // Manual calculation
-        let expected_stat = 4.0 * (
-            (2.0f64.sqrt() - 1.0).powi(2) +
+        let expected_stat = 4.0
+            * ((2.0f64.sqrt() - 1.0).powi(2) +
             (1.0 - 2.0f64.sqrt()).powi(2) +
             1.0 + // (0.0 - sqrt(1.0))^2
-            (3.0f64.sqrt() - 2.0f64.sqrt()).powi(2)
-        );
+            (3.0f64.sqrt() - 2.0f64.sqrt()).powi(2));
         assert!((stat - expected_stat).abs() < 1e-9);
     }
 
