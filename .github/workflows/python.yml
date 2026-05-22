@@ -47,6 +47,23 @@ jobs:
         working-directory: crates/ci-python
         run: ruff check .
 
+  python-stubs:
+    name: Python Stubs Up-to-date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Regenerate stubs
+        run: cargo run --release --bin stubgen
+
+      - name: Check for diff
+        run: git diff --exit-code -- crates/ci-python/
+
   python-test:
     name: Python Tests
     needs: [python-lint]
