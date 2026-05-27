@@ -24,7 +24,7 @@ pak::pak(c("devtools", "rextendr"))
 
 ```r
 setwd("crates/cir")
-rextendr::document()  # regenerates R wrappers and compiles Rust
+devtools::document()  # regenerates R wrappers and compiles Rust
 ```
 
 ### Load and test
