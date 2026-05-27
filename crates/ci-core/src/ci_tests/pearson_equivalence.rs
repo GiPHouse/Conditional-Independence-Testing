@@ -1,9 +1,10 @@
-use crate::ci_tests::pearson_correlation::PearsonCorrelation;
+use crate::ci_tests::PearsonCorrelation;
 use crate::strategy::{CITest, CITestDataType, TestResult};
 use anyhow::bail;
 use ndarray::{Array1, Array2, Axis};
 use statrs::distribution::{ContinuousCDF, Normal};
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct PearsonEquivalence {
     pub boolean: bool,
     pub significance_level: f64,
@@ -87,7 +88,6 @@ impl CITest for PearsonEquivalence {
         &[CITestDataType::Continuous]
     }
 }
-
 
 #[must_use]
 pub fn wrap_result(

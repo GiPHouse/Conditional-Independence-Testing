@@ -4,6 +4,7 @@ use ndarray::{Array1, Array2};
 
 const FREEMAN_TUKEY_LAMBDA: f64 = -1.0 / 2.0;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct FreemanTukey {
     pub boolean: bool,
     pub significance_level: f64,
@@ -55,7 +56,7 @@ mod tests {
     }
 
     #[test]
-    fn unconditional_independent_data_is_not_rejected() {
+    fn uncond_independent_data_not_rejected() {
         let t = FreemanTukey {
             boolean: false,
             significance_level: 0.05,
@@ -88,7 +89,7 @@ mod tests {
 
     // scipy: power_divergence([[5,1],[1,5]], lambda_=-0.5) -> stat=6.319453539579289
     #[test]
-    fn unconditional_dependent_data_is_rejected() {
+    fn uncond_dependent_rejected() {
         let t = FreemanTukey {
             boolean: false,
             significance_level: 0.05,

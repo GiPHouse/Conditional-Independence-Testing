@@ -4,6 +4,7 @@ use ndarray::{Array1, Array2};
 
 const CHI_SQUARED_LAMBDA: f64 = 1.0;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct ChiSquared {
     pub boolean: bool,
     pub significance_level: f64,
@@ -142,6 +143,27 @@ mod tests {
         let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
          let r = t.run_test(x, y, empty).unwrap();
+        assert!(matches!(r, TestResult::Boolean(false)));
+    }
+
+    #[test]
+    fn cond_boolean_mode() {
+        //accepted
+        let t = ChiSquared {
+            boolean: true,
+            significance_level: 0.05,
+        };
+        let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
+        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
+        let r = t.run_test(x, y, z).unwrap();
+        assert!(matches!(r, TestResult::Boolean(true)));
+
+        //rejected
+        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
+        let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
+        let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 
