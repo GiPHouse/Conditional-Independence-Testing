@@ -17,8 +17,8 @@ This document provides guidelines and instructions for contributing to the CI Te
 
 - **Rust** (stable, latest version): [Install Rust](https://rustup.rs/)
 - **Git**: For version control
-- **Python 3.8+** (for Python bindings development)
-- **R 4.0+** (for R bindings development)
+- **Python 3.9+** (for Python bindings development)
+- **R 4.2+** (for R bindings development)
 - **Node.js 16+** (for JavaScript bindings development)
 
 ### Initial Setup
@@ -26,7 +26,7 @@ This document provides guidelines and instructions for contributing to the CI Te
 1. **Clone the repository**:
 ```bash
    git clone https://github.com/GiPHouse/Conditional-Independence-Testing
-   cd ci-testing
+   cd Conditional-Independence-Testing
 ```
 
 2. **Build the workspace**:
@@ -43,7 +43,7 @@ This document provides guidelines and instructions for contributing to the CI Te
 ```bash
    # Rustfmt (code formatter)
    rustup component add rustfmt
-   
+
    # Clippy (linter)
    rustup component add clippy
 ```
@@ -60,23 +60,19 @@ cargo clippy --workspace --all-targets -- -D warnings
 
 # Run all tests
 cargo test --workspace
-
-# Run benchmarks
-cargo bench --workspace
 ```
 
 If all commands complete successfully, your environment is ready!
 
 ## Repository Structure
 ```
-ci-testing/
+Conditional-Independence-Testing/
 ├── crates/              # Rust workspace
 │   ├── ci-core/        # Core CI test implementations
 │   ├── ci-python/      # Python bindings (PyO3)
-│   ├── ci-r/           # R bindings (extendr)
-│   └── ci-js/          # JavaScript bindings (wasm-pack)
+│   ├── cir/            # R bindings (extendr)
+│   └── ci-js/          # JavaScript bindings (wasm-pack, placeholder)
 ├── docs/               # Documentation
-│   ├── api/           # Generated API docs
 │   ├── guides/        # User and contributor guides
 │   └── design/        # Architecture Decision Records (ADRs)
 ├── examples/          # Usage examples per language
@@ -149,46 +145,92 @@ test(core): add property tests for chi-squared test
 
 Follow these steps to add a new conditional independence test:
 
-### 1. Create Test Implementation
+### 1. Create the Core Implementation
 
-Create a new file in `crates/ci-core/src/tests/`:
+Create a new file in `crates/ci-core/src/ci_tests/`:
 ```bash
-crates/ci-core/src/tests/students_t.rs
+crates/ci-core/src/ci_tests/students_t.rs
 ```
 
 ### 2. Implement the `CITest` Trait
 
-Your test must implement the `CITest` trait defined in `crates/ci-core/src/strategy.rs`.
+Your test must implement the `CITest` trait defined in `crates/ci-core/src/strategy.rs`:
+
+```rust
+use crate::strategy::{CITest, CITestDataType, TestResult};
+
+pub struct StudentsT { /* fields */ }
+
+impl CITest for StudentsT {
+    fn run_test(
+        &self,
+        x_values: Array1<f64>,
+        y_values: Array1<f64>,
+        z: Array2<f64>,
+    ) -> anyhow::Result<TestResult> {
+        // ...
+    }
+
+    fn data_types(&self) -> &'static [CITestDataType] {
+        &[CITestDataType::Continuous]
+    }
+}
+```
 
 See existing tests (e.g., `chi_squared.rs`) as examples.
 
-### 3. Register the Test
+### 3. Export from the Module
 
-Add your test to the registry in `crates/ci-core/src/registry.rs`.
+Add your new test to `crates/ci-core/src/ci_tests/mod.rs` so it is publicly accessible:
 
-### 4. Add Tests
+```rust
+pub mod students_t;
+pub use students_t::StudentsT;
+```
 
-Create test cases in `crates/ci-core/tests/integration/`:
+### 4. Add Python Bindings
 
-- Test with known inputs and expected outputs
-- Test edge cases (empty data, NaN values, etc.)
-- Add property-based tests if applicable
+In `crates/ci-python/src/lib.rs`, use the `python_ci_test!` macro to generate the binding
+and then register it in the module function:
+
+```rust
+// Generate the binding
+python_ci_test!(students_t_test, StudentsT);
+
+// Register in the module
+#[pymodule]
+fn ci_python(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    // ... existing entries ...
+    m.add_function(wrap_pyfunction!(students_t_test, m)?)?;
+    Ok(())
+}
+```
+
+### 5. Add Tests
+
+Add test cases for each language:
+
+- **Rust**: In a `#[cfg(test)] mod tests { }` block in your implementation file
+- **Python**: In `crates/ci-python/tests/`
+- **R**: In `crates/cir/tests/testthat/`
+
+Test with known inputs and expected outputs, and cover edge cases (empty data, NaN values, etc.).
 
 ### 6. Update Documentation
 
 - Add doc comments to your test struct and methods
-- Update `docs/guides/available-tests.md` with test description
+- Update `docs/guides/available-tests.md` with a description of the test
 - Add usage examples in `examples/`
 
 ## Testing
 
-### Running Tests
+### Rust Tests
 ```bash
-# Run all tests
+# Run all Rust tests
 cargo test --workspace
 
-# Run tests for specific crate
-cargo test -p ci-core
+# Run tests for a specific crate
+cargo test -p ci_core
 
 # Run a specific test
 cargo test test_chi_squared
@@ -197,40 +239,71 @@ cargo test test_chi_squared
 cargo test -- --nocapture
 ```
 
-### Test Organization
+### Python Tests
 
-- **Unit tests**: In the same file as the code, in a `#[cfg(test)] mod tests { }` block
-- **Integration tests**: In `crates/*/tests/` directories
-- **Cross-language tests**: In `tests/` at repository root
+Python tests use [pytest](https://pytest.org/) and require the bindings to be built first
+via [maturin](https://www.maturin.rs/):
+
+```bash
+cd crates/ci-python
+
+# Install build tool and build the bindings in-place
+pip install maturin
+maturin develop
+
+# Run tests
+pytest
+
+# Type-check the test suite
+mypy tests/
+```
+
+The CI pipeline also checks formatting and linting:
+```bash
+ruff format .
+ruff check .
+```
+
+### R Tests
+
+R tests use [testthat](https://testthat.r-lib.org/) via the
+[rextendr](https://extendr.github.io/rextendr/) integration:
+
+```r
+# From an R session in crates/cir/
+rextendr::document()  # Recompile the Rust code and regenerate wrappers
+devtools::test()      # Run all tests
+```
+
+The CI pipeline also checks style and linting:
+```r
+styler::style_pkg()
+lintr::lint_package()
+```
+
+### Test Organisation
+
+- **Unit tests**: Inline in each source file, inside `#[cfg(test)] mod tests { }`
+- **Python integration tests**: `crates/ci-python/tests/`
+- **R tests**: `crates/cir/tests/testthat/`
+- **Cross-language integration tests**: `tests/` at repository root *(planned)*
 
 ### Writing Tests
 
 - Use descriptive test names: `test_chi_squared_with_independent_variables`
 - Test both success and error cases
-- Use property-based testing (proptest) for mathematical properties
 - Add regression tests for bugs you fix
 
 ## Benchmarking
 
-We use [Criterion](https://github.com/criterion-rs/criterion.rs) for benchmarking:
+We intend to use [Criterion](https://github.com/criterion-rs/criterion.rs) for benchmarking.
+The benchmark infrastructure is in place under `crates/ci-core/benches/` but benchmarks
+have not been written yet — contributions welcome!
+
+Once benchmarks exist, they can be run with:
 ```bash
-# Run all benchmarks
 cargo bench --workspace
-
-# Run specific benchmark
-cargo bench --bench test_performance
 ```
-
-Benchmark results are saved in `target/criterion/` and include:
-
-- Statistical analysis of performance
-- Comparison with previous runs
-- HTML reports
-
-**Performance expectations**:
-- CI tests should handle 10,000 samples in < 100ms
-- Memory usage should scale linearly with data size
-- No memory leaks (verify with valgrind or similar)
 
 ## Pull Request Process
 
@@ -248,7 +321,6 @@ Benchmark results are saved in `target/criterion/` and include:
    cargo fmt --all
    cargo clippy --workspace --all-targets -- -D warnings
    cargo test --workspace
-   cargo bench --workspace
 ```
 
 4. **Push your branch**:
@@ -264,13 +336,13 @@ Benchmark results are saved in `target/criterion/` and include:
    - Describe what the PR does
    - Link related issues
    - List breaking changes (if any)
-   - Checklist: tests added, docs updated, benchmarks run
+   - Checklist: tests added, docs updated
 
 3. **Request review** from at least one team member
 
 ### After Opening
 
-- **CI must pass**: GitHub Actions will run all checks automatically
+- **CI must pass**: GitHub Actions will run all checks automatically (separate workflows for Rust, Python, R, and JS)
 - **Address review comments**: Make changes and push new commits
 - **Keep PR updated**: Rebase on `main` if needed to resolve conflicts
 
@@ -287,3 +359,5 @@ Benchmark results are saved in `target/criterion/` and include:
 - [Rust Book](https://doc.rust-lang.org/book/) - Learn Rust
 - [Criterion Documentation](https://criterion-rs.github.io/book/index.html) - Benchmarking
 - [PyO3 Guide](https://pyo3.rs/) - Python bindings
+- [extendr Guide](https://extendr.github.io/) - R bindings
+- [wasm-pack](https://rustwasm.github.io/wasm-pack/) - JavaScript/WASM bindings
