@@ -16,8 +16,6 @@ anyhow = { workspace = true}
 ndarray = { workspace = true }
 statrs = { workspace = true }
 ordered-float = "5.3.0"
-rand = "0.9"
-criterion = "0.5"
 libm = "0.2.16"
 nalgebra = "0.33"
 
