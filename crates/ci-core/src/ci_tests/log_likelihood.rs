@@ -46,6 +46,7 @@ impl CITest for LogLikelihood {
 #[allow(clippy::many_single_char_names)]
 mod tests {
     use super::*;
+    use crate::utils::EPS;
     use ndarray::{array, Array2};
 
     fn unwrap_correlated(r: &TestResult) -> (f64, f64, usize) {
@@ -66,7 +67,7 @@ mod tests {
         let empty = Array2::<f64>::zeros((0, 0));
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty).unwrap());
-        assert!(stat.abs() < 1e-9);
+        assert!(stat.abs() < EPS);
         assert!(p > 0.99);
         assert_eq!(dof, 1);
     }
@@ -82,7 +83,7 @@ mod tests {
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
-        assert!((stat).abs() < 1e-9, " got {stat}");
+        assert!((stat).abs() < EPS, " got {stat}");
         assert!(p > 0.99);
         assert_eq!(dof, 2);
     }
@@ -100,8 +101,8 @@ mod tests {
         let empty = Array2::<f64>::zeros((0, 0));
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty).unwrap());
-        assert!((stat - 5.822_063_320_647_374).abs() < 1e-9, "got {stat}");
-        assert!((p - 0.015_826_368_796_540_195).abs() < 1e-12, "got {p}");
+        assert!((stat - 5.822_063_320_647_374).abs() < EPS, "got {stat}");
+        assert!((p - 0.015_826_368_796_540_195).abs() < EPS, "got {p}");
         assert_eq!(dof, 1);
     }
 
@@ -118,11 +119,11 @@ mod tests {
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
         assert!(stat > 0.0, "stat should be positive, got {stat}");
         assert!(
-            (stat - 11.090_354_888_959_125).abs() < 1e-9,
+            (stat - 11.090_354_888_959_125).abs() < EPS,
             "for stat got {stat}"
         );
         assert!(
-            (p - 0.003_906_249_999_999_994).abs() < 1e-12,
+            (p - 0.003_906_249_999_999_994).abs() < EPS,
             "for p got {p}"
         );
         assert_eq!(dof, 2);
