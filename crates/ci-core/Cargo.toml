@@ -32,19 +32,3 @@ rand_distr = "0.5"
 workspace = true
 
 [lib]
-
-[[bench]]
-name = "contingency_test_bench"
-harness = false
-
-[[bench]]
-name = "contingency_table_bench"
-harness = false
-
-[[bench]]
-name = "power_divergence_bench"
-harness = false
-
-[[bench]]
-name = "pearson_correlation_bench"
-harness = false
