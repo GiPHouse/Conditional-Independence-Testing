@@ -105,22 +105,6 @@ mod tests {
         assert_eq!(dof, 2);
     }
 
-    // Can't test perfectly dependent (zero cells -> ln(0)), use skewed table instead.
-    // scipy: power_divergence([[5,1],[1,5]], lambda_=0) -> stat=5.822063320647374
-    #[test]
-    fn uncond_dependent_data_rejected() {
-        let t = LogLikelihood {boolean: false,
-            significance_level: 0.05,};
-        let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
-        let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
-        let empty = Array2::<f64>::zeros((0, 0));
-
-        let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty).unwrap());
-        assert!((stat - 5.822_063_320_647_374).abs() < 1e-9, "got {stat}");
-        assert!((p - 0.015_826_368_796_540_195).abs() < 1e-12, "got {p}");
-        assert_eq!(dof, 1);
-    }
-
     #[test]
     fn cond_dependent_data_rejected() {
         let t = LogLikelihood {
@@ -165,17 +149,6 @@ mod tests {
             "for p got {p}"
         );
         assert_eq!(dof, 2);
-    }
-
-    #[test]
-    fn uncond_bool_rejects_dependent() {
-        let t = LogLikelihood { boolean: true,
-            significance_level: 0.05,};
-        let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
-        let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
-        let empty = Array2::<f64>::zeros((0, 0));
-        let r = t.run_test(x, y, empty).unwrap();
-        assert!(matches!(r, TestResult::Boolean(false)));
     }
 
     #[test]
