@@ -1,5 +1,11 @@
-import { chi_squared_test } from "../pkg/ci_js.js";
-import { describe, test, expect } from "vitest";
+import init, { chi_squared_test } from "../pkg/ci_js.js";
+import { beforeAll, describe, test, expect } from "vitest";
+
+const wasm = await import("../pkg/ci_js.js");
+
+beforeAll(async () => {
+  await wasm.default.init();
+});
 
 const toFloat64 = (...vals) => new Float64Array(vals);
 

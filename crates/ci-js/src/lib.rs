@@ -8,7 +8,7 @@ use js_sys::{Array, Float64Array};
 use ndarray::{Array1, Array2};
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(start)]
+#[wasm_bindgen]
 pub fn init() {
     console_error_panic_hook::set_once();
 }
