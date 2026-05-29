@@ -10,15 +10,15 @@ use syn::{
     Fields, File, ItemImpl, ItemStruct, Type, TypePath,
 };
 
-/// Visitor that traverses the AST and collects all structs implementing ``CITest`` (``citest_structs``)
-/// all struct definitions (``struct_defs``).
+/// Visitor that traverses the AST and collects all structs implementing `CITest` (`citest_structs`)
+/// all struct definitions (`struct_defs`).
 struct CITestCollector {
     citest_structs: Vec<String>,
     struct_defs: HashMap<String, ItemStruct>,
 }
 
 impl<'ast> Visit<'ast> for CITestCollector {
-    /// Collect all structs implementing ``CITest``.
+    /// Collect all structs implementing `CITest`.
     fn visit_item_impl(&mut self, node: &'ast ItemImpl) {
         if let Some((None, trait_path, _)) = &node.trait_ {
             let is_citest = trait_path
@@ -45,10 +45,10 @@ impl<'ast> Visit<'ast> for CITestCollector {
     }
 }
 
-/// Run the ``CITestCollector`` recursively on the specified directory.
+/// Run the `CITestCollector` recursively on the specified directory.
 fn parse_dir(dir: &Path, collector: &mut CITestCollector) {
-    for entry in fs::read_dir(dir).unwrap_or_else(|_| panic!("Failed to read {}", dir.display())) {
-        let path = entry.unwrap().path();
+    for entry in fs::read_dir(dir).unwrap_or_else(|e| panic!("Failed to read {}: {}", dir.display(), e)) {
+        let path = entry.unwrap_or_else(|e| panic!("Failed to read {}: {}", dir.display(), e)).path();
         if path.is_dir() {
             parse_dir(&path, collector);
         } else if path.extension().is_some_and(|e| e == "rs") {
@@ -62,7 +62,7 @@ fn parse_dir(dir: &Path, collector: &mut CITestCollector) {
     }
 }
 
-/// Generate the ``TokenStream`` for the specified struct ``s``.
+/// Generate the `TokenStream` for the specified struct `s`.
 fn generate_pyo3_wrapper(s: &ItemStruct) -> TokenStream {
     let struct_name = &s.ident.to_string();
     let struct_ident = format_ident!("{}", struct_name);
@@ -71,19 +71,19 @@ fn generate_pyo3_wrapper(s: &ItemStruct) -> TokenStream {
 
     let Fields::Named(named) = &s.fields else {
         panic!(
-            "Encountered tuple field when processing `{struct_name}`. Tuples aren't supported (yet).",
+            "Encountered unnamed field when processing `{struct_name}`. Unnamed fields aren't supported (yet).",
         )
     };
 
     let field_names: Vec<_> = named
         .named
         .iter()
-        .map(|f| f.ident.as_ref().unwrap())
+        .map(|f| f.ident.as_ref().expect("Named fields always have idents."))
         .collect();
-    let field_types: Vec<_> = named.named.iter().map(|f| &f.ty).collect();
+    let field_types = named.named.iter().map(|f| &f.ty);
 
     let getters_setters = named.named.iter().map(|f| {
-        let fname = f.ident.as_ref().unwrap();
+        let fname = f.ident.as_ref().expect("Named fields always have idents.");
         let ftype = &f.ty;
         let setter_ident = format_ident!("set_{}", fname);
         quote! {
@@ -99,7 +99,7 @@ fn generate_pyo3_wrapper(s: &ItemStruct) -> TokenStream {
         }
     });
 
-    let constructor_args = field_names.iter().zip(field_types.iter()).map(|(n, t)| {
+    let constructor_args = field_names.iter().zip(field_types).map(|(n, t)| {
         quote! { #n: #t }
     });
     let constructor_init = field_names.iter().map(|n| quote! { #n });
@@ -151,10 +151,10 @@ fn generate_pyo3_wrapper(s: &ItemStruct) -> TokenStream {
 }
 
 fn main() {
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap_or_else(|e| panic!("Couldn't find output directory: {}", e)));
 
     // Generate ci_tests.rs.
-    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|e| panic!("Couldn't find directory of crate: {}", e)));
     let ci_core_src = manifest_dir.join("../ci-core/src");
     assert!(
         ci_core_src.exists(),
@@ -178,7 +178,7 @@ fn main() {
         }
     }
 
-    fs::write(out_dir.join("ci_tests.rs"), tokens.to_string()).unwrap();
+    fs::write(out_dir.join("ci_tests.rs"), tokens.to_string()).unwrap_or_else(|e| panic!("Couldn't save `ci_tests.rs`: {}", e));
 
     // Generate ci_tests_init.rs.
     let mut tokens_init = TokenStream::new();
@@ -198,5 +198,5 @@ fn main() {
             Ok(())
         }
     });
-    fs::write(out_dir.join("ci_tests_init.rs"), tokens_init.to_string()).unwrap();
+    fs::write(out_dir.join("ci_tests_init.rs"), tokens_init.to_string()).unwrap_or_else(|e| panic!("Couldn't save `ci_tests_init.rs`: {}", e));
 }
