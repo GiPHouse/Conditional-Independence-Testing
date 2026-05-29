@@ -30,7 +30,6 @@ describe("chi_squared_test", () => {
     const z = new Float64Array(0);
 
     const [p_value, statistic, dof] = chi_squared_test(
-      "chi_squared",
       z,
       0,
       0,
@@ -50,7 +49,7 @@ describe("chi_squared_test", () => {
     const y = toFloat64(1, 2, 1, 2, 1, 2, 1, 2);
     const z = new Float64Array(0);
 
-    const result = chi_squared_test("chi_squared", z, 0, 0, x, y, true, 0.05);
+    const result = chi_squared_test(z, 0, 0, x, y, true, 0.05);
 
     expect(result).toBe(true);
   });
@@ -60,7 +59,7 @@ describe("chi_squared_test", () => {
     const y = toFloat64(1, 1, 1, 1, 2, 2, 2, 2);
     const z = new Float64Array(0);
 
-    const result = chi_squared_test("chi_squared", z, 0, 0, x, y, true, 0.05);
+    const result = chi_squared_test(z, 0, 0, x, y, true, 0.05);
 
     expect(result).toBe(false);
   });
