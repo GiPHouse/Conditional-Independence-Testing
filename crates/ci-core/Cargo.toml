@@ -44,3 +44,7 @@ harness = false
 [[bench]]
 name = "power_divergence_bench"
 harness = false
+
+[[bench]]
+name = "pearson_correlation_bench"
+harness = false
