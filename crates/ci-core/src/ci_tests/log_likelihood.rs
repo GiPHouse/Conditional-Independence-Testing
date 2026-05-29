@@ -108,9 +108,11 @@ mod tests {
     // Can't test perfectly dependent (zero cells -> ln(0)), use skewed table instead.
     // scipy: power_divergence([[5,1],[1,5]], lambda_=0) -> stat=5.822063320647374
     #[test]
-    fn uncond_dependent_data_rejected() {
-        let t = LogLikelihood {boolean: false,
-            significance_level: 0.05,};
+    fn uncond_dependent_data_rejected_empty() {
+        let t = LogLikelihood {
+            boolean: false,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
@@ -168,9 +170,11 @@ mod tests {
     }
 
     #[test]
-    fn uncond_bool_rejects_dependent() {
-        let t = LogLikelihood { boolean: true,
-            significance_level: 0.05,};
+    fn uncond_bool_rejects_dependent_empty() {
+        let t = LogLikelihood {
+            boolean: true,
+            significance_level: 0.05,
+        };
         let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
         let empty = Array2::<f64>::zeros((0, 0));
