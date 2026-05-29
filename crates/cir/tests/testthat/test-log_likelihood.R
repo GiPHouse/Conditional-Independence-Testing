@@ -7,7 +7,7 @@ test_that("independent data is not rejected", {
 
   result <- log_likelihood_test(x, y, z, FALSE, 0.05)
   expect_equal(result$kind, "statistic")
-  expect_true(result$statistic < 1e-9)
+  expect_true(result$statistic < EPS)
   expect_true(result$p_value >= 0.99)
   expect_equal(result$df, 1)
 })
@@ -19,8 +19,8 @@ test_that("dependent data is rejected", {
 
   result <- log_likelihood_test(x, y, z, FALSE, 0.05)
   expect_equal(result$kind, "statistic")
-  expect_true(abs(result$statistic - 5.822063320647374) < 1e-9)
-  expect_true(abs(result$p_value - 0.015826368796540195) < 1e-12)
+  expect_true(abs(result$statistic - 5.822063320647374) < EPS)
+  expect_true(abs(result$p_value - 0.015826368796540195) < EPS)
   expect_equal(result$df, 1)
 })
 
