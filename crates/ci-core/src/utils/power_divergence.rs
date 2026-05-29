@@ -46,18 +46,16 @@ pub fn power_divergence(
             &x_categories,
             &y_categories,
         );
-        // let Ok((stat, _p, dof)) = contingency_test(&table, lambda) else {
-        //     continue;
-        // };
 
         let row_sums = table.sum_axis(ndarray::Axis(1));
         let col_sums = table.sum_axis(ndarray::Axis(0));
 
         if row_sums.iter().any(|&s| s == 0.0) || col_sums.iter().any(|&s| s == 0.0) {
-            continue;
+            continue;   //only continues if an entire row is 0
         }
 
         let (stat, _p, dof) = contingency_test(&table, lambda)?;
+
         if dof == 0 {
             continue;
         }

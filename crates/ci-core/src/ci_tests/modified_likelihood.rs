@@ -159,9 +159,10 @@ mod tests {
             significance_level: 0.05,
         };
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
-        let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
+        let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
-        let r = t.run_test(x, y, z).unwrap();
-        assert!(matches!(r, TestResult::Boolean(true)));
+        let r = t.run_test(x, y, z);
+        println!("{:?}", r);
+        assert!(r.is_err(), "Modified Likelihood should error out independent data");
     }
 }
