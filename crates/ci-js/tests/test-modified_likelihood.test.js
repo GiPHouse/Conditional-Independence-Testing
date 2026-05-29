@@ -1,17 +1,23 @@
-import { JSCITest } from '../pkg/ci_js.js';
+import { modified_likelihood_test } from "../pkg/ci_js.js";
 import { describe, test, expect } from "vitest";
 
 const toFloat64 = (...vals) => new Float64Array(vals);
 
-describe('modified_likelihood_test', () => {
-
-  test('independent data is not rejected', () => {
+describe("modified_likelihood_test", () => {
+  test("independent data is not rejected", () => {
     const x = toFloat64(1, 1, 2, 2, 1, 1, 2, 2);
     const y = toFloat64(1, 2, 1, 2, 1, 2, 1, 2);
     const z = new Float64Array(0);
 
-    const [p_value, statistic, dof] = JSCITest.run_test(
-      'modified_likelihood', z, 0, 0, x, y, false, 0.05
+    const [p_value, statistic, dof] = modified_likelihood_test(
+      "modified_likelihood",
+      z,
+      0,
+      0,
+      x,
+      y,
+      false,
+      0.05,
     );
 
     expect(statistic).toBeLessThan(1e-9);
@@ -19,13 +25,20 @@ describe('modified_likelihood_test', () => {
     expect(dof).toBe(1);
   });
 
-  test('dependent data is rejected', () => {
+  test("dependent data is rejected", () => {
     const x = toFloat64(1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2);
     const y = toFloat64(1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2, 2);
     const z = new Float64Array(0);
 
-    const [p_value, statistic, dof] = JSCITest.run_test(
-      'modified_likelihood', z, 0, 0, x, y, false, 0.05
+    const [p_value, statistic, dof] = modified_likelihood_test(
+      "modified_likelihood",
+      z,
+      0,
+      0,
+      x,
+      y,
+      false,
+      0.05,
     );
 
     expect(Math.abs(statistic - 7.053439978825427)).toBeLessThan(1e-9);
@@ -33,16 +46,22 @@ describe('modified_likelihood_test', () => {
     expect(dof).toBe(1);
   });
 
-  test('boolean mode returns false for dependent data', () => {
+  test("boolean mode returns false for dependent data", () => {
     const x = toFloat64(1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2);
     const y = toFloat64(1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2, 2);
     const z = new Float64Array(0);
 
-    const result = JSCITest.run_test(
-      'modified_likelihood', z, 0, 0, x, y, true, 0.05
+    const result = modified_likelihood_test(
+      "modified_likelihood",
+      z,
+      0,
+      0,
+      x,
+      y,
+      true,
+      0.05,
     );
 
     expect(result).toBe(false);
   });
-
 });
