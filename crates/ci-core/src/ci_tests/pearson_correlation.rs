@@ -1,4 +1,7 @@
-use crate::strategy::{CITest, CITestDataType, TestResult};
+use crate::{
+    strategy::{CITest, CITestDataType, TestResult},
+    utils::EPS,
+};
 use anyhow::{ensure, Context};
 use nalgebra::{DMatrix, DVector};
 use ndarray::{Array1, Array2, ArrayView1};
