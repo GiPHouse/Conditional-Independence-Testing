@@ -1,4 +1,7 @@
-use crate::{strategy::{CITest, CITestDataType, TestResult}, utils::EPS};
+use crate::{
+    strategy::{CITest, CITestDataType, TestResult},
+    utils::EPS,
+};
 use anyhow::ensure;
 use nalgebra::{DMatrix, DVector};
 use ndarray::{Array1, Array2, ArrayView1};
@@ -155,11 +158,7 @@ fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::R
 
     // If one of the datasets is constant, pearson coefficient is undefined.
     if sum_sq_x == 0.0 || sum_sq_y == 0.0 {
-        let array_name = if sum_sq_x == 0.0 {
-            "x"
-        } else {
-            "y"
-        };
+        let array_name = if sum_sq_x == 0.0 { "x" } else { "y" };
         panic!("Array {array_name} is constant, so the pearson coëfficient is undefined.");
     }
 
