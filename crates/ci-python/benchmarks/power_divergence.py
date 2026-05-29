@@ -181,8 +181,9 @@ def bench_scaling(size, n_z_vars, n_iter=20):
         power_divergence(X="X", Y="Y", Z=z_names, data=df, boolean=False, lambda_="cressie-read")
     pgmpy_t = (time.perf_counter() - t0) / n_iter
     rust_t = rust_t * 1000
+    pgmpy_t = pgmpy_t * 1000
 
-    print(f"  |Z|={n_z_vars:2d}  Rust={rust_t:8.4f}ms  pgmpy={pgmpy_t * 1000:8.4f}ms  speedup={pgmpy_t / rust_t:6.2f}x")
+    print(f"  |Z|={n_z_vars:2d}  Rust={rust_t:8.4f}ms  pgmpy={pgmpy_t:8.4f}ms  speedup={pgmpy_t / rust_t:6.2f}x")
 
 
 print(f"\n{'=' * 60}")
