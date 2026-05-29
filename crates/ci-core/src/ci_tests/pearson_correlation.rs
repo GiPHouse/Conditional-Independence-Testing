@@ -1,9 +1,8 @@
 use crate::strategy::{CITest, CITestDataType, TestResult};
-use anyhow::{ensure, Context};
+use anyhow::ensure;
 use nalgebra::{DMatrix, DVector};
 use ndarray::{Array1, Array2, ArrayView1};
 use statrs::distribution::{ContinuousCDF, StudentsT};
-use statrs::statistics::Statistics;
 
 /// Pearson correlation conditional independence test.
 ///
@@ -121,30 +120,53 @@ pub fn wrap_result(
 ///
 /// Returns an error if the input has fewer than 3 elements (degrees of freedom < 1).
 fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::Result<(f64, f64)> {
+    let n = x_values.len();
     ensure!(
-        x_values.len() == y_values.len() && x_values.len() >= 3,
+        n == y_values.len() && n >= 3,
         "pearsonr requires equal-length inputs with n >= 3"
     );
+
     #[allow(
         clippy::cast_precision_loss,
         reason = "array length most likely won't exceed 2^53"
     )]
-    let number_of_elements = x_values.len() as f64;
+    let number_of_elements = n as f64;
 
-    let x_slice = x_values.as_slice().context("invalid array layout")?;
-    let y_slice = y_values.as_slice().context("invalid array layout")?;
+    // Calculate means
+    let x_mean = x_values.sum() / number_of_elements;
+    let y_mean = y_values.sum() / number_of_elements;
 
-    let covariance = x_slice.covariance(y_slice);
+    let mut sum_sq_x = 0.0;
+    let mut sum_sq_y = 0.0;
+    let mut sum_coproduct = 0.0;
 
-    let x_stdev = x_slice.std_dev();
-    let y_stdev = y_slice.std_dev();
+    // Fused loop for variance and covariance data
+    for (&x, &y) in x_values.iter().zip(y_values.iter()) {
+        let dx = x - x_mean;
+        let dy = y - y_mean;
 
-    let coefficient = covariance / (x_stdev * y_stdev);
+        sum_sq_x += dx * dx;
+        sum_sq_y += dy * dy;
+        sum_coproduct += dx * dy;
+    }
+
+    // Calculate correlation directly
+    let mut coefficient = sum_coproduct / (sum_sq_x * sum_sq_y).sqrt();
+
+    // Floating-point math can sometimes drift slightly outside [-1.0, 1.0], so then we clamp
+    // If it becomes 1.000000000002, taking the sqrt of (1.0 - coeff^2) will be negative, which returns a NaN
+    if coefficient.is_nan() {
+        coefficient = 0.0;
+    } else {
+        coefficient = coefficient.clamp(-1.0, 1.0);
+    }
 
     let t_statistic =
-        coefficient * (number_of_elements - 2.0).sqrt() / ((1.0 - coefficient.powi(2)).sqrt());
+        coefficient * (number_of_elements - 2.0).sqrt() / (1.0 - coefficient.powi(2)).sqrt();
+
     let t_distribution = StudentsT::new(0.0, 1.0, number_of_elements - 2.0)?;
     let p_value = 2.0 * t_distribution.sf(t_statistic.abs());
+
     Ok((coefficient, p_value))
 }
 
