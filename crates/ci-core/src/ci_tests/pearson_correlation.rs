@@ -80,10 +80,15 @@ impl CITest for PearsonCorrelation {
             let residual_x = x_values - z.dot(&x_coef_nd);
             let residual_y = y_values - z.dot(&y_coef_nd);
 
-        let (coefficient, p_value) = pearsonr(&residual_x.view(), &residual_y.view())?;
-        Ok(wrap_result(self.boolean, p_value, coefficient, self.significance_level))
+            let (coefficient, p_value) = pearsonr(&residual_x.view(), &residual_y.view())?;
+            Ok(wrap_result(
+                self.boolean,
+                p_value,
+                coefficient,
+                self.significance_level,
+            ))
+        }
     }
-}
 
     fn data_types(&self) -> &'static [CITestDataType] {
         &[CITestDataType::Continuous]

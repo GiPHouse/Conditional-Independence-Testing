@@ -16,6 +16,14 @@ pub fn init() {
 macro_rules! wasm_ci_test {
     ($fn_name:ident, $inner:ty) => {
         #[wasm_bindgen]
+        /// Runs the CI test and returns the result as a JS value.
+        ///
+        /// # Errors
+        ///
+        /// Returns a `JsValue` error if:
+        /// - the input arrays have invalid dimensions,
+        /// - the statistical computation fails,
+        /// - serialization to JavaScript fails.
         pub fn $fn_name(
             z_flat: &Float64Array,
             z_rows: usize,
@@ -30,7 +38,7 @@ macro_rules! wasm_ci_test {
             let result = test
                 .run_test(x, y, z)
                 .map_err(|e| JsValue::from_str(&e.to_string()))?;
-            convert_to_jsvalue(result)
+            convert_to_jsvalue(&result)
         }
     };
 }
@@ -42,12 +50,19 @@ wasm_ci_test!(pearson_correlation_test, PearsonCorrelation);
 wasm_ci_test!(freeman_tukey_test, FreemanTukey);
 wasm_ci_test!(modified_likelihood_test, ModifiedLikelihood);
 
+#[allow(clippy::too_many_arguments)]
 #[wasm_bindgen]
 /// Pearson equivalence CI test (TOST): declares independence when the partial correlation
 /// lies within `[-delta_threshold, delta_threshold]`.
 ///
 /// Pass a 0-column matrix for `z` to run unconditionally. When `boolean` is `true`,
 /// returns an independence verdict instead of the raw p-value and correlation.
+/// # Errors
+///
+/// Returns a `JsValue` error if:
+/// - the input arrays have invalid dimensions,
+/// - the statistical computation fails,
+/// - serialization to JavaScript fails.
 pub fn pearson_equivalence_test(
     z_flat: &Float64Array,
     z_rows: usize,
@@ -66,9 +81,10 @@ pub fn pearson_equivalence_test(
         .run_test(x, y, z)
         .map_err(|e| JsError::new(&e.to_string()))?;
 
-    convert_to_jsvalue(result)
+    convert_to_jsvalue(&result)
 }
 
+#[allow(clippy::type_complexity)]
 fn convert_to_ndarray(
     z_flat: &Float64Array,
     x: &Float64Array,
@@ -92,21 +108,23 @@ fn convert_to_ndarray(
     Ok((x, y, z))
 }
 
-fn convert_to_jsvalue(result: TestResult) -> Result<JsValue, JsValue> {
+#[allow(clippy::cast_precision_loss)]
+#[allow(clippy::unnecessary_wraps)]
+fn convert_to_jsvalue(result: &TestResult) -> Result<JsValue, JsValue> {
     match result {
-        TestResult::Boolean(b) => Ok(JsValue::from_bool(b)),
+        TestResult::Boolean(b) => Ok(JsValue::from_bool(*b)),
         TestResult::PValue(p_value, coefficient) => {
             let array = Array::new();
-            array.push(&JsValue::from_f64(p_value));
-            array.push(&JsValue::from_f64(coefficient));
+            array.push(&JsValue::from_f64(*p_value));
+            array.push(&JsValue::from_f64(*coefficient));
             Ok(array.into())
         }
 
         TestResult::Statistic(p_value, statistic, dof) => {
             let array = Array::new();
-            array.push(&JsValue::from_f64(p_value));
-            array.push(&JsValue::from_f64(statistic));
-            array.push(&JsValue::from_f64(dof as f64));
+            array.push(&JsValue::from_f64(*p_value));
+            array.push(&JsValue::from_f64(*statistic));
+            array.push(&JsValue::from_f64(*dof as f64));
             Ok(array.into())
         }
     }
