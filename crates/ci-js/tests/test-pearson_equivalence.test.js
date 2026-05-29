@@ -21,7 +21,7 @@ describe("pearson_equivalence_tests", () => {
     );
 
     expect(Math.abs(coefficient)).toBeLessThan(1e-9);
-    expect(p_value).toBeGreaterThanOrEqual(0.99);
+    expect(p_value).toBeLessThanOrEqual(0.05);
   });
 
   test("dependent_data_is_rejected", () => {
