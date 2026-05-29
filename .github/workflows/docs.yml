@@ -2,7 +2,7 @@ name: Deploy Docs
 
 on:
   push:
-    branches: [main]
+    branches: [main, clean_up_python_bindings]
     paths:
       - 'crates/ci-core/**'
       - 'crates/cir/**'
