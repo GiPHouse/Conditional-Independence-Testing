@@ -117,6 +117,7 @@ mod tests {
 
     const SIGNIFICANCE_LEVEL: f64 = 0.05;
     const DELTA_THRESHOLD: f64 = 0.1;
+    // Specific tests imported from pgmpy fail with default epsilon
     const PGMPY_EPS: f64 = 1e-8;
 
     const N: usize = 1000;
