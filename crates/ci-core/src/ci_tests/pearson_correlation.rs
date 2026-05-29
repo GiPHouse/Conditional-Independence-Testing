@@ -4,6 +4,9 @@ use nalgebra::{DMatrix, DVector};
 use ndarray::{Array1, Array2, ArrayView1};
 use statrs::distribution::{ContinuousCDF, StudentsT};
 
+const SVD_TOLERANCE: f64 = 1e-10;
+const MIN_SAMPLE_SIZE: usize = 3;
+
 /// Pearson correlation conditional independence test.
 ///
 /// Should be used only on continuous data. When the conditioning set is non-empty,
@@ -67,10 +70,10 @@ impl CITest for PearsonCorrelation {
 
             let svd = z_na.svd(true, true);
             let x_coefficient = svd
-                .solve(&x_na, 1e-10)
+                .solve(&x_na, SVD_TOLERANCE)
                 .map_err(|e| anyhow::anyhow!("least squares failed for x: {e}"))?;
             let y_coefficient = svd
-                .solve(&y_na, 1e-10)
+                .solve(&y_na, SVD_TOLERANCE)
                 .map_err(|e| anyhow::anyhow!("least squares failed for y: {e}"))?;
 
             let x_coef_nd = Array1::from_vec(x_coefficient.iter().copied().collect());
@@ -122,7 +125,7 @@ pub fn wrap_result(
 fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::Result<(f64, f64)> {
     let n = x_values.len();
     ensure!(
-        n == y_values.len() && n >= 3,
+        x_values.len() == y_values.len() && x_values.len() >= MIN_SAMPLE_SIZE,
         "pearsonr requires equal-length inputs with n >= 3"
     );
 
@@ -173,6 +176,7 @@ fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::R
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::utils::EPS;
     use ndarray::{stack, Array1, Array2, Axis};
     use rand::rngs::SmallRng;
     use rand::SeedableRng;
@@ -460,7 +464,7 @@ mod tests {
         let y = Array1::from_vec(vec![1.0, 2.0, 3.0]);
         let (coefficient, p_value) = pearsonr(&x.view(), &y.view()).unwrap();
         assert!(
-            (coefficient - 1.0).abs() < 1e-10,
+            (coefficient - 1.0).abs() < EPS,
             "perfect positive correlation"
         );
         assert!(p_value < 0.05, "should be significant");
