@@ -6,7 +6,12 @@ import pytest
 from ci_python import CressieRead, ModifiedLikelihood
 
 
-def check_numeric_results(result, expected_stat_approx_zero=False, expected_dof=None, significance_level=0.05) -> None:
+def check_numeric_results(
+    result: tuple[float, float, float],
+    expected_stat_approx_zero: bool = False,
+    expected_dof: int | None = None,
+    significance_level: float = 0.05,
+) -> None:
     """Helper function to evaluate contents of numeric tuple returned by various functions."""
     assert isinstance(result, tuple)
     assert len(result) == 3
@@ -28,6 +33,7 @@ def check_numeric_results(result, expected_stat_approx_zero=False, expected_dof=
 
 
 def test_unconditional_independent_data_is_not_rejected() -> None:
+    """Test that python bindings behave correctly when given unconditional independent data."""
     x = np.array([1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 2.0, 2.0], dtype=np.float64)
     y = np.array([1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0], dtype=np.float64)
     empty_z = np.zeros((0, 0), dtype=np.float64)
@@ -45,6 +51,7 @@ def test_unconditional_independent_data_is_not_rejected() -> None:
 
 
 def test_unconditional_dependent_data_is_rejected() -> None:
+    """Test that python bindings behave correctly when given unconditional dependent data."""
     x = np.array([1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0], dtype=np.float64)
     y = np.array([1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0], dtype=np.float64)
     empty_z = np.zeros((0, 0), dtype=np.float64)
@@ -62,6 +69,7 @@ def test_unconditional_dependent_data_is_rejected() -> None:
 
 
 def test_conditional_independent_per_group() -> None:
+    """Test that python bindings behave correctly when given conditional independent data."""
     x = np.array([1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 2.0, 2.0], dtype=np.float64)
     y = np.array([1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0], dtype=np.float64)
     z = np.array([[0.0], [0.0], [0.0], [0.0], [1.0], [1.0], [1.0], [1.0]], dtype=np.float64)
@@ -79,6 +87,7 @@ def test_conditional_independent_per_group() -> None:
 
 
 def test_conditional_dependent_per_group() -> None:
+    """Test that python bindings behave correctly when given conditional dependent data."""
     x = np.array([1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 2.0, 2.0], dtype=np.float64)
     y = np.array([1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 2.0, 2.0], dtype=np.float64)
     z = np.array([[0.0], [0.0], [0.0], [0.0], [1.0], [1.0], [1.0], [1.0]], dtype=np.float64)
@@ -89,7 +98,8 @@ def test_conditional_dependent_per_group() -> None:
     check_numeric_results(result_numeric, expected_stat_approx_zero=False)
 
 
-def test_error_handling_zero_observations() -> None:
+def test_error_handling() -> None:
+    """Test that python bindings correctly return errors encountered in Rust."""
     x = np.array([1.0, 2.0], dtype=np.float64)
     y = np.array([1.0, 2.0], dtype=np.float64)
     z = np.array([[]], dtype=np.float64)
