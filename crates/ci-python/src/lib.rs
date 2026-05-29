@@ -15,7 +15,6 @@ use ci_core::strategy::CITest as CITestTrait;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2};
 use pyo3::prelude::*;
 
-
 #[pyclass(frozen)]
 pub struct CITest {
     inner: Box<dyn CITestTrait>,
