@@ -1,4 +1,4 @@
-"""Unit tests for all ``CITest``s."""
+"""Unit tests for ``CITest``s."""
 
 import numpy as np
 import pytest
