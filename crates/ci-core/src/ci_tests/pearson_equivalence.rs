@@ -72,7 +72,6 @@ impl CITest for PearsonEquivalence {
         let p_value_lower = 1.0 - normal.cdf(z_score_lower);
         let p_value_upper = normal.cdf(z_score_upper);
 
-
         let p_value = if p_value_lower > p_value_upper {
             p_value_lower
         } else {
