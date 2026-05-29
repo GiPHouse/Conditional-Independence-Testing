@@ -10,7 +10,6 @@ describe("log_likelihood_test", () => {
     const z = new Float64Array(0);
 
     const [p_value, statistic, dof] = log_likelihood_test(
-      "log_likelihood",
       z,
       0,
       0,
@@ -31,7 +30,6 @@ describe("log_likelihood_test", () => {
     const z = new Float64Array(0);
 
     const [p_value, statistic, dof] = log_likelihood_test(
-      "log_likelihood",
       z,
       0,
       0,
@@ -51,16 +49,7 @@ describe("log_likelihood_test", () => {
     const y = toFloat64(1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2, 2);
     const z = new Float64Array(0);
 
-    const result = JSCITest.run_test(
-      "log_likelihood",
-      z,
-      0,
-      0,
-      x,
-      y,
-      true,
-      0.05,
-    );
+    const result = log_likelihood_test(z, 0, 0, x, y, true, 0.05);
 
     expect(result).toBe(false);
   });

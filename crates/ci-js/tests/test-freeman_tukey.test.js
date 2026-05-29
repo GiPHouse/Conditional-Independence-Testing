@@ -1,4 +1,4 @@
-import init, { freeman_tukey_test } from "../pkg/ci_js.js";
+import { freeman_tukey_test } from "../pkg/ci_js.js";
 import { describe, test, expect } from "vitest";
 
 const toFloat64 = (...vals) => new Float64Array(vals);
@@ -10,7 +10,6 @@ describe("freeman_tukey_test", () => {
     const z = new Float64Array(0);
 
     const [p_value, statistic, dof] = freeman_tukey_test(
-      "freeman_tukey",
       z,
       0,
       0,
@@ -31,7 +30,6 @@ describe("freeman_tukey_test", () => {
     const z = new Float64Array(0);
 
     const [p_value, statistic, dof] = freeman_tukey_test(
-      "freeman_tukey",
       z,
       0,
       0,
@@ -51,16 +49,7 @@ describe("freeman_tukey_test", () => {
     const y = new Float64Array([1, 2, 1, 2, 1, 2, 1, 2]);
     const z = new Float64Array(0);
 
-    const result = freeman_tukey_test(
-      "freeman_tukey",
-      z,
-      0,
-      0,
-      x,
-      y,
-      true,
-      0.05,
-    );
+    const result = freeman_tukey_test(z, 0, 0, x, y, true, 0.05);
 
     expect(result).toBe(true);
   });

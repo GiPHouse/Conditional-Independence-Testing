@@ -1,4 +1,4 @@
-import init, { cressie_read_test } from "../pkg/ci_js.js";
+import { cressie_read_test } from "../pkg/ci_js.js";
 import { describe, test, expect } from "vitest";
 
 const toFloat64 = (...vals) => new Float64Array(vals);
@@ -10,7 +10,6 @@ describe("cressie_read_test", () => {
     const z = new Float64Array(0);
 
     const [p_value, statistic, dof] = cressie_read_test(
-      "cressie_read",
       z,
       0,
       0,
@@ -30,7 +29,7 @@ describe("cressie_read_test", () => {
     const y = toFloat64(1, 2, 1, 2, 1, 2, 1, 2);
     const z = new Float64Array(0);
 
-    const result = cressie_read_test("cressie_read", z, 0, 0, x, y, true, 0.05);
+    const result = cressie_read_test(z, 0, 0, x, y, true, 0.05);
 
     expect(result).toBe(true);
   });
@@ -41,7 +40,6 @@ describe("cressie_read_test", () => {
     const z = new Float64Array(0);
 
     const [p_value, statistic, dof] = cressie_read_test(
-      "cressie_read",
       z,
       0,
       0,
@@ -61,7 +59,7 @@ describe("cressie_read_test", () => {
     const y = new Float64Array([1, 1, 1, 1, 2, 2, 2, 2]);
     const z = new Float64Array(0);
 
-    const result = cressie_read_test("cressie_read", z, 0, 0, x, y, true, 0.05);
+    const result = cressie_read_test(z, 0, 0, x, y, true, 0.05);
 
     expect(result).toBe(false);
   });
@@ -72,7 +70,6 @@ describe("cressie_read_test", () => {
     const z = new Float64Array([0, 0, 0, 0, 1, 1, 1, 1]); // 8×1, row-major
 
     const [p_value, statistic, dof] = cressie_read_test(
-      "cressie_read",
       z,
       8,
       1,
@@ -92,7 +89,7 @@ describe("cressie_read_test", () => {
     const y = new Float64Array([1, 2, 1, 2, 1, 2, 1, 2]);
     const z = new Float64Array([0, 0, 0, 0, 1, 1, 1, 1]);
 
-    const result = cressie_read_test("cressie_read", z, 8, 1, x, y, true, 0.05);
+    const result = cressie_read_test(z, 8, 1, x, y, true, 0.05);
 
     expect(result).toBe(true);
   });
@@ -102,16 +99,7 @@ describe("cressie_read_test", () => {
     const y = new Float64Array([1, 1, 2, 2, 1, 1, 2, 2]);
     const z = new Float64Array([0, 0, 0, 0, 1, 1, 1, 1]);
 
-    const [p_value, statistic] = cressie_read_test(
-      "cressie_read",
-      z,
-      8,
-      1,
-      x,
-      y,
-      false,
-      0.05,
-    );
+    const [p_value, statistic] = cressie_read_test(z, 8, 1, x, y, false, 0.05);
 
     expect(statistic).toBeGreaterThan(5.0);
     expect(p_value).toBeLessThan(0.05);

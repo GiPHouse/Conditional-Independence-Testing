@@ -10,7 +10,6 @@ describe("pearson_correlation_test", () => {
     const z = new Float64Array(0);
 
     const [p_value, coefficient] = pearson_correlation_test(
-      "pearson_correlation",
       z,
       0,
       0,
@@ -30,7 +29,6 @@ describe("pearson_correlation_test", () => {
     const z = new Float64Array(0);
 
     const [p_value, coefficient] = pearson_correlation_test(
-      "pearson_correlation",
       z,
       0,
       0,
@@ -50,7 +48,6 @@ describe("pearson_correlation_test", () => {
     const z = new Float64Array(0);
 
     const [p_value, coefficient] = pearson_correlation_test(
-      "pearson_correlation",
       z,
       0,
       0,
@@ -69,16 +66,7 @@ describe("pearson_correlation_test", () => {
     const y = toFloat64(1, 2, 1, 2, 1, 2, 1, 2);
     const z = new Float64Array(0);
 
-    const result = pearson_correlation_test(
-      "pearson_correlation",
-      z,
-      0,
-      0,
-      x,
-      y,
-      true,
-      0.05,
-    );
+    const result = pearson_correlation_test(z, 0, 0, x, y, true, 0.05);
 
     expect(result).toBe(true);
   });
@@ -88,16 +76,7 @@ describe("pearson_correlation_test", () => {
     const y = toFloat64(1, 1, 1, 1, 2, 2, 2, 2);
     const z = new Float64Array(0);
 
-    const result = pearson_correlation_test(
-      "pearson_correlation",
-      z,
-      0,
-      0,
-      x,
-      y,
-      true,
-      0.05,
-    );
+    const result = pearson_correlation_test(z, 0, 0, x, y, true, 0.05);
 
     expect(result).toBe(false);
   });
@@ -107,16 +86,7 @@ describe("pearson_correlation_test", () => {
     const y = toFloat64(1, 2, 1, 2, 1, 2, 1, 2);
     const z = new Float64Array([0, 0, 0, 0, 1, 1, 1, 1]);
 
-    const result = pearson_correlation_test(
-      "pearson_correlation",
-      z,
-      8,
-      1,
-      x,
-      y,
-      true,
-      0.05,
-    );
+    const result = pearson_correlation_test(z, 8, 1, x, y, true, 0.05);
 
     expect(result).toBe(true);
   });

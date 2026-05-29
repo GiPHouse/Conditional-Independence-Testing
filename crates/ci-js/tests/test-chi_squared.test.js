@@ -10,9 +10,8 @@ describe("chi_squared_test", () => {
     const z = new Float64Array(0);
 
     const [p_value, statistic, dof] = chi_squared_test(
-      "chi_squared",
       z,
-      8,
+      0,
       0,
       x,
       y,
