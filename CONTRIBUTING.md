@@ -24,26 +24,30 @@ This document provides guidelines and instructions for contributing to the CI Te
 ### Initial Setup
 
 1. **Clone the repository**:
+
 ```bash
    git clone https://github.com/GiPHouse/Conditional-Independence-Testing
    cd ci-testing
 ```
 
 2. **Build the workspace**:
+
 ```bash
    cargo build --workspace
 ```
 
 3. **Run tests to verify setup**:
+
 ```bash
    cargo test --workspace
 ```
 
 4. **Install development tools**:
+
 ```bash
    # Rustfmt (code formatter)
    rustup component add rustfmt
-   
+
    # Clippy (linter)
    rustup component add clippy
 ```
@@ -51,6 +55,7 @@ This document provides guidelines and instructions for contributing to the CI Te
 ### Verify Your Setup
 
 Run these commands to ensure everything works:
+
 ```bash
 # Check formatting
 cargo fmt --all -- --check
@@ -68,6 +73,7 @@ cargo bench --workspace
 If all commands complete successfully, your environment is ready!
 
 ## Repository Structure
+
 ```
 ci-testing/
 ├── crates/              # Rust workspace
@@ -117,6 +123,7 @@ We use Clippy with strict settings:
 ### Git Commit Messages
 
 Follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
+
 ```
 <type>(<scope>): <description>
 
@@ -126,6 +133,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
 ```
 
 **Types**:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -135,6 +143,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
 - `chore`: Maintenance tasks
 
 **Examples**:
+
 ```
 feat(core): add Student's t-test implementation
 
@@ -152,6 +161,7 @@ Follow these steps to add a new conditional independence test:
 ### 1. Create Test Implementation
 
 Create a new file in `crates/ci-core/src/tests/`:
+
 ```bash
 crates/ci-core/src/tests/students_t.rs
 ```
@@ -183,6 +193,7 @@ Create test cases in `crates/ci-core/tests/integration/`:
 ## Testing
 
 ### Running Tests
+
 ```bash
 # Run all tests
 cargo test --workspace
@@ -213,6 +224,7 @@ cargo test -- --nocapture
 ## Benchmarking
 
 We use [Criterion](https://github.com/criterion-rs/criterion.rs) for benchmarking:
+
 ```bash
 # Run all benchmarks
 cargo bench --workspace
@@ -228,6 +240,7 @@ Benchmark results are saved in `target/criterion/` and include:
 - HTML reports
 
 **Performance expectations**:
+
 - CI tests should handle 10,000 samples in < 100ms
 - Memory usage should scale linearly with data size
 - No memory leaks (verify with valgrind or similar)
@@ -237,6 +250,7 @@ Benchmark results are saved in `target/criterion/` and include:
 ### Before Opening a PR
 
 1. **Create a feature branch** from `main`:
+
 ```bash
    git checkout -b feature/your-feature-name
 ```
@@ -244,6 +258,7 @@ Benchmark results are saved in `target/criterion/` and include:
 2. **Make your changes** and commit with clear messages
 
 3. **Ensure all checks pass locally**:
+
 ```bash
    cargo fmt --all
    cargo clippy --workspace --all-targets -- -D warnings
@@ -252,6 +267,7 @@ Benchmark results are saved in `target/criterion/` and include:
 ```
 
 4. **Push your branch**:
+
 ```bash
    git push origin feature/your-feature-name
 ```
@@ -280,7 +296,6 @@ Benchmark results are saved in `target/criterion/` and include:
 - All CI checks must pass (green checkmarks)
 - We use **squash merging**: Multiple commits become one clean commit on `main`
 - Delete your feature branch after merging
-
 
 ## Additional Resources
 

@@ -1,4 +1,5 @@
 ## System Architecture FFI
+
 ```mermaid
 graph TD
     A[Registry] --> B[Hashmap]

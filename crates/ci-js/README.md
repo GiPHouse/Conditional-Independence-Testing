@@ -23,6 +23,7 @@ wasm-pack build --target web
 ### Run tests
 
 Build the bindings for Node.js and run
+
 ```sh
 npx vitest
 ```

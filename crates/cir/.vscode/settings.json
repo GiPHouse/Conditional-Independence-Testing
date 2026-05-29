@@ -1,7 +1,5 @@
 {
-  "rust-analyzer.linkedProjects": [
-    "${workspaceFolder}/src/rust/Cargo.toml"
-  ],
+  "rust-analyzer.linkedProjects": ["${workspaceFolder}/src/rust/Cargo.toml"],
   "files.associations": {
     "Makevars": "makefile",
     "Makevars.in": "makefile",

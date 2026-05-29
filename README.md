@@ -7,15 +7,15 @@ A fast, multi-language library for statistical conditional independence testing.
 
 ## Available Tests
 
-| Test | Data type | Output |
-|---|---|---|
-| `chi_squared` | Discrete | `(p_value, statistic, dof)` |
-| `cressie_read` | Discrete | `(p_value, statistic, dof)` |
-| `freeman_tukey` | Discrete | `(p_value, statistic, dof)` |
-| `log_likelihood` | Discrete | `(p_value, statistic, dof)` |
-| `modified_likelihood` | Discrete | `(p_value, statistic, dof)` |
-| `pearson_correlation` | Continuous | `(p_value, coefficient)` |
-| `pearson_equivalence` | Continuous | `(p_value, coefficient)` |
+| Test                  | Data type  | Output                      |
+| --------------------- | ---------- | --------------------------- |
+| `chi_squared`         | Discrete   | `(p_value, statistic, dof)` |
+| `cressie_read`        | Discrete   | `(p_value, statistic, dof)` |
+| `freeman_tukey`       | Discrete   | `(p_value, statistic, dof)` |
+| `log_likelihood`      | Discrete   | `(p_value, statistic, dof)` |
+| `modified_likelihood` | Discrete   | `(p_value, statistic, dof)` |
+| `pearson_correlation` | Continuous | `(p_value, coefficient)`    |
+| `pearson_equivalence` | Continuous | `(p_value, coefficient)`    |
 
 All tests accept an optional conditioning matrix Z. Pass an empty matrix for unconditional tests. Every test can also run in **boolean mode**, returning only an independence verdict at a given significance level instead of the raw statistic.
 
