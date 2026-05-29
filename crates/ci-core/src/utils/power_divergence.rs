@@ -95,6 +95,7 @@ fn wrap_result(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::utils::EPS;
     use ndarray::{array, Array2};
 
     const LAMBDA: f64 = 1.0;
@@ -130,8 +131,8 @@ mod tests {
             power_divergence(&x, &y, &empty_z(), false, SIGNIFICANCE_LEVEL, LAMBDA).unwrap();
         let (p, stat, dof) = unwrap_statistic(&result);
         assert_eq!(dof, 0);
-        assert!((p - 1.0).abs() < 1e-12);
-        assert!(stat.abs() < 1e-12);
+        assert!((p - 1.0).abs() < EPS);
+        assert!(stat.abs() < EPS);
     }
 
     // When X has only one distinct value the table has one row → dof=0.
@@ -143,7 +144,7 @@ mod tests {
             power_divergence(&x, &y, &empty_z(), false, SIGNIFICANCE_LEVEL, LAMBDA).unwrap();
         let (p, _stat, dof) = unwrap_statistic(&result);
         assert_eq!(dof, 0);
-        assert!((p - 1.0).abs() < 1e-12);
+        assert!((p - 1.0).abs() < EPS);
     }
 
     // When Y has only one distinct value the table has one column → dof=0.
@@ -155,7 +156,7 @@ mod tests {
             power_divergence(&x, &y, &empty_z(), false, SIGNIFICANCE_LEVEL, LAMBDA).unwrap();
         let (p, _stat, dof) = unwrap_statistic(&result);
         assert_eq!(dof, 0);
-        assert!((p - 1.0).abs() < 1e-12);
+        assert!((p - 1.0).abs() < EPS);
     }
 
     // NaN in x_values becomes its own category via OrderedFloat.
@@ -180,7 +181,7 @@ mod tests {
         let result = power_divergence(&x, &y, &z, false, SIGNIFICANCE_LEVEL, LAMBDA).unwrap();
         let (p, _stat, dof) = unwrap_statistic(&result);
         assert_eq!(dof, 0);
-        assert!((p - 1.0).abs() < 1e-12);
+        assert!((p - 1.0).abs() < EPS);
     }
 
     // Each Z-group has only one X value. Global category maps force a 2x2
@@ -194,6 +195,6 @@ mod tests {
         let result = power_divergence(&x, &y, &z, false, SIGNIFICANCE_LEVEL, LAMBDA).unwrap();
         let (p, _stat, dof) = unwrap_statistic(&result);
         assert_eq!(dof, 0);
-        assert!((p - 1.0).abs() < 1e-12);
+        assert!((p - 1.0).abs() < EPS);
     }
 }

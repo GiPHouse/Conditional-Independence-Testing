@@ -44,6 +44,7 @@ impl CITest for CressieRead {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::utils::EPS;
     use ndarray::array;
 
     fn unwrap_correlated(result: &TestResult) -> (f64, f64, usize) {
@@ -78,7 +79,7 @@ mod tests {
                 .unwrap(),
         );
         assert!(
-            statistic.abs() < 1e-9,
+            statistic.abs() < EPS,
             "expected statistic ~0, got {statistic}"
         );
         assert!(p_value > 0.99, "expected p ~1, got {p_value}");
@@ -146,7 +147,7 @@ mod tests {
         let (p_value, statistic, dof) =
             unwrap_correlated(&test.run_test(x.clone(), y.clone(), z.clone()).unwrap());
         assert!(
-            statistic.abs() < 1e-9,
+            statistic.abs() < EPS,
             "expected statistic ~0, got {statistic}"
         );
         assert!(p_value > 0.99, "expected p ~1, got {p_value}");
