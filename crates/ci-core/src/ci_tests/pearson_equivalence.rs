@@ -1,5 +1,8 @@
 use crate::ci_tests::PearsonCorrelation;
 use crate::strategy::{CITest, CITestDataType, TestResult};
+use crate::utils::EPS;
+
+const FISHER_Z_DOF_OFFSET: usize = 3;
 use anyhow::bail;
 use ndarray::{Array1, Array2, Axis};
 use statrs::distribution::{ContinuousCDF, Normal};
@@ -43,9 +46,9 @@ impl CITest for PearsonEquivalence {
             Err(e) => return Err(e),
         };
         let rho = if statistic <= -1.0 {
-            -1.0 + 1e-12
+            -1.0 + EPS
         } else if statistic >= 1.0 {
-            1.0 - 1e-12
+            1.0 - EPS
         } else {
             statistic
         };
@@ -57,7 +60,7 @@ impl CITest for PearsonEquivalence {
             clippy::cast_precision_loss,
             reason = "array length and number of variables most likely won't exceed 2^53"
         )]
-        let argument = (n - s - 3) as f64;
+        let argument = (n - s - FISHER_Z_DOF_OFFSET) as f64;
         let std_error_factor = if argument >= 0.0 {
             argument.sqrt()
         } else {
@@ -113,6 +116,9 @@ mod tests {
     use rand_distr::{Distribution, Normal};
 
     const SIGNIFICANCE_LEVEL: f64 = 0.05;
+    const DELTA_THRESHOLD: f64 = 0.1;
+    // Specific tests imported from pgmpy fail with default epsilon
+    const PGMPY_EPS: f64 = 1e-8;
 
     const N: usize = 1000;
 
@@ -125,7 +131,7 @@ mod tests {
         let test = PearsonEquivalence {
             boolean: false,
             significance_level: 0.05,
-            delta_threshold: 0.1,
+            delta_threshold: DELTA_THRESHOLD,
         };
         let result = test.run_test(x_vals, y_vals, empty_z);
 
@@ -135,8 +141,8 @@ mod tests {
         };
 
         // values taken from pgmpy
-        assert!((p_value - 0.910_412_594_569_001_1).abs() < 1e-8);
-        assert!((statistic - 1.443_635_475_178_810_7).abs() < 1e-8);
+        assert!((p_value - 0.910_412_594_569_001_1).abs() < PGMPY_EPS);
+        assert!((statistic - 1.443_635_475_178_810_7).abs() < PGMPY_EPS);
     }
 
     fn seeded_rng() -> SmallRng {
@@ -156,7 +162,7 @@ mod tests {
         PearsonEquivalence {
             boolean: false,
             significance_level: 0.05,
-            delta_threshold: 0.1,
+            delta_threshold: DELTA_THRESHOLD,
         }
     }
 
@@ -164,7 +170,7 @@ mod tests {
         PearsonEquivalence {
             boolean: true,
             significance_level: 0.05,
-            delta_threshold: 0.1,
+            delta_threshold: DELTA_THRESHOLD,
         }
     }
 
@@ -186,7 +192,7 @@ mod tests {
                     "p_value {p_value} should be <= 0.05 for independent data"
                 );
                 assert!(
-                    coefficient.abs() < 0.1,
+                    coefficient.abs() < DELTA_THRESHOLD,
                     "coefficient {coefficient} should be near 0 for independent data"
                 );
             }
@@ -277,7 +283,7 @@ mod tests {
                     "p_value {p_value} should be <= 0.05 after conditioning"
                 );
                 assert!(
-                    coefficient.abs() < 0.1,
+                    coefficient.abs() < DELTA_THRESHOLD,
                     "coefficient {coefficient} should be near 0 after conditioning"
                 );
             }
@@ -386,7 +392,7 @@ mod tests {
                     "p_value {p_value} should be < 0.05 after conditioning on all confounders"
                 );
                 assert!(
-                    coefficient.abs() <= 0.1,
+                    coefficient.abs() <= DELTA_THRESHOLD,
                     "coefficient {coefficient} should be near 0 after conditioning on all confounders"
                 );
             }

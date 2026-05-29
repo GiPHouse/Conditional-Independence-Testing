@@ -1,4 +1,8 @@
+use crate::utils::EPS;
 use anyhow::{bail, Result};
+
+const MODIFIED_LIKELIHOOD_LAMBDA: f64 = -1.0;
+const FREEMAN_TUKEY_LAMBDA: f64 = -0.5;
 use ndarray::{Array1, Array2, Axis};
 use statrs::distribution::{ChiSquared, ContinuousCDF};
 
@@ -30,7 +34,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
         bail!("Total sum of observed frequencies must be > 0.");
     }
 
-    let statistic: f64 = if lambda.abs() < 1e-12 {
+    let statistic: f64 = if lambda.abs() < EPS {
         g_test(
             observed,
             &row_sums,
@@ -39,7 +43,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
             &ln_row_sums,
             &ln_col_sums,
         )?
-    } else if (lambda + 1.).abs() < 1e-12 {
+    } else if (lambda - MODIFIED_LIKELIHOOD_LAMBDA).abs() < EPS {
         modified_log_likelihood_ratio_test(
             observed,
             &row_sums,
@@ -48,7 +52,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
             &ln_row_sums,
             &ln_col_sums,
         )?
-    } else if (lambda + 0.5).abs() < 1e-12 {
+    } else if (lambda - FREEMAN_TUKEY_LAMBDA).abs() < EPS {
         freeman_tukey(lambda, observed, &row_sums, &col_times_total)?
     } else {
         cressie_read(lambda, observed, &row_sums, &col_times_total)?
@@ -101,7 +105,7 @@ pub fn g_test(
         }
     }
     let final_stat = 2.0 * temp_stat;
-    if final_stat < -1e-9 {
+    if final_stat < -EPS {
         bail!("Statistic evaluated to {final_stat}, which should be impossible.");
         //make sure it bails when the negative number is not small
     }
@@ -137,7 +141,7 @@ pub fn modified_log_likelihood_ratio_test(
         }
     }
     let final_stat = 2.0 * temp_stat;
-    if final_stat < -1e-9 {
+    if final_stat < -EPS {
         bail!("Statistic evaluated to {final_stat}, which should be impossible.");
     }
     Ok(final_stat.max(0.0))
@@ -166,7 +170,7 @@ pub fn freeman_tukey(
         }
     }
     let final_stat = (2.0 * temp_stat) / (lambda * (lambda + 1.0));
-    if final_stat < -1e-9 {
+    if final_stat < -EPS {
         bail!("Statistic evaluated to {final_stat}, which should be impossible.");
     }
     Ok(final_stat.max(0.0))
@@ -195,7 +199,7 @@ pub fn cressie_read(
         }
     }
     let final_stat = (2.0 * temp_stat) / (lambda * (lambda + 1.0));
-    if final_stat < -1e-9 {
+    if final_stat < -EPS {
         bail!("Statistic evaluated to {final_stat}, which should be impossible.");
     }
     Ok(final_stat.max(0.0))
@@ -303,7 +307,7 @@ mod tests {
 
         let (stat, p, dof) = result;
         assert!(stat >= 0.0);
-        assert!((stat - 6.319_453_539_579_289).abs() < 1e-9); // Validated against scipy
+        assert!((stat - 6.319_453_539_579_289).abs() < EPS); // Validated against scipy
         assert!((0.0..=1.0).contains(&p));
         assert_eq!(dof, 1);
     }
@@ -327,7 +331,7 @@ mod tests {
             (1.0 - 2.0f64.sqrt()).powi(2) +
             1.0 + // (0.0 - sqrt(1.0))^2
             (3.0f64.sqrt() - 2.0f64.sqrt()).powi(2));
-        assert!((stat - expected_stat).abs() < 1e-9);
+        assert!((stat - expected_stat).abs() < EPS);
     }
 
     /// 4e. Simple valid test for general Cressie-Read (lambda != 0, -1)
