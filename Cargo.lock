@@ -95,6 +95,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "criterion",
+ "libm",
  "nalgebra",
  "ndarray",
  "ordered-float",
