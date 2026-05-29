@@ -6,6 +6,7 @@ use statrs::distribution::{ContinuousCDF, StudentsT};
 use statrs::statistics::Statistics;
 
 const SVD_TOLERANCE: f64 = 1e-10;
+const MIN_SAMPLE_SIZE: usize = 3;
 
 /// Pearson correlation conditional independence test.
 ///
@@ -124,7 +125,7 @@ pub fn wrap_result(
 /// Returns an error if the input has fewer than 3 elements (degrees of freedom < 1).
 fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::Result<(f64, f64)> {
     ensure!(
-        x_values.len() == y_values.len() && x_values.len() >= 3,
+        x_values.len() == y_values.len() && x_values.len() >= MIN_SAMPLE_SIZE,
         "pearsonr requires equal-length inputs with n >= 3"
     );
     #[allow(

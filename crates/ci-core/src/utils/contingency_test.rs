@@ -1,5 +1,8 @@
 use anyhow::{bail, Result};
 use crate::utils::EPS;
+
+const MODIFIED_LIKELIHOOD_LAMBDA: f64 = -1.0;
+const FREEMAN_TUKEY_LAMBDA: f64 = -0.5;
 use ndarray::{Array1, Array2, Axis};
 use statrs::distribution::{ChiSquared, ContinuousCDF};
 
@@ -40,7 +43,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
             &ln_row_sums,
             &ln_col_sums,
         )?
-    } else if (lambda + 1.).abs() < EPS {
+    } else if (lambda - MODIFIED_LIKELIHOOD_LAMBDA).abs() < EPS {
         modified_log_likelihood_ratio_test(
             observed,
             &row_sums,
@@ -49,7 +52,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
             &ln_row_sums,
             &ln_col_sums,
         )?
-    } else if (lambda + 0.5).abs() < EPS {
+    } else if (lambda - FREEMAN_TUKEY_LAMBDA).abs() < EPS {
         freeman_tukey(lambda, observed, &row_sums, &col_times_total)?
     } else {
         cressie_read(lambda, observed, &row_sums, &col_times_total)?

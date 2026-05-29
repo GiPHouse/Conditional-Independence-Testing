@@ -1,6 +1,8 @@
 use crate::ci_tests::PearsonCorrelation;
 use crate::strategy::{CITest, CITestDataType, TestResult};
 use crate::utils::EPS;
+
+const FISHER_Z_DOF_OFFSET: usize = 3;
 use anyhow::bail;
 use ndarray::{Array1, Array2, Axis};
 use statrs::distribution::{ContinuousCDF, Normal};
@@ -58,7 +60,7 @@ impl CITest for PearsonEquivalence {
             clippy::cast_precision_loss,
             reason = "array length and number of variables most likely won't exceed 2^53"
         )]
-        let argument = (n - s - 3) as f64;
+        let argument = (n - s - FISHER_Z_DOF_OFFSET) as f64;
         let std_error_factor = if argument >= 0.0 {
             argument.sqrt()
         } else {
