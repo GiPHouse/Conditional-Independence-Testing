@@ -59,7 +59,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Regenerate stubs
-        run: cargo run --release --bin stubgen
+        run: cargo run --release --bin stub_gen
 
       - name: Check for diff
         run: git diff --exit-code -- crates/ci-python/
