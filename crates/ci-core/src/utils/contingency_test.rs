@@ -18,7 +18,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
     let total: f64 = row_sums.sum();
     let inverse_total = 1.0 / total;
 
-    let col_times_total = col_sums.clone() * inverse_total;
+    let col_times_total = &col_sums * inverse_total;
     let ln_total = total.ln();
     let ln_row_sums = row_sums.mapv(f64::ln);
     let ln_col_sums = col_sums.mapv(f64::ln);

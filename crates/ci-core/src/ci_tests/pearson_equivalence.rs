@@ -67,11 +67,13 @@ impl CITest for PearsonEquivalence {
             bail!("The length of the data should be at least 3 greater than the number of conditional variables");
         };
 
-        let z_score_lower = std_error_factor * (coefficient + z_delta);
-        let p_value_lower = 1.0 - Normal::new(0.0, 1.0).unwrap().cdf(z_score_lower);
+        let normal = Normal::new(0.0, 1.0).unwrap();
 
+        let z_score_lower = std_error_factor * (coefficient + z_delta);
         let z_score_upper = std_error_factor * (coefficient - z_delta);
-        let p_value_upper = Normal::new(0.0, 1.0).unwrap().cdf(z_score_upper);
+
+        let p_value_lower = 1.0 - normal.cdf(z_score_lower);
+        let p_value_upper = normal.cdf(z_score_upper);
 
         let p_value = if p_value_lower > p_value_upper {
             p_value_lower
