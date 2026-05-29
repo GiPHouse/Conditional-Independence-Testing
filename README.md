@@ -80,27 +80,51 @@ Build and install the Python package from the repository root:
 pip install maturin
 maturin develop -m crates/ci-python/Cargo.toml
 ```
-
-```python
-import numpy as np
-import ci_python
-
-registry = ci_python.PyRegistry()
-test = registry.get_test("chi_squared")
-
-x = np.array([0.0, 1.0, 0.0, 1.0, 0.0])
-y = np.array([1.0, 0.0, 1.0, 0.0, 1.0])
-z = np.empty((len(x), 0))  # unconditional
-
-p_value, statistic, dof = test(x, y, z)
-print(f"p={p_value:.4f}, χ²={statistic:.4f}, df={dof}")
+Created a Box structure for existing CI tests:
 ```
-
-For continuous data:
+let inner: Box<dyn CITestTrait> = match name {
+            "chi_squared" => Box::new(ChiSquared::new(boolean, significance_level)),
+            "log_likelihood" => Box::new(LogLikelihood::new(boolean, significance_level)),
+            "cressie_read" => Box::new(CressieRead::new(boolean, significance_level)),
+            "pearson_correlation" => Box::new(PearsonCorrelation::new(boolean, significance_level)),
+            "freeman_tukey" => Box::new(FreemanTukey::new(boolean, significance_level)),
+            "modified_likelihood" => Box::new(ModifiedLikelihood::new(boolean, significance_level)),
+            "pearson_equivalence" => Box::new(PearsonEquivalence::new(
+                boolean,
+                significance_level,
+                delta_threshold,
+            )),
+            _ => {
+                return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                    "Unknown test: '{name}'"
+                )))
+            }
+        };
+```
+Results can be tested as:
 
 ```python
-test = registry.get_test("pearson_correlation")
-p_value, coefficient = test(x, y, z)
+use ci_core::strategy::CITest as CITestTrait;
+use numpy::{PyReadonlyArray1, PyReadonlyArray2};
+use pyo3::prelude::*;
+
+pub fn __call__(
+        &self,
+        py: Python<'_>,
+        x: PyReadonlyArray1<'_, f64>,
+        y: PyReadonlyArray1<'_, f64>,
+        z: PyReadonlyArray2<'_, f64>,
+    ) -> PyResult<Py<PyAny>> {
+        let result = self
+            .inner
+            .run_test(
+                x.as_array().to_owned(),
+                y.as_array().to_owned(),
+                z.as_array().to_owned(),
+            )
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        test_result_to_pyobj(&result, py)
+    }
 ```
 
 ### R
