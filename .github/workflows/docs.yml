@@ -1,0 +1,122 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'crates/ci-core/**'
+      - 'crates/cir/**'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-rust-docs:
+    name: Build Rust Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install system dependencies
+        run: sudo apt-get install -y libopenblas-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build Rust docs
+        run: cargo doc --no-deps -p ci_core
+
+      - name: Upload Rust docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-docs
+          path: target/doc/
+
+  build-r-docs:
+    name: Build R Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          working-directory: crates/cir
+          extra-packages: any::devtools, any::rextendr, any::pkgdown
+
+      - name: Generate R wrappers
+        working-directory: crates/cir
+        run: rextendr::document()
+        shell: Rscript {0}
+
+      - name: Build pkgdown site
+        working-directory: crates/cir
+        run: pkgdown::build_site(new_process = FALSE)
+        shell: Rscript {0}
+
+      - name: Upload R docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: r-docs
+          path: crates/cir/docs/
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: [build-rust-docs, build-r-docs]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download Rust docs
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-docs
+          path: site/rust/
+
+      - name: Download R docs
+        uses: actions/download-artifact@v4
+        with:
+          name: r-docs
+          path: site/r/
+
+      - name: Create index page
+        run: |
+          cat > site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <title>Conditional Independence Testing — Documentation</title>
+          </head>
+          <body>
+            <h1>Conditional Independence Testing</h1>
+            <ul>
+              <li><a href="rust/ci_core/index.html">Rust API (ci-core)</a></li>
+              <li><a href="r/index.html">R Package (cir)</a></li>
+            </ul>
+          </body>
+          </html>
+          EOF
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
