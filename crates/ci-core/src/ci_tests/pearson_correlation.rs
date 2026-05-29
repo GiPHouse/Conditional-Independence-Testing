@@ -153,6 +153,15 @@ fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::R
         sum_coproduct += dx * dy;
     }
 
+    // If one of the datasets is constant, pearson coefficient is undefined.
+    if sum_sq_x == 0.0 || sum_sq_y == 0.0 {
+        let array_name = if sum_sq_x == 0.0 {
+            "x"
+        } else {
+            "y"};
+        panic!("Array {array_name} is constant, so the pearson coëfficient is undefined.");
+    }
+
     // Calculate correlation directly
     let mut coefficient = sum_coproduct / (sum_sq_x * sum_sq_y).sqrt();
 
