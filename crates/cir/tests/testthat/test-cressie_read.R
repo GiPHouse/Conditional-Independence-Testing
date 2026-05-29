@@ -7,7 +7,7 @@ test_that("unconditional independent data is not rejected", {
 
   result <- cressie_read_test(x, y, z, FALSE, 0.05)
   expect_equal(result$kind, "statistic")
-  expect_true(result$statistic < 1e-9)
+  expect_true(result$statistic < EPS)
   expect_true(result$p_value > 0.99)
   expect_equal(result$df, 1)
 })
@@ -51,7 +51,7 @@ test_that("conditional independent data is not rejected", {
 
   result <- cressie_read_test(x, y, z, FALSE, 0.05)
   expect_equal(result$kind, "statistic")
-  expect_true(result$statistic < 1e-9)
+  expect_true(result$statistic < EPS)
   expect_true(result$p_value > 0.99)
   expect_equal(result$df, 2)
 })

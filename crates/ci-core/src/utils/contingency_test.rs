@@ -1,5 +1,5 @@
-use anyhow::{bail, Result};
 use crate::utils::EPS;
+use anyhow::{bail, Result};
 
 const MODIFIED_LIKELIHOOD_LAMBDA: f64 = -1.0;
 const FREEMAN_TUKEY_LAMBDA: f64 = -0.5;

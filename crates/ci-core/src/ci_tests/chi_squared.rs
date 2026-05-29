@@ -102,10 +102,7 @@ mod tests {
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty).unwrap());
         assert!((stat - 8.0).abs() < EPS, "got {stat}");
-        assert!(
-            (p - 0.004_677_734_981_047_276).abs() < EPS,
-            "got {p}"
-        );
+        assert!((p - 0.004_677_734_981_047_276).abs() < EPS, "got {p}");
         assert_eq!(dof, 1);
     }
 
@@ -120,10 +117,7 @@ mod tests {
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
-        assert!(
-            (stat - 8.0).abs() < EPS,
-            "stat {stat} should be larger"
-        );
+        assert!((stat - 8.0).abs() < EPS, "stat {stat} should be larger");
         assert!(
             (p - 0.018_315_638_888_734_193).abs() < EPS,
             "rejected p value {p}"
