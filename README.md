@@ -83,24 +83,23 @@ maturin develop -m crates/ci-python/Cargo.toml
 
 ```python
 import numpy as np
-import ci_python
+from ci_python import ChiSquared, PearsonCorrelation
 
-registry = ci_python.PyRegistry()
-test = registry.get_test("chi_squared")
+test = ChiSquared(boolean=False, significance_level=0.05)
 
 x = np.array([0.0, 1.0, 0.0, 1.0, 0.0])
 y = np.array([1.0, 0.0, 1.0, 0.0, 1.0])
 z = np.empty((len(x), 0))  # unconditional
 
-p_value, statistic, dof = test(x, y, z)
+p_value, statistic, dof = test.run_test(x, y, z)
 print(f"p={p_value:.4f}, χ²={statistic:.4f}, df={dof}")
 ```
 
 For continuous data:
 
 ```python
-test = registry.get_test("pearson_correlation")
-p_value, coefficient = test(x, y, z)
+test = PearsonCorrelation(boolean=False, significance_level=0.05)
+p_value, coefficient = test.run_test(x, y, z)
 ```
 
 ### R
