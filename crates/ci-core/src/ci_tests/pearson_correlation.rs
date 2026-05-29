@@ -34,21 +34,6 @@ impl PearsonCorrelation {
 }
 
 impl CITest for PearsonCorrelation {
-    /// Test the independence condition X ⊥ Y | Z using Pearson correlation.
-    ///
-    /// # Parameters
-    ///
-    /// - `x_values` - The first variable X.
-    /// - `y_values` - The second variable Y.
-    /// - `z` - Conditioning variables Z for testing X ⊥ Y | Z.
-    ///   Pass an empty array for unconditional testing.
-    /// - `boolean` - If true, returns a boolean indicating independence
-    ///   (based on `SIGNIFICANCE_LEVEL`). If false, returns the (p-value, coefficient) tuple.
-    ///
-    /// # Returns
-    ///
-    /// - If `boolean=true`: `TestResult::Boolean(p_value >= SIGNIFICANCE_LEVEL)`
-    /// - If `boolean=false`: `TestResult::PValue(p_value, coefficient)`
     fn run_test(
         &self,
         x_values: Array1<f64>,
@@ -97,7 +82,6 @@ impl CITest for PearsonCorrelation {
     }
 }
 
-/// Construct the appropriate [`TestResult`] variant based on the `boolean` flag.
 #[must_use]
 pub fn wrap_result(
     boolean: bool,
@@ -113,10 +97,7 @@ pub fn wrap_result(
 
 /// Compute the Pearson correlation coefficient and its two-tailed p-value.
 ///
-/// The coefficient measures linear dependence between `x_values` and `y_values`,
-/// ranging from -1 (perfect negative) to +1 (perfect positive). The p-value tests
-/// H₀: ρ = 0 using the t-distribution with n − 2 degrees of freedom.
-///
+/// Tests H₀: ρ = 0 using the t-distribution with n − 2 degrees of freedom.
 /// Returns `(coefficient, p_value)`.
 ///
 /// # Errors
@@ -135,7 +116,6 @@ fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::R
     )]
     let number_of_elements = n as f64;
 
-    // Calculate means
     let x_mean = x_values.sum() / number_of_elements;
     let y_mean = y_values.sum() / number_of_elements;
 
@@ -143,7 +123,6 @@ fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::R
     let mut sum_sq_y = 0.0;
     let mut sum_coproduct = 0.0;
 
-    // Fused loop for variance and covariance data
     for (&x, &y) in x_values.iter().zip(y_values.iter()) {
         let dx = x - x_mean;
         let dy = y - y_mean;
@@ -153,11 +132,9 @@ fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::R
         sum_coproduct += dx * dy;
     }
 
-    // Calculate correlation directly
     let mut coefficient = sum_coproduct / (sum_sq_x * sum_sq_y).sqrt();
 
-    // Floating-point math can sometimes drift slightly outside [-1.0, 1.0], so then we clamp
-    // If it becomes 1.000000000002, taking the sqrt of (1.0 - coeff^2) will be negative, which returns a NaN
+    // Clamp to [-1, 1]: floating-point drift past ±1 makes sqrt(1 - r²) imaginary → NaN.
     if coefficient.is_nan() {
         coefficient = 0.0;
     } else {
@@ -213,9 +190,6 @@ mod tests {
         }
     }
 
-    // --- 1. Empty array + independent X, Y + boolean=false ---
-    // X and Y are independently generated, no conditioning variables.
-    // Expected: high p_value (> 0.05), low |coefficient| (< 0.1)
     #[test]
     fn uncond_independent_data_accepted() {
         let mut rng = seeded_rng();
@@ -238,8 +212,6 @@ mod tests {
         }
     }
 
-    // --- 2. Empty array + independent X, Y + boolean=true ---
-    // Expected: true (variables are independent)
     #[test]
     fn uncond_bool_accepts_independent() {
         let mut rng = seeded_rng();
@@ -255,9 +227,6 @@ mod tests {
         }
     }
 
-    // --- 3. Empty array + correlated X, Y + boolean=false ---
-    // Y = 3*X + small noise, so they are strongly correlated.
-    // Expected: low p_value (< 0.05), high |coefficient| (> 0.9)
     #[test]
     fn uncond_dependent_data_rejected() {
         let mut rng = seeded_rng();
@@ -281,8 +250,6 @@ mod tests {
         }
     }
 
-    // --- 4. Empty array + correlated X, Y + boolean=true ---
-    // Expected: false (variables are NOT independent)
     #[test]
     fn uncond_bool_rejects_dependent() {
         let mut rng = seeded_rng();
@@ -299,10 +266,7 @@ mod tests {
         }
     }
 
-    // --- 5. Non-empty array + conditionally independent + boolean=false ---
-    // Z is a confounder: X = 3*Z + noise, Y = 2*Z + noise.
-    // After conditioning on Z, residuals should be independent.
-    // Expected: high p_value (> 0.05), low |coefficient| (< 0.1)
+    // Z is a confounder: X = 3*Z + noise, Y = 2*Z + noise. After conditioning, residuals are independent.
     #[test]
     fn cond_independent_data_accepted() {
         let mut rng = seeded_rng();
@@ -329,8 +293,6 @@ mod tests {
         }
     }
 
-    // --- 6. Non-empty array + conditionally independent + boolean=true ---
-    // Expected: true (conditionally independent given Z)
     #[test]
     fn cond_bool_accepts_independent() {
         let mut rng = seeded_rng();
@@ -353,10 +315,7 @@ mod tests {
         }
     }
 
-    // --- 7. Non-empty array + conditionally dependent (v-structure) + boolean=false ---
-    // X and Y are independent, but Z = 2*X + 2*Y + noise (collider).
-    // Conditioning on Z makes X and Y dependent.
-    // Expected: low p_value (< 0.05), high |coefficient|
+    // Z = 2*X + 2*Y + noise is a collider; conditioning on it induces dependence between X and Y.
     #[test]
     fn cond_dependent_data_rejected() {
         let mut rng = seeded_rng();
@@ -382,8 +341,6 @@ mod tests {
         }
     }
 
-    // --- 8. Non-empty array + conditionally dependent (v-structure) + boolean=true ---
-    // Expected: false (NOT independent after conditioning on collider)
     #[test]
     fn cond_bool_rejects_dependent() {
         let mut rng = seeded_rng();
@@ -404,10 +361,6 @@ mod tests {
             _ => panic!("Expected TestResult::Boolean"),
         }
     }
-    // --- 9. Multiple conditioning variables + conditionally independent + boolean=false ---
-    // Z1, Z2, Z3 are confounders: X and Y both depend on them.
-    // After conditioning on all three, residuals should be independent.
-    // Expected: high p_value, low |coefficient|
     #[test]
     fn cond_multiple_vars_independent_not_rejected() {
         let mut rng = seeded_rng();

@@ -4,6 +4,10 @@ use ndarray::{Array1, Array2};
 
 const MODIFIED_LIKELIHOOD_LAMBDA: f64 = -1.0;
 
+/// Modified log-likelihood ratio conditional independence test (λ = −1).
+///
+/// Operates on discrete data only. Delegates to the power-divergence family
+/// with λ = −1, the modified log-likelihood ratio statistic.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ModifiedLikelihood {
     pub boolean: bool,
@@ -43,7 +47,6 @@ impl CITest for ModifiedLikelihood {
 }
 
 #[cfg(test)]
-#[allow(clippy::many_single_char_names)]
 mod tests {
     use super::*;
     use crate::utils::EPS;
@@ -154,7 +157,7 @@ mod tests {
     }
 
     #[test]
-    fn cond_bool_rejects_independent() {
+    fn cond_bool_accepts_independent() {
         let t = ModifiedLikelihood {
             boolean: true,
             significance_level: 0.05,

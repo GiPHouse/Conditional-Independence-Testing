@@ -4,6 +4,10 @@ use ndarray::{Array1, Array2};
 
 const FREEMAN_TUKEY_LAMBDA: f64 = -1.0 / 2.0;
 
+/// Freeman–Tukey conditional independence test (λ = −1/2).
+///
+/// Operates on discrete data only. Delegates to the power-divergence family
+/// with λ = −1/2, the Freeman–Tukey statistic.
 #[derive(Debug, Clone, PartialEq)]
 pub struct FreemanTukey {
     pub boolean: bool,
@@ -43,7 +47,6 @@ impl CITest for FreemanTukey {
 }
 
 #[cfg(test)]
-#[allow(clippy::many_single_char_names)]
 mod tests {
     use super::*;
     use crate::utils::EPS;

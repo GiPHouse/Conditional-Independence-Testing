@@ -4,6 +4,10 @@ use ndarray::{Array1, Array2};
 
 const CRESSIE_READ_LAMBDA: f64 = 2.0 / 3.0;
 
+/// Cressie–Read conditional independence test (λ = 2/3).
+///
+/// Operates on discrete data only. Delegates to the power-divergence family
+/// with λ = 2/3, the Cressie–Read statistic.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CressieRead {
     pub boolean: bool,

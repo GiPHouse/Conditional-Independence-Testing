@@ -4,9 +4,9 @@ on:
   push:
     branches: [main, github_pages_docs]
     paths:
-      - 'crates/ci-core/**'
-      - 'crates/cir/**'
-      - '.github/workflows/docs.yml'
+      - "crates/ci-core/**"
+      - "crates/cir/**"
+      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 permissions:
@@ -156,12 +156,12 @@ jobs:
               <p class="subtitle">Fast CI tests for causal discovery — with Rust, R, and Python bindings.</p>
               <div class="cards">
                 <a class="card" href="rust/ci_core/index.html">
-                  <span class="card-icon">⚙️</span>
+                  <span class="card-icon"></span>
                   <span class="card-title">Rust API</span>
                   <span class="card-desc">ci-core library docs</span>
                 </a>
                 <a class="card" href="r/index.html">
-                  <span class="card-icon">📦</span>
+                  <span class="card-icon"></span>
                   <span class="card-title">R Package</span>
                   <span class="card-desc">cir package reference</span>
                 </a>
