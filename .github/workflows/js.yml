@@ -73,6 +73,12 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
+      - name: Install wasm-pack
+        run: cargo install wasm-pack
+      
+      - name: Build wasm
+        run: wasm-pack build --target nodejs --out-dir ../ci-js/pkg
+
       - name: Install dependencies
         working-directory: crates/ci-js
         run: npm ci
