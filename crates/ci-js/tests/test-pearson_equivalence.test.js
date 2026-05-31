@@ -1,5 +1,11 @@
-import { JSCITest } from "../pkg/ci_js.js";
-import { describe, test, expect } from "vitest";
+import init, { pearson_equivalence_test } from "../pkg/ci_js.js";
+import { beforeAll, describe, test, expect } from "vitest";
+
+const wasm = await import("../pkg/ci_js.js");
+
+beforeAll(async () => {
+  await wasm.default.init();
+});
 
 const toFloat64 = (...vals) => new Float64Array(vals);
 
@@ -9,7 +15,7 @@ describe("pearson_equivalence_tests", () => {
     const y = toFloat64(1, 2, 1, 2, 1, 2, 1, 2);
     const z = new Float64Array(0);
 
-    const [p_value, coefficient] = JSCITest.pearson_equivalence_test(
+    const [p_value, coefficient] = pearson_equivalence_test(
       z,
       0,
       0,
@@ -29,7 +35,7 @@ describe("pearson_equivalence_tests", () => {
     const y = toFloat64(3, 3, 3, 3, 6, 6, 6, 6);
     const z = new Float64Array(0);
 
-    const [p_value, coefficient] = JSCITest.pearson_equivalence_test(
+    const [p_value, coefficient] = pearson_equivalence_test(
       z,
       0,
       0,
@@ -49,16 +55,7 @@ describe("pearson_equivalence_tests", () => {
     const y = toFloat64(1, 2, 1, 2, 1, 2, 1, 2);
     const z = new Float64Array(0);
 
-    const result = JSCITest.pearson_equivalence_test(
-      z,
-      0,
-      0,
-      x,
-      y,
-      true,
-      0.05,
-      0.8,
-    );
+    const result = pearson_equivalence_test(z, 0, 0, x, y, true, 0.05, 0.8);
 
     expect(result).toBe(true);
   });
@@ -68,16 +65,7 @@ describe("pearson_equivalence_tests", () => {
     const y = toFloat64(1, 1, 1, 1, 2, 2, 2, 2);
     const z = new Float64Array(0);
 
-    const result = JSCITest.pearson_equivalence_test(
-      z,
-      0,
-      0,
-      x,
-      y,
-      true,
-      0.05,
-      0.1,
-    );
+    const result = pearson_equivalence_test(z, 0, 0, x, y, true, 0.05, 0.1);
 
     expect(result).toBe(false);
   });

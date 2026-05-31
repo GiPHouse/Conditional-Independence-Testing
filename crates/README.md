@@ -24,11 +24,13 @@ This directory contains all Rust crates in the CI Testing workspace.
 ## Working with the Workspace
 
 All crates share the same `Cargo.lock` and build directory. To build everything:
+
 ```bash
 cargo build --workspace
 ```
 
 To test a specific crate:
+
 ```bash
 cargo test -p ci-core
 ```

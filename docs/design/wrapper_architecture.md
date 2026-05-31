@@ -1,4 +1,5 @@
 ## System Architecture Wrapper
+
 ```mermaid
 graph TD
     A[Python package] -->|PyO3| D[Python bindings]

@@ -4,18 +4,18 @@ on:
   push:
     branches: [master, development]
     paths:
-      - 'crates/ci-python/**'
-      - 'crates/ci-core/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - '.github/workflows/python.yml'
+      - "crates/ci-python/**"
+      - "crates/ci-core/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/python.yml"
   pull_request:
     paths:
-      - 'crates/ci-python/**'
-      - 'crates/ci-core/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - '.github/workflows/python.yml'
+      - "crates/ci-python/**"
+      - "crates/ci-core/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/python.yml"
 
 concurrency:
   group: python-${{ github.ref }}
