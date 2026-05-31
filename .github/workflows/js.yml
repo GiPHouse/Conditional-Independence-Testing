@@ -74,10 +74,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Install wasm-pack
-        run: cargo install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Build wasm
-        run: wasm-pack build --target nodejs --out-dir ../ci-js/pkg
+      - name: Build WASM package
+        working-directory: crates/ci-js
+        run: wasm-pack build --target nodejs --out-dir pkg
 
       - name: Install dependencies
         working-directory: crates/ci-js
