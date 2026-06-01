@@ -4,18 +4,18 @@ on:
   push:
     branches: [master, development]
     paths:
-      - 'crates/ci-js/**'
-      - 'crates/ci-core/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - '.github/workflows/js.yml'
+      - "crates/ci-js/**"
+      - "crates/ci-core/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/js.yml"
   pull_request:
     paths:
-      - 'crates/ci-js/**'
-      - 'crates/ci-core/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - '.github/workflows/js.yml'
+      - "crates/ci-js/**"
+      - "crates/ci-core/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/js.yml"
 
 concurrency:
   group: js-${{ github.ref }}
@@ -72,6 +72,13 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build WASM package
+        working-directory: crates/ci-js
+        run: wasm-pack build --target nodejs --out-dir pkg
 
       - name: Install dependencies
         working-directory: crates/ci-js
