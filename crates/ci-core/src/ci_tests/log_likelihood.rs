@@ -90,15 +90,15 @@ mod tests {
 
     // Can't test perfectly dependent (zero cells -> ln(0)), use skewed table instead.
     // scipy: power_divergence([[5,1],[1,5]], lambda_=0) -> stat=5.822063320647374
-    #[test]
+     #[test]
     fn uncond_dependent_data_rejected() {
         let t = LogLikelihood {
             boolean: false,
             significance_level: 0.05,
         };
-        let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
-        let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
-        let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
+        let x = array![1., 1., 1., 1., 1., 1., 2., 2., 2., 2., 2., 2.];
+        let y = array![1., 1., 1., 1., 1., 2., 1., 2., 2., 2., 2., 2.];
+        let empty = Array2::<f64>::zeros((0, 0));
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, empty).unwrap());
         assert!((stat - 5.822_063_320_647_374).abs() < EPS, "got {stat}");
