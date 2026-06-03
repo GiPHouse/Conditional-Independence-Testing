@@ -130,6 +130,37 @@ result <- pearson_correlation_test(x, y, z, boolean = TRUE, significance_level =
 cat("independent:", result$independent, "\n")
 ```
 
+### JavaScript
+
+Install the JavaScript package from the repository root:
+
+```js
+import init, { log_likelihood_test } from "../pkg/ci_js.js";
+const wasm = await import("../pkg/ci_js.js");
+
+beforeAll(async () => {
+  await wasm.default.init();
+});
+
+const x = toFloat64(1, 1, 2, 2, 1, 1, 2, 2);
+const y = toFloat64(1, 2, 1, 2, 1, 2, 1, 2);
+const z = new Float64Array(0);
+const z_rows = 0;
+const z_cols = 0;
+const boolean = false;
+const significance_level = 0.05;
+
+const [p_value, statistic, dof] = log_likelihood_test(
+  z, 
+  z_rows,
+  z_cols,
+  x,
+  y,
+  boolean,
+  significance_level,
+);
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, coding standards, and how to add a new CI test.
