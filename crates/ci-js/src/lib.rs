@@ -15,7 +15,6 @@ pub fn init() {
 
 macro_rules! wasm_ci_test {
     ($fn_name:ident, $inner:ty) => {
-        #[wasm_bindgen]
         /// Runs the CI test and returns the result as a JS value.
         ///
         /// Pass an empty `Float64Array` for `z_flat` to run unconditionally. When `boolean` is `true`,
@@ -32,6 +31,7 @@ macro_rules! wasm_ci_test {
         /// - the input arrays have invalid dimensions,
         /// - the statistical computation fails,
         /// - serialization to JavaScript fails.
+        #[wasm_bindgen]
         pub fn $fn_name(
             z_flat: &Float64Array,
             z_rows: usize,
