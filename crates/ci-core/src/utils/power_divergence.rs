@@ -49,6 +49,7 @@ pub fn power_divergence(
         let Ok((stat, _p, dof)) = contingency_test(&table, lambda) else {
             continue;
         };
+
         if dof == 0 {
             continue;
         }
