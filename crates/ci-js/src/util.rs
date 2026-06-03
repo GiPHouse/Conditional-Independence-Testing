@@ -3,6 +3,27 @@ use js_sys::{Array, Float64Array};
 use ndarray::{Array1, Array2};
 use wasm_bindgen::prelude::*;
 
+/// Converts JavaScript `Float64Array` inputs into `ndarray` types for use in CI tests.
+///
+/// # Parameters
+///
+/// - `z_flat` - Row-major flattened conditioning matrix. Pass an empty `Float64Array`
+///   for unconditional testing.
+/// - `x` - First variable as a `Float64Array`.
+/// - `y` - Second variable as a `Float64Array`.
+/// - `z_rows` - Number of rows in the conditioning matrix. Ignored if `z_flat` is empty.
+/// - `z_cols` - Number of columns in the conditioning matrix. Ignored if `z_flat` is empty.
+///
+/// # Returns
+///
+/// A tuple `(x, y, z)` where:
+/// - `x` and `y` are `Array1<f64>` vectors
+/// - `z` is an `Array2<f64>` matrix with shape `(n, 0)` for unconditional tests,
+///   or `(z_rows, z_cols)` for conditional tests
+///
+/// # Errors
+///
+/// Returns a `JsValue` error if `z_flat.len() != z_rows * z_cols`.
 #[allow(clippy::type_complexity)]
 pub fn convert_to_ndarray(
     z_flat: &Float64Array,
@@ -27,6 +48,15 @@ pub fn convert_to_ndarray(
     Ok((x, y, z))
 }
 
+/// Converts a TestResult into a JavaScript value.
+///
+/// # Returns
+///
+/// The return type depends on the TestResult variant:
+///
+/// - TestResult::Boolean — returns a JS `boolean`
+/// - TestResult::PValue — returns a JS `Array` of `[p_value, coefficient]`
+/// - TestResult::Statistic — returns a JS `Array` of `[p_value, statistic, dof]`
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::unnecessary_wraps)]
 pub fn convert_to_jsvalue(result: &TestResult) -> Result<JsValue, JsValue> {
