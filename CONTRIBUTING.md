@@ -71,12 +71,8 @@ Conditional-Independence-Testing/
 │   ├── ci-core/        # Core CI test implementations
 │   ├── ci-python/      # Python bindings (PyO3)
 │   ├── cir/            # R bindings (extendr)
-│   └── ci-js/          # JavaScript bindings (wasm-pack, placeholder)
-├── docs/               # Documentation
-│   ├── guides/        # User and contributor guides
-│   └── design/        # Architecture Decision Records (ADRs)
+│   └── ci-js/          # JavaScript/WASM bindings (wasm-pack)
 ├── examples/          # Usage examples per language
-├── tests/             # Cross-language integration tests
 ├── scripts/           # Build and development utilities
 └── .github/           # CI/CD workflows
 ```
@@ -219,7 +215,6 @@ Test with known inputs and expected outputs, and cover edge cases (empty data, N
 ### 6. Update Documentation
 
 - Add doc comments to your test struct and methods
-- Update `docs/guides/available-tests.md` with a description of the test
 - Add usage examples in `examples/`
 
 ## Testing
@@ -286,24 +281,13 @@ lintr::lint_package()
 - **Unit tests**: Inline in each source file, inside `#[cfg(test)] mod tests { }`
 - **Python integration tests**: `crates/ci-python/tests/`
 - **R tests**: `crates/cir/tests/testthat/`
-- **Cross-language integration tests**: `tests/` at repository root *(planned)*
+
 
 ### Writing Tests
 
 - Use descriptive test names: `test_chi_squared_with_independent_variables`
 - Test both success and error cases
 - Add regression tests for bugs you fix
-
-## Benchmarking
-
-We intend to use [Criterion](https://github.com/criterion-rs/criterion.rs) for benchmarking.
-The benchmark infrastructure is in place under `crates/ci-core/benches/` but benchmarks
-have not been written yet — contributions welcome!
-
-Once benchmarks exist, they can be run with:
-```bash
-cargo bench --workspace
-```
 
 ## Pull Request Process
 
@@ -357,7 +341,6 @@ cargo bench --workspace
 ## Additional Resources
 
 - [Rust Book](https://doc.rust-lang.org/book/) - Learn Rust
-- [Criterion Documentation](https://criterion-rs.github.io/book/index.html) - Benchmarking
 - [PyO3 Guide](https://pyo3.rs/) - Python bindings
 - [extendr Guide](https://extendr.github.io/) - R bindings
 - [wasm-pack](https://rustwasm.github.io/wasm-pack/) - JavaScript/WASM bindings
