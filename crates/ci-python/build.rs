@@ -1,3 +1,128 @@
+//! Build script that automatically generates PyO3 bindings for `ci-core`'s CI tests.
+//!
+//! At compile time this script recursively scans the `../ci-core/src` directory and
+//! parses every `.rs` file to gather every struct that implements the `CITest`
+//! trait and their definitions.
+//!
+//! Currently, the generated code imports all tests from `::ci_core::ci_tests`;
+//! therefore, the compilation of `OUT_DIR/ci_tests.rs` fails with an import error
+//! if there are CI tests located somewhere else.
+//!
+//! Only structs with named fields are supported; unnamed (tuple) structs cause
+//! a panic. A `CITest` impl whose struct definition cannot be found in
+//! `ci-core/src` is also treated as a hard error.
+//!
+//! Two files are written into `OUT_DIR` for later `include!`ing:
+//!   - `ci_tests.rs` – the generated `Py<struct name>` classes and their methods
+//!   - `ci_tests_init.rs` – an `init` function that registers every generated
+//!     class with a `PyModule`.
+//!
+//! `lib.rs` `include!`s both `ci_tests.rs` and calls the `init` function so that
+//! both PyO3 *AND* `pyo3_stub_gen` properly register the tests.
+//!
+//!
+//! ////////// Program Flow //////////
+//!
+//! `main` calls `parse_dir` on `../ci_core/src` with a new `CITestCollector`.
+//!
+//! `parse_dir` recursively iterates over all files in `../ci_core/src`. If the
+//! file is a `.rs` file, its abstract syntax tree (AST) is visited by the
+//! `CITestCollector`. `cargo::rerun-if-changed` is emitted for every parsed
+//! source file so the bindings are regenerated whenever the underlying Rust
+//! sources change.
+//!
+//! `CITestCollector` uses the visitor pattern to traverse the AST and collect
+//! (a) the names of all structs implementing `CITest` (`citest_structs`) and
+//! (b) all struct definitions (`struct_defs`).
+//!
+//! `main` then iterates over all collected `CITest` structs and calls
+//! `generate_pyo3_wrapper` with each struct's definition to generate the bindings.
+//!
+//! `generate_pyo3_wrapper` emits a `Py<struct name>` wrapper class (e.g.
+//! `PyChiSquared`) via `quote!`. The wrapper holds the original type in
+//! an `inner` field and exposes the following:
+//!   - `#[new]` constructor mirroring the struct's named fields
+//!   - `#[getter]`/`#[setter]` pair for each field
+//!   - `run_test` method that converts NumPy arrays to owned `ndarray`s,
+//!     passes them to `inner.run_test`, and maps results/errors back to Python.
+//!
+//! `main` then collects and saves all results from `generate_pyo3_wrapper` to
+//! `ci_tests.rs`. It then generates the `init` function and saves it to
+//! `ci_tests_init.rs`.
+//!
+//!
+//! ////////// Example: Generated Bindings for `ChiSquared` //////////
+//!
+//! #[gen_stub_pyclass]
+//! #[pyclass(name = "ChiSquared", module = "ci_python._ci_python")]
+//! pub struct PyChiSquared {
+//!     inner: ::ci_core::ci_tests::ChiSquared,
+//! }
+//!
+//! #[gen_stub_pymethods]
+//! #[pymethods]
+//! impl PyChiSquared {
+//!     #[new]
+//!     pub fn new(boolean: bool, significance_level: f64) -> Self {
+//!         Self {
+//!             inner: ::ci_core::ci_tests::ChiSquared {
+//!                 boolean,
+//!                 significance_level,
+//!             },
+//!         }
+//!     }
+//!     #[allow(clippy::needless_pass_by_value)]
+//!     fn run_test(
+//!         &self,
+//!         py: Python<'_>,
+//!         x_values: PyReadonlyArray1<'_, f64>,
+//!         y_values: PyReadonlyArray1<'_, f64>,
+//!         z: PyReadonlyArray2<'_, f64>,
+//!     ) -> PyResult<Py<PyAny>> {
+//!         test_result_to_pyobj(
+//!             &self
+//!                 .inner
+//!                 .run_test(
+//!                     x_values.as_array().to_owned(),
+//!                     y_values.as_array().to_owned(),
+//!                     z.as_array().to_owned(),
+//!                 )
+//!                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?,
+//!             py,
+//!         )
+//!     }
+//!     #[getter]
+//!     pub fn boolean(&self) -> bool {
+//!         #[allow(clippy::clone_on_copy)]
+//!         self.inner.boolean.clone()
+//!     }
+//!     #[setter]
+//!     pub fn set_boolean(&mut self, boolean: bool) {
+//!         self.inner.boolean = boolean;
+//!     }
+//!     #[getter]
+//!     pub fn significance_level(&self) -> f64 {
+//!         #[allow(clippy::clone_on_copy)]
+//!         self.inner.significance_level.clone()
+//!     }
+//!     #[setter]
+//!     pub fn set_significance_level(&mut self, significance_level: f64) {
+//!         self.inner.significance_level = significance_level;
+//!     }
+//! }
+//!
+//!
+//! ////////// Example: Generated `ci_tests_init.rs` File //////////
+//!
+//! use pyo3::prelude::*;
+//! pub fn init(m: &Bound<'_, PyModule>) -> PyResult<()> {
+//!     m.add_class::<super::_ci_python::PyChiSquared>()?;
+//!     m.add_class::<super::_ci_python::PyCressieRead>()?;
+//!     ...
+//!
+//!     Ok(())
+//! }
+
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use std::{
