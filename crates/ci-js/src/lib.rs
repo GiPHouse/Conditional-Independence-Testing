@@ -18,6 +18,8 @@ macro_rules! wasm_ci_test {
         #[wasm_bindgen]
         /// Runs the CI test and returns the result as a JS value.
         ///
+        /// Pass a 0-column matrix for `z` to run unconditionally. When `boolean` is `true`,
+        /// returns an independence verdict instead of the raw p-value and correlation.
         /// # Errors
         ///
         /// Returns a `JsValue` error if:
