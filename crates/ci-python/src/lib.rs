@@ -1,8 +1,10 @@
 //! Python bindings for the conditional independence testing library.
 //!
 //! Exposes CI test functions to Python via the `pyo3` framework.
-//! Each CI test accepts paired observation vectors and a conditioning matrix, returning
-//! a Python object whose shape depends on whether the test runs in boolean or numeric mode.
+//! Each CI test's `run_test` method accepts paired observation vectors and a conditioning
+//! matrix, returning a Python object whose shape depends on whether the test runs in
+//! boolean or numeric mode.
+
 mod util;
 use pyo3_stub_gen::{define_stub_info_gatherer, reexport_module_members};
 mod ci_tests_init;
