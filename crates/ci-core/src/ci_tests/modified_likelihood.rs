@@ -162,10 +162,7 @@ mod tests {
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
-        let r = t.run_test(x, y, z);
-        assert!(
-            r.is_err(),
-            "Modified Likelihood should error out independent data"
-        );
+        let r = t.run_test(x, y, z).unwrap();
+        assert!(matches!(r, TestResult::Boolean(false)));
     }
 }
