@@ -47,8 +47,12 @@ impl<'ast> Visit<'ast> for CITestCollector {
 
 /// Run the `CITestCollector` recursively on the specified directory.
 fn parse_dir(dir: &Path, collector: &mut CITestCollector) {
-    for entry in fs::read_dir(dir).unwrap_or_else(|e| panic!("Failed to read {}: {}", dir.display(), e)) {
-        let path = entry.unwrap_or_else(|e| panic!("Failed to read {}: {}", dir.display(), e)).path();
+    for entry in
+        fs::read_dir(dir).unwrap_or_else(|e| panic!("Failed to read {}: {}", dir.display(), e))
+    {
+        let path = entry
+            .unwrap_or_else(|e| panic!("Failed to read {}: {}", dir.display(), e))
+            .path();
         if path.is_dir() {
             parse_dir(&path, collector);
         } else if path.extension().is_some_and(|e| e == "rs") {
@@ -151,10 +155,15 @@ fn generate_pyo3_wrapper(s: &ItemStruct) -> TokenStream {
 }
 
 fn main() {
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap_or_else(|e| panic!("Couldn't find output directory: {}", e)));
+    let out_dir = PathBuf::from(
+        env::var("OUT_DIR").unwrap_or_else(|e| panic!("Couldn't find output directory: {e}")),
+    );
 
     // Generate ci_tests.rs.
-    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|e| panic!("Couldn't find directory of crate: {}", e)));
+    let manifest_dir = PathBuf::from(
+        env::var("CARGO_MANIFEST_DIR")
+            .unwrap_or_else(|e| panic!("Couldn't find directory of crate: {e}")),
+    );
     let ci_core_src = manifest_dir.join("../ci-core/src");
     assert!(
         ci_core_src.exists(),
@@ -178,7 +187,8 @@ fn main() {
         }
     }
 
-    fs::write(out_dir.join("ci_tests.rs"), tokens.to_string()).unwrap_or_else(|e| panic!("Couldn't save `ci_tests.rs`: {}", e));
+    fs::write(out_dir.join("ci_tests.rs"), tokens.to_string())
+        .unwrap_or_else(|e| panic!("Couldn't save `ci_tests.rs`: {e}"));
 
     // Generate ci_tests_init.rs.
     let mut tokens_init = TokenStream::new();
@@ -198,5 +208,6 @@ fn main() {
             Ok(())
         }
     });
-    fs::write(out_dir.join("ci_tests_init.rs"), tokens_init.to_string()).unwrap_or_else(|e| panic!("Couldn't save `ci_tests_init.rs`: {}", e));
+    fs::write(out_dir.join("ci_tests_init.rs"), tokens_init.to_string())
+        .unwrap_or_else(|e| panic!("Couldn't save `ci_tests_init.rs`: {e}"));
 }
