@@ -48,15 +48,15 @@ pub fn convert_to_ndarray(
     Ok((x, y, z))
 }
 
-/// Converts a TestResult into a JavaScript value.
+/// Converts a `TestResult` into a JavaScript value.
 ///
 /// # Returns
 ///
-/// The return type depends on the TestResult variant:
+/// The return type depends on the `TestResult` variant:
 ///
-/// - TestResult::Boolean — returns a JS `boolean`
-/// - TestResult::PValue — returns a JS `Array` of `[p_value, coefficient]`
-/// - TestResult::Statistic — returns a JS `Array` of `[p_value, statistic, dof]`
+/// - `TestResult::Boolean` — returns a JS `boolean`
+/// - `TestResult::PValue` — returns a JS `Array` of `[p_value, coefficient]`
+/// - `TestResult::Statistic` — returns a JS `Array` of `[p_value, statistic, dof]`
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::unnecessary_wraps)]
 pub fn convert_to_jsvalue(result: &TestResult) -> Result<JsValue, JsValue> {

@@ -19,7 +19,7 @@ macro_rules! wasm_ci_test {
         ///
         /// Pass an empty `Float64Array` for `z_flat` to run unconditionally. When `boolean` is `true`,
         /// returns an independence verdict instead of the raw p-value and correlation.
-        /// 
+        ///
         /// # Returns
         ///
         /// - `boolean` if `boolean=true`
