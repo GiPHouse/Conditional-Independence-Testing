@@ -64,7 +64,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
         (nrows - 1) * (ncols - 1)
     };
 
-    let p_value = if degrees_of_freedom == 0{
+    let p_value = if degrees_of_freedom == 0 {
         1.0
     } else {
         #[allow(clippy::cast_precision_loss)]
