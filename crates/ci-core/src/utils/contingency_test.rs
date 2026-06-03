@@ -134,7 +134,9 @@ pub fn modified_log_likelihood_ratio_test(
                 continue;
             }
             if temp_observed == 0. {
-                bail!("Observed value is zero at position [{i}, {j}]");
+                // log of temp_observed will be -infinity, causing temp_stat to become infinity.
+                // However the math still works, so this is not an error.
+                return Ok(f64::INFINITY);
             }
             temp_stat +=
                 temp_expected * (ln_row_sums[i] + ln_col_sums[j] - temp_observed.ln() - ln_total);
@@ -266,13 +268,9 @@ mod tests {
     #[test]
     fn test_modified_log_likelihood_zero_observed() {
         let observed = array![[5.0, 1.0], [2.0, 0.0]]; // contains zero observed
-        let result = contingency_test(&observed, -1.0);
+        let (statistic, p_value, _dof) = contingency_test(&observed, -1.0).unwrap();
 
-        assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Observed value is zero"));
+        assert!(statistic.is_infinite() && p_value < EPS);
     }
 
     /// 4a. Simple valid test for G-test (lambda = 0)
