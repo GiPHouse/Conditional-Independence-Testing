@@ -16,7 +16,7 @@ pub fn convert_to_ndarray(
     let y_vec: Vec<f64> = y.to_vec();
 
     let z: Array2<f64> = if z_vec.is_empty() {
-        Array2::zeros((x_vec.len(), 0)) 
+        Array2::zeros((x_vec.len(), 0))
     } else {
         Array2::from_shape_vec((z_rows, z_cols), z_vec)
             .map_err(|e| JsValue::from_str(&e.to_string()))?
