@@ -1,4 +1,4 @@
-//! Build script that automatically generates PyO3 bindings for `ci-core`'s CI tests.
+//! Build script that automatically generates `PyO3` bindings for `ci-core`'s CI tests.
 //!
 //! At compile time this script recursively scans the `../ci-core/src` directory and
 //! parses every `.rs` file to gather every struct that implements the `CITest`
@@ -18,7 +18,7 @@
 //!     class with a `PyModule`.
 //!
 //! `lib.rs` `include!`s both `ci_tests.rs` and calls the `init` function so that
-//! both PyO3 *AND* `pyo3_stub_gen` properly register the tests.
+//! both `PyO3` *AND* `pyo3_stub_gen` properly register the tests.
 //!
 //!
 //! ////////// Program Flow //////////
@@ -43,7 +43,7 @@
 //! an `inner` field and exposes the following:
 //!   - `#[new]` constructor mirroring the struct's named fields
 //!   - `#[getter]`/`#[setter]` pair for each field
-//!   - `run_test` method that converts NumPy arrays to owned `ndarray`s,
+//!   - `run_test` method that converts `NumPy` arrays to owned `ndarray`s,
 //!     passes them to `inner.run_test`, and maps results/errors back to Python.
 //!
 //! `main` then collects and saves all results from `generate_pyo3_wrapper` to
@@ -53,6 +53,7 @@
 //!
 //! ////////// Example: Generated Bindings for `ChiSquared` //////////
 //!
+//! ```rust
 //! #[gen_stub_pyclass]
 //! #[pyclass(name = "ChiSquared", module = "ci_python._ci_python")]
 //! pub struct PyChiSquared {
@@ -110,10 +111,11 @@
 //!         self.inner.significance_level = significance_level;
 //!     }
 //! }
-//!
+//! ```
 //!
 //! ////////// Example: Generated `ci_tests_init.rs` File //////////
 //!
+//! ```rust
 //! use pyo3::prelude::*;
 //! pub fn init(m: &Bound<'_, PyModule>) -> PyResult<()> {
 //!     m.add_class::<super::_ci_python::PyChiSquared>()?;
@@ -122,6 +124,7 @@
 //!
 //!     Ok(())
 //! }
+//! ```
 
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
