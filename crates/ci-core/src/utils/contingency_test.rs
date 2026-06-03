@@ -64,7 +64,7 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
         (nrows - 1) * (ncols - 1)
     };
 
-    let p_value = if degrees_of_freedom == 0 {
+    let p_value = if degrees_of_freedom == 0{
         1.0
     } else {
         #[allow(clippy::cast_precision_loss)]
@@ -270,7 +270,7 @@ mod tests {
         let observed = array![[5.0, 1.0], [2.0, 0.0]]; // contains zero observed
         let (statistic, p_value, _dof) = contingency_test(&observed, -1.0).unwrap();
 
-        assert!(statistic.is_infinite() && p_value - 1.0 < EPS);
+        assert!(statistic.is_infinite() && p_value < EPS);
     }
 
     /// 4a. Simple valid test for G-test (lambda = 0)
