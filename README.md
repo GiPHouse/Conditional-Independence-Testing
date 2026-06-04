@@ -3,7 +3,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/GiPHouse/Conditional-Independence-Testing/ci.yml?branch=main&logo=github&label=CI)](https://github.com/GiPHouse/Conditional-Independence-Testing/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/GiPHouse/Conditional-Independence-Testing/blob/main/LICENSE)
 
-A fast, multi-language library for statistical conditional independence testing. The Rust core implements several well-known tests from the power-divergence family (for discrete data) and Pearson-correlation-based tests (for continuous data), with bindings for Python and R.
+A fast, multi-language library for statistical conditional independence testing. The Rust core implements several well-known tests from the power-divergence family (for discrete data) and Pearson-correlation-based tests (for continuous data), with bindings for Python, R, and JavaScript.
 
 ## Available Tests
 
