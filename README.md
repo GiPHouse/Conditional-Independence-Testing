@@ -133,6 +133,14 @@ cat("independent:", result$independent, "\n")
 
 Install the JavaScript package from the repository root:
 
+```bash
+// For directly using it on the web
+wasm-pack build --target web 
+
+// For using it in NodeJs
+wasm-pack build --target nodejs
+```
+
 ```js
 import init, { log_likelihood_test } from "../pkg/ci_js.js";
 const wasm = await import("../pkg/ci_js.js");
