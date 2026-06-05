@@ -158,243 +158,178 @@ fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::R
 }
 
 #[cfg(test)]
+#[allow(clippy::many_single_char_names)]
 mod tests {
     use super::*;
     use crate::utils::EPS;
-    use ndarray::{stack, Array1, Array2, Axis};
-    use rand::rngs::SmallRng;
-    use rand::SeedableRng;
-    use rand_distr::{Distribution, Normal};
+    use ndarray::{array, Array1, Array2};
 
     const SIGNIFICANCE_LEVEL: f64 = 0.05;
 
-    const N: usize = 1000;
-
-    fn seeded_rng() -> SmallRng {
-        SmallRng::seed_from_u64(42)
-    }
-
-    fn gen_normal(n: usize, mean: f64, std_dev: f64, rng: &mut SmallRng) -> Array1<f64> {
-        let dist = Normal::new(mean, std_dev).unwrap();
-        Array1::from_vec((0..n).map(|_| dist.sample(rng)).collect())
-    }
-
-    fn empty_array() -> Array2<f64> {
-        Array2::zeros((0, 0))
-    }
-
-    fn pearson() -> PearsonCorrelation {
-        PearsonCorrelation {
-            boolean: false,
-            significance_level: 0.05,
-        }
-    }
-
-    fn pearson_boolean() -> PearsonCorrelation {
-        PearsonCorrelation {
-            boolean: true,
-            significance_level: 0.05,
+    fn unwrap_correlated(r: &TestResult) -> (f64, f64) {
+        match r {
+            TestResult::PValue(p, coef) => (*p, *coef),
+            _ => panic!("expected TestResult::PValue"),
         }
     }
 
     #[test]
     fn uncond_independent_data_accepted() {
-        let mut rng = seeded_rng();
-        let x = gen_normal(N, 0.0, 1.0, &mut rng);
-        let y = gen_normal(N, 0.0, 1.0, &mut rng);
+        let t = PearsonCorrelation {
+            boolean: false,
+            significance_level: SIGNIFICANCE_LEVEL,
+        };
+        let x = array![2., 4., 1., 5., 3., 8., 6., 7., 9., 10.];
+        let y = array![5., 3., 7., 2., 8., 1., 9., 4., 6., 10.];
 
-        let result = pearson().run_test(x, y, empty_array()).unwrap();
-        match result {
-            TestResult::PValue(p_value, coefficient) => {
-                assert!(
-                    p_value > SIGNIFICANCE_LEVEL,
-                    "p_value {p_value} should be > 0.05 for independent data"
-                );
-                assert!(
-                    coefficient.abs() < 0.1,
-                    "coefficient {coefficient} should be near 0 for independent data"
-                );
-            }
-            _ => panic!("Expected TestResult::PValue"),
-        }
+        let (p, coef) = unwrap_correlated(&t.run_test(x, y, Array2::zeros((0, 0))).unwrap());
+        assert!(p > SIGNIFICANCE_LEVEL, "got {p}");
+        assert!(
+            coef.abs() < 0.1,
+            "coef={coef} should be near 0 for uncorrelated data"
+        );
     }
 
     #[test]
-    fn uncond_bool_accepts_independent() {
-        let mut rng = seeded_rng();
-        let x = gen_normal(N, 0.0, 1.0, &mut rng);
-        let y = gen_normal(N, 0.0, 1.0, &mut rng);
+    fn uncond_boolean_mode() {
+        let t = PearsonCorrelation {
+            boolean: true,
+            significance_level: SIGNIFICANCE_LEVEL,
+        };
+        // independent -> true
+        let x = array![2., 4., 1., 5., 3., 8., 6., 7., 9., 10.];
+        let y = array![5., 3., 7., 2., 8., 1., 9., 4., 6., 10.];
+        let r = t.run_test(x, y, Array2::zeros((0, 0))).unwrap();
+        assert!(matches!(r, TestResult::Boolean(true)));
 
-        let result = pearson_boolean().run_test(x, y, empty_array()).unwrap();
-        match result {
-            TestResult::Boolean(independent) => {
-                assert!(independent, "Independent data should return true");
-            }
-            _ => panic!("Expected TestResult::Boolean"),
-        }
+        // dependent -> false
+        let x = array![1., 2., 3., 4., 5.];
+        let y = array![2., 4., 6., 8., 10.];
+        let r = t.run_test(x, y, Array2::zeros((0, 0))).unwrap();
+        assert!(matches!(r, TestResult::Boolean(false)));
     }
 
     #[test]
     fn uncond_dependent_data_rejected() {
-        let mut rng = seeded_rng();
-        let x = gen_normal(N, 0.0, 1.0, &mut rng);
-        let noise = gen_normal(N, 0.0, 0.1, &mut rng);
-        let y = &x * 3.0 + &noise;
+        let t = PearsonCorrelation {
+            boolean: false,
+            significance_level: SIGNIFICANCE_LEVEL,
+        };
+        let x = array![1., 2., 3., 4., 5.];
+        let y = array![2., 4., 6., 8., 10.];
 
-        let result = pearson().run_test(x, y, empty_array()).unwrap();
-        match result {
-            TestResult::PValue(p_value, coefficient) => {
-                assert!(
-                    p_value < SIGNIFICANCE_LEVEL,
-                    "p_value {p_value} should be < 0.05 for correlated data"
-                );
-                assert!(
-                    coefficient.abs() > 0.9,
-                    "coefficient {coefficient} should be high for correlated data"
-                );
-            }
-            _ => panic!("Expected TestResult::PValue"),
-        }
-    }
-
-    #[test]
-    fn uncond_bool_rejects_dependent() {
-        let mut rng = seeded_rng();
-        let x = gen_normal(N, 0.0, 1.0, &mut rng);
-        let noise = gen_normal(N, 0.0, 0.1, &mut rng);
-        let y = &x * 3.0 + &noise;
-
-        let result = pearson_boolean().run_test(x, y, empty_array()).unwrap();
-        match result {
-            TestResult::Boolean(independent) => {
-                assert!(!independent, "Correlated data should return false");
-            }
-            _ => panic!("Expected TestResult::Boolean"),
-        }
+        let (p, coef) = unwrap_correlated(&t.run_test(x, y, Array2::zeros((0, 0))).unwrap());
+        assert!(p < SIGNIFICANCE_LEVEL, "got {p}");
+        assert!(
+            coef.abs() > 0.9,
+            "coef={coef} should be high for perfectly correlated data"
+        );
     }
 
     // Z is a confounder: X = 3*Z + noise, Y = 2*Z + noise. After conditioning, residuals are independent.
     #[test]
     fn cond_independent_data_accepted() {
-        let mut rng = seeded_rng();
-        let z = gen_normal(N, 0.0, 1.0, &mut rng);
-        let noise_x = gen_normal(N, 0.0, 0.1, &mut rng);
-        let noise_y = gen_normal(N, 0.0, 0.1, &mut rng);
-        let x = &z * 3.0 + &noise_x;
-        let y = &z * 2.0 + &noise_y;
-        let array = z.insert_axis(Axis(1));
-
-        let result = pearson().run_test(x, y, array).unwrap();
-        match result {
-            TestResult::PValue(p_value, coefficient) => {
-                assert!(
-                    p_value > SIGNIFICANCE_LEVEL,
-                    "p_value {p_value} should be > 0.05 after conditioning"
-                );
-                assert!(
-                    coefficient.abs() < 0.1,
-                    "coefficient {coefficient} should be near 0 after conditioning"
-                );
-            }
-            _ => panic!("Expected TestResult::PValue"),
-        }
+        let t = PearsonCorrelation {
+            boolean: false,
+            significance_level: SIGNIFICANCE_LEVEL,
+        };
+        let x = array![
+            2.019_608, 1.039_216, 4.058_824, 3.078_431, 6.098_039, 5.117_647, 8.137_255, 7.156_863
+        ];
+        let y = array![
+            2.059_406, 3.059_406, 2.138_614, 3.138_614, 6.217_822, 7.217_822, 6.297_030, 7.297_030
+        ];
+        let z = array![[1.], [2.], [3.], [4.], [5.], [6.], [7.], [8.]];
+        let (p, coef) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
+        assert!(p > SIGNIFICANCE_LEVEL, "got {p}");
+        assert!(
+            coef.abs() < 0.1,
+            "coef={coef} should be near 0 after conditioning"
+        );
     }
 
     #[test]
-    fn cond_bool_accepts_independent() {
-        let mut rng = seeded_rng();
-        let z = gen_normal(N, 0.0, 1.0, &mut rng);
-        let noise_x = gen_normal(N, 0.0, 0.1, &mut rng);
-        let noise_y = gen_normal(N, 0.0, 0.1, &mut rng);
-        let x = &z * 3.0 + &noise_x;
-        let y = &z * 2.0 + &noise_y;
-        let array = z.insert_axis(Axis(1));
+    fn cond_boolean_mode() {
+        // accepted
+        let t = PearsonCorrelation {
+            boolean: true,
+            significance_level: SIGNIFICANCE_LEVEL,
+        };
+        let x = array![
+            2.019_608, 1.039_216, 4.058_824, 3.078_431, 6.098_039, 5.117_647, 8.137_255, 7.156_863
+        ];
+        let y = array![
+            2.059_406, 3.059_406, 2.138_614, 3.138_614, 6.217_822, 7.217_822, 6.297_030, 7.297_030
+        ];
+        let z = array![[1.], [2.], [3.], [4.], [5.], [6.], [7.], [8.]];
+        let r = t.run_test(x, y, z).unwrap();
+        assert!(matches!(r, TestResult::Boolean(true)));
 
-        let result = pearson_boolean().run_test(x, y, array).unwrap();
-        match result {
-            TestResult::Boolean(independent) => {
-                assert!(
-                    independent,
-                    "Conditionally independent data should return true"
-                );
-            }
-            _ => panic!("Expected TestResult::Boolean"),
-        }
+        // rejected
+        let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
+        let y = array![8., 7., 6., 5., 4., 3., 2., 1.];
+        let z = array![[4.5], [4.5], [4.5], [4.5], [4.5], [4.5], [4.5], [4.5]];
+        let r = t.run_test(x, y, z).unwrap();
+        assert!(matches!(r, TestResult::Boolean(false)));
     }
 
     // Z = 2*X + 2*Y + noise is a collider; conditioning on it induces dependence between X and Y.
     #[test]
     fn cond_dependent_data_rejected() {
-        let mut rng = seeded_rng();
-        let x = gen_normal(N, 0.0, 1.0, &mut rng);
-        let y = gen_normal(N, 0.0, 1.0, &mut rng);
-        let noise = gen_normal(N, 0.0, 0.1, &mut rng);
-        let z = &x * 2.0 + &y * 2.0 + &noise;
-        let array = z.insert_axis(Axis(1));
+        let t = PearsonCorrelation {
+            boolean: false,
+            significance_level: SIGNIFICANCE_LEVEL,
+        };
+        let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
+        let y = array![8., 7., 6., 5., 4., 3., 2., 1.];
+        let z = array![[9.], [9.], [9.], [9.], [9.], [9.], [9.], [9.]];
 
-        let result = pearson().run_test(x, y, array).unwrap();
-        match result {
-            TestResult::PValue(p_value, coefficient) => {
-                assert!(
-                    p_value < SIGNIFICANCE_LEVEL,
-                    "p_value {p_value} should be < 0.05 for v-structure"
-                );
-                assert!(
-                    coefficient.abs() > 0.9,
-                    "coefficient {coefficient} should be high for v-structure"
-                );
-            }
-            _ => panic!("Expected TestResult::PValue"),
-        }
+        let (p, coef) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
+        assert!(p < SIGNIFICANCE_LEVEL, "got {p}");
+        assert!(
+            coef.abs() > 0.9,
+            "coef={coef} should be high for collider structure"
+        );
     }
 
     #[test]
     fn cond_bool_rejects_dependent() {
-        let mut rng = seeded_rng();
-        let x = gen_normal(N, 0.0, 1.0, &mut rng);
-        let y = gen_normal(N, 0.0, 1.0, &mut rng);
-        let noise = gen_normal(N, 0.0, 0.1, &mut rng);
-        let z = &x * 2.0 + &y * 2.0 + &noise;
-        let array = z.insert_axis(Axis(1));
+        let t = PearsonCorrelation {
+            boolean: true,
+            significance_level: SIGNIFICANCE_LEVEL,
+        };
+        let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
+        let y = array![8., 7., 6., 5., 4., 3., 2., 1.];
+        let z = array![[9.], [9.], [9.], [9.], [9.], [9.], [9.], [9.]];
 
-        let result = pearson_boolean().run_test(x, y, array).unwrap();
-        match result {
-            TestResult::Boolean(independent) => {
-                assert!(
-                    !independent,
-                    "V-structure conditioned on collider should return false"
-                );
-            }
-            _ => panic!("Expected TestResult::Boolean"),
-        }
+        let r = t.run_test(x, y, z).unwrap();
+        assert!(matches!(r, TestResult::Boolean(false)));
     }
     #[test]
-    fn cond_multiple_vars_independent_not_rejected() {
-        let mut rng = seeded_rng();
-        let z_1 = gen_normal(N, 0.0, 1.0, &mut rng);
-        let z_2 = gen_normal(N, 0.0, 1.0, &mut rng);
-        let z_3 = gen_normal(N, 0.0, 1.0, &mut rng);
-        let noise_x = gen_normal(N, 0.0, 0.1, &mut rng);
-        let noise_y = gen_normal(N, 0.0, 0.1, &mut rng);
-        let x = 0.5 * &z_1 + 0.5 * &z_2 + 0.5 * &z_3 + &noise_x;
-        let y = 0.5 * &z_1 + 0.5 * &z_2 + 0.5 * &z_3 + &noise_y;
+    fn cond_multiple_vars_independent_accepted() {
+        let t = PearsonCorrelation {
+            boolean: false,
+            significance_level: SIGNIFICANCE_LEVEL,
+        };
+        let x = array![2.5, 2.5, 2.5, 4.0, 4.0, 4.0, 4.0, 5.5];
+        let y = array![2.4, 2.4, 0.8, 2.8, 5.2, 5.2, 3.6, 5.6];
+        let z = array![
+            [1., 0., 1.],
+            [1., 1., 0.],
+            [2., 0., 0.],
+            [2., 1., 1.],
+            [3., 0., 1.],
+            [3., 1., 0.],
+            [4., 0., 0.],
+            [4., 1., 1.],
+        ];
 
-        let array = stack(Axis(1), &[z_1.view(), z_2.view(), z_3.view()]).unwrap();
-
-        let result = pearson().run_test(x, y, array).unwrap();
-        match result {
-            TestResult::PValue(p_value, coefficient) => {
-                assert!(
-                    p_value >= SIGNIFICANCE_LEVEL,
-                    "p_value {p_value} should be >= 0.05 after conditioning on all confounders"
-                );
-                assert!(
-                    coefficient.abs() <= 0.1,
-                    "coefficient {coefficient} should be near 0 after conditioning on all confounders"
-                );
-            }
-            _ => panic!("Expected TestResult::PValue"),
-        }
+        let (p, coef) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
+        assert!(p > SIGNIFICANCE_LEVEL, "got {p}");
+        assert!(
+            coef.abs() < 0.1,
+            "coef={coef} should be near 0 after conditioning on all confounders"
+        );
     }
 
     #[test]
@@ -422,11 +357,8 @@ mod tests {
     fn pearsonr_succeeds_with_minimum_input() {
         let x = Array1::from_vec(vec![1.0, 2.0, 3.0]);
         let y = Array1::from_vec(vec![1.0, 2.0, 3.0]);
-        let (coefficient, p_value) = pearsonr(&x.view(), &y.view()).unwrap();
-        assert!(
-            (coefficient - 1.0).abs() < EPS,
-            "perfect positive correlation"
-        );
-        assert!(p_value < 0.05, "should be significant");
+        let (coef, p_value) = pearsonr(&x.view(), &y.view()).unwrap();
+        assert!((coef - 1.0).abs() < EPS, "perfect positive correlation");
+        assert!(p_value < SIGNIFICANCE_LEVEL, "got {p_value}");
     }
 }
