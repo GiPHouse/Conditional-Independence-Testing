@@ -4,6 +4,10 @@ use ndarray::{Array1, Array2};
 
 const LOG_LIKELIHOOD_LAMBDA: f64 = 0.0;
 
+/// Log-likelihood ratio (G-test) conditional independence test (λ = 0).
+///
+/// Operates on discrete data only. Delegates to the power-divergence family
+/// with λ = 0, which corresponds to the G-test / log-likelihood ratio statistic.
 #[derive(Debug, Clone, PartialEq)]
 pub struct LogLikelihood {
     pub boolean: bool,
@@ -88,8 +92,6 @@ mod tests {
         assert_eq!(dof, 2);
     }
 
-    // Can't test perfectly dependent (zero cells -> ln(0)), use skewed table instead.
-    // scipy: power_divergence([[5,1],[1,5]], lambda_=0) -> stat=5.822063320647374
     #[test]
     fn uncond_dependent_data_rejected() {
         let t = LogLikelihood {
@@ -117,7 +119,6 @@ mod tests {
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
-        assert!(stat > 0.0, "stat should be positive, got {stat}");
         assert!(
             (stat - 11.090_354_888_959_125).abs() < EPS,
             "for stat got {stat}"

@@ -4,14 +4,15 @@ use crate::utils::contingency_table::{
 };
 use crate::utils::contingency_test::contingency_test;
 use crate::utils::partition_indices::partition_indices;
+use anyhow::ensure;
 use ndarray::{Array1, Array2};
 use statrs::distribution::{ChiSquared, ContinuousCDF};
 
 /// Run a power-divergence based conditional independence test.
 ///
 /// # Errors
-/// Returns an error if the underlying contingency test or chi-squared
-/// distribution construction fails.
+/// Returns an error if the inputs are invalid or if the underlying contingency
+/// test or chi-squared distribution construction fails.
 pub fn power_divergence(
     x_values: &Array1<f64>,
     y_values: &Array1<f64>,
@@ -20,6 +21,18 @@ pub fn power_divergence(
     significance_level: f64,
     lambda: f64,
 ) -> anyhow::Result<TestResult> {
+    ensure!(
+        x_values.len() == y_values.len(),
+        "x and y must have the same length, got {} and {}",
+        x_values.len(),
+        y_values.len(),
+    );
+    ensure!(
+        z.ncols() == 0 || z.nrows() == x_values.len(),
+        "z must have the same number of rows as x and y ({}), got {}",
+        x_values.len(),
+        z.nrows(),
+    );
     if z.ncols() == 0 {
         let table = contingency_table(x_values, y_values);
         let (statistic, p_value, degrees_of_freedom) = contingency_test(&table, lambda)?;
@@ -104,14 +117,12 @@ mod tests {
         }
     }
 
-    // Mismatched x and y lengths — contingency_table indexes by the
-    // longer array, causing an out-of-bounds panic.
     #[test]
-    #[should_panic(expected = "index 2 is out of bounds")]
-    fn unconditional_mismatched_lengths_panics() {
+    fn unconditional_mismatched_lengths_returns_error() {
         let x = array![1., 2., 3.];
         let y = array![1., 2.];
-        let _ = power_divergence(&x, &y, &empty_z(), false, SIGNIFICANCE_LEVEL, LAMBDA);
+        let result = power_divergence(&x, &y, &empty_z(), false, SIGNIFICANCE_LEVEL, LAMBDA);
+        assert!(result.is_err());
     }
 
     // A single observation produces a 1x1 table with dof=0.
