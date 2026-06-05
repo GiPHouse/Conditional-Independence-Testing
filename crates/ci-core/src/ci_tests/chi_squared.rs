@@ -5,6 +5,10 @@ use ndarray::{Array1, Array2};
 
 const CHI_SQUARED_LAMBDA: f64 = 1.0;
 
+/// Pearson chi-squared conditional independence test (λ = 1).
+///
+/// Operates on discrete data only. Delegates to the power-divergence family
+/// with λ = 1, which is the classical chi-squared statistic.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ChiSquared {
     pub boolean: bool,
@@ -89,7 +93,6 @@ mod tests {
         assert_eq!(dof, 2);
     }
 
-    // scipy: chi2_contingency([[4,0],[0,4]], lambda_=1, correction=False) -> stat=8.0, p=0.00468
     #[test]
     fn uncond_dependent_data_rejected() {
         let t = ChiSquared {
@@ -132,13 +135,11 @@ mod tests {
             significance_level: 0.05,
         };
         let empty = Array2::<f64>::zeros((0, 0));
-        // independent data -> should return true (fail to reject)
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 2., 1., 2., 1., 2., 1., 2.];
         let r = t.run_test(x, y, empty.clone()).unwrap();
         assert!(matches!(r, TestResult::Boolean(true)));
 
-        // dependent data -> should return false (reject)
         let x = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let y = array![1., 1., 1., 1., 2., 2., 2., 2.];
         let r = t.run_test(x, y, empty).unwrap();
@@ -147,7 +148,6 @@ mod tests {
 
     #[test]
     fn cond_boolean_mode() {
-        //accepted
         let t = ChiSquared {
             boolean: true,
             significance_level: 0.05,
@@ -158,7 +158,6 @@ mod tests {
         let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(true)));
 
-        //rejected
         let x = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];

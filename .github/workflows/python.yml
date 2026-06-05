@@ -34,7 +34,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.10"
 
       - name: Install ruff
         run: pip install ruff
@@ -49,10 +49,13 @@ jobs:
 
   python-stubs:
     name: Python Stubs Up-to-date
-    if: false # stubgen binary not yet implemented
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -60,7 +63,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Regenerate stubs
-        run: cargo run --release --bin stubgen
+        run: cargo run --release --bin stub_gen
 
       - name: Check for diff
         run: git diff --exit-code -- crates/ci-python/
@@ -77,7 +80,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.10"
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -93,7 +96,7 @@ jobs:
 
       - name: Type check
         working-directory: crates/ci-python
-        run: mypy tests/
+        run: mypy test/
 
       - name: Run tests
         working-directory: crates/ci-python

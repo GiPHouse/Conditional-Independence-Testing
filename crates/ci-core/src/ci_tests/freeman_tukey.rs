@@ -4,6 +4,10 @@ use ndarray::{Array1, Array2};
 
 const FREEMAN_TUKEY_LAMBDA: f64 = -1.0 / 2.0;
 
+/// Freeman–Tukey conditional independence test (λ = −1/2).
+///
+/// Operates on discrete data only. Delegates to the power-divergence family
+/// with λ = −1/2, the Freeman–Tukey statistic.
 #[derive(Debug, Clone, PartialEq)]
 pub struct FreemanTukey {
     pub boolean: bool,
@@ -88,7 +92,6 @@ mod tests {
         assert_eq!(dof, 2);
     }
 
-    // scipy: power_divergence([[5,1],[1,5]], lambda_=-0.5) -> stat=6.319453539579289
     #[test]
     fn uncond_dependent_rejected() {
         let t = FreemanTukey {
