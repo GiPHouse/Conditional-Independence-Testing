@@ -94,7 +94,6 @@ mod tests {
         assert_eq!(dof, 2);
     }
 
-    // scipy: power_divergence([[5,1],[1,5]], lambda_=-1) -> stat=7.053439978825427
     #[test]
     fn uncond_dependent_data_rejected() {
         let t = ModifiedLikelihood {
