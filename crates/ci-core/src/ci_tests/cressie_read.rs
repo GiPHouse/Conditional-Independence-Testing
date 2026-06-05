@@ -148,7 +148,6 @@ mod tests {
             "expected statistic ~0, got {statistic}"
         );
         assert!(p_value > 0.99, "expected p ~1, got {p_value}");
-        // Two groups, each contributing dof = (2-1)*(2-1) = 1.
         assert_eq!(dof, 2);
 
         let independent = unwrap_boolean(
