@@ -7,6 +7,15 @@ use anyhow::bail;
 use ndarray::{Array1, Array2, Axis};
 use statrs::distribution::{ContinuousCDF, Normal};
 
+/// Pearson equivalence (TOST) conditional independence test.
+///
+/// Uses the Two One-Sided Tests (TOST) framework with Fisher's z-transformation
+/// to test whether the partial correlation is small enough to declare independence.
+///
+/// **Note**: the p-value convention is inverted relative to the other tests. A *low*
+/// p-value (below `significance_level`) means the correlation is within `delta_threshold`
+/// of zero and the null of dependence is rejected — i.e. the variables are declared
+/// independent.
 #[derive(Debug, Clone, PartialEq)]
 pub struct PearsonEquivalence {
     pub boolean: bool,
@@ -174,10 +183,6 @@ mod tests {
         }
     }
 
-    // --- 1. Empty array + independent X, Y + boolean=false ---
-    // X and Y are independently generated, no conditioning variables.
-    // Expected: low p_value (<= 0.05), low |coefficient| (< 0.1)
-    // Note: p_value is opposite to other tests
     #[test]
     fn unconditional_independent_data_is_not_rejected() {
         let mut rng = seeded_rng();
@@ -200,8 +205,6 @@ mod tests {
         }
     }
 
-    // --- 2. Empty array + independent X, Y + boolean=true ---
-    // Expected: true (variables are independent)
     #[test]
     fn unconditional_boolean_accepts_independent() {
         let mut rng = seeded_rng();
@@ -217,9 +220,6 @@ mod tests {
         }
     }
 
-    // --- 3. Empty array + correlated X, Y + boolean=false ---
-    // Y = 3*X + small noise, so they are strongly correlated.
-    // Expected: high p_value (>= 0.05), high |coefficient| (> 0.9)
     #[test]
     fn unconditional_dependent_data_is_rejected() {
         let mut rng = seeded_rng();
@@ -243,8 +243,6 @@ mod tests {
         }
     }
 
-    // --- 4. Empty array + correlated X, Y + boolean=true ---
-    // Expected: false (variables are NOT independent)
     #[test]
     fn unconditional_boolean_rejects_dependent() {
         let mut rng = seeded_rng();
@@ -261,10 +259,7 @@ mod tests {
         }
     }
 
-    // --- 5. Non-empty array + conditionally independent + boolean=false ---
-    // Z is a confounder: X = 3*Z + noise, Y = 2*Z + noise.
-    // After conditioning on Z, residuals should be independent.
-    // Expected: low p_value (< 0.05), low |coefficient| (< 0.1)
+    // Z is a confounder: X = 3*Z + noise, Y = 2*Z + noise. After conditioning, residuals are independent.
     #[test]
     fn conditional_independent_data_is_not_rejected() {
         let mut rng = seeded_rng();
@@ -291,8 +286,6 @@ mod tests {
         }
     }
 
-    // --- 6. Non-empty array + conditionally independent + boolean=true ---
-    // Expected: true (conditionally independent given Z)
     #[test]
     fn conditional_boolean_accepts_independent() {
         let mut rng = seeded_rng();
@@ -315,10 +308,7 @@ mod tests {
         }
     }
 
-    // --- 7. Non-empty array + conditionally dependent (v-structure) + boolean=false ---
-    // X and Y are independent, but Z = 2*X + 2*Y + noise (collider).
-    // Conditioning on Z makes X and Y dependent.
-    // Expected: high p_value (>= 0.05), high |coefficient|
+    // Z = 2*X + 2*Y + noise is a collider; conditioning on it induces dependence between X and Y.
     #[test]
     fn conditional_dependent_data_is_rejected() {
         let mut rng = seeded_rng();
@@ -344,8 +334,6 @@ mod tests {
         }
     }
 
-    // --- 8. Non-empty array + conditionally dependent (v-structure) + boolean=true ---
-    // Expected: false (NOT independent after conditioning on collider)
     #[test]
     fn conditional_boolean_rejects_dependent() {
         let mut rng = seeded_rng();
@@ -367,10 +355,6 @@ mod tests {
         }
     }
 
-    // --- 9. Multiple conditioning variables + conditionally independent + boolean=false ---
-    // Z1, Z2, Z3 are confounders: X and Y both depend on them.
-    // After conditioning on all three, residuals should be independent.
-    // Expected: low p_value, low |coefficient|
     #[test]
     fn conditional_multiple_vars_independent_is_not_rejected() {
         let mut rng = seeded_rng();

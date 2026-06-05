@@ -3,6 +3,9 @@ import { beforeAll, describe, test, expect } from "vitest";
 
 const wasm = await import("../pkg/ci_js.js");
 
+let precision = 1e-9;
+let global_p = 0.05;
+
 beforeAll(async () => {
   await wasm.default.init();
 });
@@ -22,10 +25,10 @@ describe("modified_likelihood_test", () => {
       x,
       y,
       false,
-      0.05,
+      global_p,
     );
 
-    expect(statistic).toBeLessThan(1e-9);
+    expect(statistic).toBeLessThan(precision);
     expect(p_value).toBeGreaterThanOrEqual(0.99);
     expect(dof).toBe(1);
   });
@@ -42,10 +45,10 @@ describe("modified_likelihood_test", () => {
       x,
       y,
       false,
-      0.05,
+      global_p,
     );
 
-    expect(Math.abs(statistic - 7.053439978825427)).toBeLessThan(1e-9);
+    expect(Math.abs(statistic - 7.053439978825427)).toBeLessThan(precision);
     expect(Math.abs(p_value - 0.007911317670556329)).toBeLessThan(1e-12);
     expect(dof).toBe(1);
   });
@@ -55,7 +58,7 @@ describe("modified_likelihood_test", () => {
     const y = toFloat64(1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2, 2);
     const z = new Float64Array(0);
 
-    const result = modified_likelihood_test(z, 0, 0, x, y, true, 0.05);
+    const result = modified_likelihood_test(z, 0, 0, x, y, true, global_p);
 
     expect(result).toBe(false);
   });

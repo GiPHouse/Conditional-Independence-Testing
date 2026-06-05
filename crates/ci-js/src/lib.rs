@@ -15,17 +15,23 @@ pub fn init() {
 
 macro_rules! wasm_ci_test {
     ($fn_name:ident, $inner:ty) => {
-        #[wasm_bindgen]
         /// Runs the CI test and returns the result as a JS value.
         ///
-        /// Pass a 0-column matrix for `z` to run unconditionally. When `boolean` is `true`,
+        /// Pass an empty `Float64Array` for `z_flat` to run unconditionally. When `boolean` is `true`,
         /// returns an independence verdict instead of the raw p-value and correlation.
+        ///
+        /// # Returns
+        ///
+        /// - `boolean` if `boolean=true`
+        /// - `[p_value, coefficient]` if `boolean=false`
+        ///
         /// # Errors
         ///
         /// Returns a `JsValue` error if:
         /// - the input arrays have invalid dimensions,
         /// - the statistical computation fails,
         /// - serialization to JavaScript fails.
+        #[wasm_bindgen]
         pub fn $fn_name(
             z_flat: &Float64Array,
             z_rows: usize,
@@ -52,19 +58,25 @@ wasm_ci_test!(pearson_correlation_test, PearsonCorrelation);
 wasm_ci_test!(freeman_tukey_test, FreemanTukey);
 wasm_ci_test!(modified_likelihood_test, ModifiedLikelihood);
 
-#[allow(clippy::too_many_arguments)]
-#[wasm_bindgen]
 /// Pearson equivalence CI test (TOST): declares independence when the partial correlation
 /// lies within `[-delta_threshold, delta_threshold]`.
 ///
-/// Pass a 0-column matrix for `z` to run unconditionally. When `boolean` is `true`,
+/// Pass an empty `Float64Array` for `z_flat` to run unconditionally. When `boolean` is `true`,
 /// returns an independence verdict instead of the raw p-value and correlation.
+///
+/// # Returns
+///
+/// - `boolean` if `boolean=true`
+/// - `[p_value, coefficient]` if `boolean=false`
+///
 /// # Errors
 ///
 /// Returns a `JsValue` error if:
 /// - the input arrays have invalid dimensions,
 /// - the statistical computation fails,
 /// - serialization to JavaScript fails.
+#[allow(clippy::too_many_arguments)]
+#[wasm_bindgen]
 pub fn pearson_equivalence_test(
     z_flat: &Float64Array,
     z_rows: usize,
@@ -75,7 +87,6 @@ pub fn pearson_equivalence_test(
     significance_level: f64,
     delta_threshold: f64,
 ) -> Result<JsValue, JsValue> {
-    // Convert JavaScript Float64Array -> Vec<f64> -> ndarray:Array
     let (x, y, z) = util::convert_to_ndarray(z_flat, x, y, z_rows, z_cols)?;
     let citest = PearsonEquivalence::new(boolean, significance_level, delta_threshold);
 
