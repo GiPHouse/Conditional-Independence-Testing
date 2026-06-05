@@ -6,7 +6,7 @@
 //! boolean or numeric mode.
 
 mod util;
-use pyo3_stub_gen::{define_stub_info_gatherer, reexport_module_members};
+use pyo3_stub_gen::define_stub_info_gatherer;
 mod ci_tests_init;
 
 #[pyo3::pymodule]
@@ -27,5 +27,4 @@ mod _ci_python {
     }
 }
 
-reexport_module_members!("ci_python", "ci_python._ci_python");
 define_stub_info_gatherer!(stub_info);
