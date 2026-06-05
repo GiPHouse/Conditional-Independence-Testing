@@ -107,7 +107,15 @@ describe("cressie_read_test", () => {
     const y = new Float64Array([1, 1, 2, 2, 1, 1, 2, 2]);
     const z = new Float64Array([0, 0, 0, 0, 1, 1, 1, 1]);
 
-    const [p_value, statistic] = cressie_read_test(z, 8, 1, x, y, false, global_p);
+    const [p_value, statistic] = cressie_read_test(
+      z,
+      8,
+      1,
+      x,
+      y,
+      false,
+      global_p,
+    );
 
     expect(statistic).toBeGreaterThan(5.0);
     expect(p_value).toBeLessThan(global_p);

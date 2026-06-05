@@ -12,10 +12,10 @@ cargo install wasm-bindgen-cli
 After installing, move to ci-core/ci-js, and build the bindings:
 
 ```sh
-// Build for Node.js
+# Build for Node.js
 wasm-pack build --target nodejs
 
-// Build for direct usage on the web
+# Build for direct usage on the web
 wasm-pack build --target web
 ```
 
