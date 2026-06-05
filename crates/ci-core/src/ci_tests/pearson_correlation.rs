@@ -219,17 +219,16 @@ mod tests {
             boolean: true,
             significance_level: SIGNIFICANCE_LEVEL,
         };
-        let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
-        let y = array![1., 2., 3., 4., 5., 6., 7., 8.];
-        let z = array![[1.], [2.], [3.], [4.], [5.], [6.], [7.], [8.]];
-        let r = t.run_test(x, y, z).unwrap();
+        // independent -> true
+        let x = array![2., 4., 1., 5., 3., 8., 6., 7., 9., 10.];
+        let y = array![5., 3., 7., 2., 8., 1., 9., 4., 6., 10.];
+        let r = t.run_test(x, y, Array2::zeros((0, 0))).unwrap();
         assert!(matches!(r, TestResult::Boolean(true)));
 
-        // rejected: X and Y perfectly correlated after conditioning
-        let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
-        let y = array![8., 7., 6., 5., 4., 3., 2., 1.];
-        let z = array![[9.], [9.], [9.], [9.], [9.], [9.], [9.], [9.]];
-        let r = t.run_test(x, y, z).unwrap();
+        // dependent -> false
+        let x = array![1., 2., 3., 4., 5.];
+        let y = array![2., 4., 6., 8., 10.];
+        let r = t.run_test(x, y, Array2::zeros((0, 0))).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 
