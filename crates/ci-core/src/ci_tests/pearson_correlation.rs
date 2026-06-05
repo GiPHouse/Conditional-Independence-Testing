@@ -202,8 +202,8 @@ mod tests {
             boolean: false,
             significance_level: SIGNIFICANCE_LEVEL,
         };
-        let x = array![1., 2., 3., 4., 5., 6.];
-        let y = array![1., -1., 1., -1., 1., -1.];
+        let x = array![1., 2., 3., 4., 5., 6., 7., 8., 9., 10.];
+        let y = array![2., 4., 1., 3., 6., 4., 7., 5., 8., 6.];
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, Array2::zeros((0, 0))).unwrap());
         assert!(p > SIGNIFICANCE_LEVEL);
@@ -219,26 +219,20 @@ mod tests {
             boolean: true,
             significance_level: SIGNIFICANCE_LEVEL,
         };
-        let x = array![1., 2., 3., 4., 5., 6.];
-        let y = array![1., -1., 1., -1., 1., -1.];
-
-        let r = t.run_test(x, y, Array2::zeros((0, 0))).unwrap();
+        let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
+        let y = array![1., 2., 3., 4., 5., 6., 7., 8.];
+        let z = array![[1.], [2.], [3.], [4.], [5.], [6.], [7.], [8.]];
+        let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(true)));
 
-        // dependent -> false
-        let t = PearsonCorrelation {
-            boolean: true,
-            significance_level: SIGNIFICANCE_LEVEL,
-        };
-        let x = array![1., 2., 3., 4., 5.];
-        let y = array![2., 4., 6., 8., 10.];
-
-        let r = t.run_test(x, y, Array2::zeros((0, 0))).unwrap();
+        // rejected: X and Y perfectly correlated after conditioning
+        let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
+        let y = array![8., 7., 6., 5., 4., 3., 2., 1.];
+        let z = array![[9.], [9.], [9.], [9.], [9.], [9.], [9.], [9.]];
+        let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
 
-    // Y = 3*X + small noise, so they are strongly correlated.
-    // Expected: low p_value (< 0.05), high |coefficient| (> 0.9)
     #[test]
     fn uncond_dependent_data_rejected() {
         let t = PearsonCorrelation {
@@ -265,7 +259,7 @@ mod tests {
             significance_level: SIGNIFICANCE_LEVEL,
         };
         let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
-        let y = array![2., 4., 6., 8., 10., 12., 14., 16.];
+        let y = array![1., 2., 3., 4., 5., 6., 7., 8.];
         let z = array![[1.], [2.], [3.], [4.], [5.], [6.], [7.], [8.]];
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
@@ -331,16 +325,16 @@ mod tests {
             significance_level: SIGNIFICANCE_LEVEL,
         };
         let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
-        let y = array![2., 1., 4., 3., 6., 5., 8., 7.];
+        let y = array![1., 2., 3., 4., 5., 6., 7., 8.];
         let z = array![
-            [1., 0., 0.],
-            [1., 0., 0.],
-            [2., 0., 0.],
-            [2., 0., 0.],
-            [3., 0., 0.],
-            [3., 0., 0.],
-            [4., 0., 0.],
-            [4., 0., 0.],
+            [1., 2., 3.],
+            [2., 3., 4.],
+            [3., 4., 5.],
+            [4., 5., 6.],
+            [5., 6., 7.],
+            [6., 7., 8.],
+            [7., 8., 9.],
+            [8., 9., 10.],
         ];
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
