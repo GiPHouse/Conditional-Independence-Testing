@@ -37,13 +37,12 @@ pub fn convert_to_ndarray(
             "z_rows*z_cols doesnt match the size of z_flat",
         ));
     }
-    let z_vec: Vec<f64> = z_flat.to_vec();
     let x_vec: Vec<f64> = x.to_vec();
     let y_vec: Vec<f64> = y.to_vec();
-
-    let z: Array2<f64> = if z_vec.is_empty() {
+    let z: Array2<f64> = if z_flat.length() == 0 {
         Array2::zeros((x_vec.len(), 0))
     } else {
+        let z_vec: Vec<f64> = z_flat.to_vec();
         Array2::from_shape_vec((z_rows, z_cols), z_vec)
             .map_err(|e| JsValue::from_str(&e.to_string()))?
     };

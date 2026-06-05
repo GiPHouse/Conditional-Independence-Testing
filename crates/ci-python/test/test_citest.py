@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from ci_python import CressieRead, ModifiedLikelihood
+from ci_python import CressieRead, PearsonEquivalence
 
 
 def check_numeric_results(
@@ -101,10 +101,10 @@ def test_conditional_dependent_per_group() -> None:
 def test_error_handling() -> None:
     """Test that python bindings correctly return errors encountered in Rust."""
     x = np.array([1.0, 2.0], dtype=np.float64)
-    y = np.array([], dtype=np.float64)
+    y = np.array([-1.0, 2.0], dtype=np.float64)
     z = np.array([[]], dtype=np.float64)
 
-    test_numeric = ModifiedLikelihood(boolean=False, significance_level=0.05)
+    test_numeric = PearsonEquivalence(boolean=False, significance_level=0.05, delta_threshold=0.1)
 
     with pytest.raises(RuntimeError):
         test_numeric.run_test(x, y, z)
