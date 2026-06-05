@@ -237,7 +237,7 @@ jobs:
           <body>
             <div class="container">
               <h1>Conditional Independence Testing</h1>
-              <p class="subtitle">Fast CI tests for causal discovery — with Rust, R, Python, and JavaScript bindings.</p>
+              <p class="subtitle">Fast CI tests for causal discovery with Rust, R, Python, and JavaScript bindings.</p>
               <div class="cards">
                 <a class="card" href="rust/ci_core/index.html">
                   <span class="card-icon"></span>
