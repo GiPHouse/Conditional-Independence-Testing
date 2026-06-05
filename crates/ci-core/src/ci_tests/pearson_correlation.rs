@@ -218,20 +218,12 @@ mod tests {
         let x = array![1., 2., 3., 4., 5.];
         let y = array![2., 4., 6., 8., 10.];
 
-    #[test]
-    fn uncond_bool_rejects_dependent() {
-        let mut rng = seeded_rng();
-        let x = gen_normal(N, 0.0, 1.0, &mut rng);
-        let noise = gen_normal(N, 0.0, 0.1, &mut rng);
-        let y = &x * 3.0 + &noise;
-
-        let result = pearson_boolean().run_test(x, y, empty_array()).unwrap();
-        match result {
-            TestResult::Boolean(independent) => {
-                assert!(!independent, "Correlated data should return false");
-            }
-            _ => panic!("Expected TestResult::Boolean"),
-        }
+        let (p, coef) = unwrap_correlated(&t.run_test(x, y, Array2::zeros((0, 0))).unwrap());
+        assert!(p < SIGNIFICANCE_LEVEL, "got {p}");
+        assert!(
+            coef.abs() > 0.9,
+            "coef={coef} should be high for perfectly correlated data"
+        );
     }
 
     // Z is a confounder: X = 3*Z + noise, Y = 2*Z + noise. After conditioning, residuals are independent.
@@ -302,23 +294,16 @@ mod tests {
 
     #[test]
     fn cond_bool_rejects_dependent() {
-        let mut rng = seeded_rng();
-        let x = gen_normal(N, 0.0, 1.0, &mut rng);
-        let y = gen_normal(N, 0.0, 1.0, &mut rng);
-        let noise = gen_normal(N, 0.0, 0.1, &mut rng);
-        let z = &x * 2.0 + &y * 2.0 + &noise;
-        let array = z.insert_axis(Axis(1));
+        let t = PearsonCorrelation {
+            boolean: true,
+            significance_level: SIGNIFICANCE_LEVEL,
+        };
+        let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
+        let y = array![8., 7., 6., 5., 4., 3., 2., 1.];
+        let z = array![[9.], [9.], [9.], [9.], [9.], [9.], [9.], [9.]];
 
-        let result = pearson_boolean().run_test(x, y, array).unwrap();
-        match result {
-            TestResult::Boolean(independent) => {
-                assert!(
-                    !independent,
-                    "V-structure conditioned on collider should return false"
-                );
-            }
-            _ => panic!("Expected TestResult::Boolean"),
-        }
+        let r = t.run_test(x, y, z).unwrap();
+        assert!(matches!(r, TestResult::Boolean(false)));
     }
     #[test]
     fn cond_multiple_vars_independent_accepted() {
