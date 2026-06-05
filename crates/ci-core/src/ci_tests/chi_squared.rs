@@ -148,7 +148,6 @@ mod tests {
 
     #[test]
     fn cond_boolean_mode() {
-        //accepted
         let t = ChiSquared {
             boolean: true,
             significance_level: 0.05,
