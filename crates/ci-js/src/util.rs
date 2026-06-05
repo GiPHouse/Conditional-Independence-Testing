@@ -39,7 +39,7 @@ pub fn convert_to_ndarray(
     }
     let x_vec: Vec<f64> = x.to_vec();
     let y_vec: Vec<f64> = y.to_vec();
-    let z: Array2<f64> = if z_flat.length()==0 {
+    let z: Array2<f64> = if z_flat.length() == 0 {
         Array2::zeros((x_vec.len(), 0))
     } else {
         let z_vec: Vec<f64> = z_flat.to_vec();
