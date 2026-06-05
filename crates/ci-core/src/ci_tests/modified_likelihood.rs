@@ -88,7 +88,6 @@ mod tests {
 
         let (p, stat, dof) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
 
-        // Even with lambda = -1, perfectly independent data results in 0
         assert!(stat.abs() < EPS, " got stat {stat}");
         assert!(p > 0.99, " got p {p}");
         assert_eq!(dof, 2);
