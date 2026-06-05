@@ -182,9 +182,9 @@ fn pearsonr(x_values: &ArrayView1<f64>, y_values: &ArrayView1<f64>) -> anyhow::R
 #[allow(clippy::many_single_char_names)]
 mod tests {
     use super::*;
+    use crate::utils::EPS;
     use ndarray::{stack, Array1, Array2, Axis};
     use rand::rngs::SmallRng;
-    use crate::utils::EPS;
     use rand::SeedableRng;
     use rand_distr::{Distribution, Normal};
 
@@ -222,7 +222,10 @@ mod tests {
         let empty = Array2::<f64>::zeros((0, 0));
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, empty).unwrap());
-        assert!(p > SIGNIFICANCE_LEVEL, "p={p} should be > 0.05 for independent data");
+        assert!(
+            p > SIGNIFICANCE_LEVEL,
+            "p={p} should be > 0.05 for independent data"
+        );
         assert!(
             coef.abs() < 0.1,
             "coef={coef} should be near 0 for independent data"
@@ -271,7 +274,10 @@ mod tests {
         let empty = Array2::<f64>::zeros((0, 0));
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, empty).unwrap());
-        assert!(p < SIGNIFICANCE_LEVEL, "p={p} should be < 0.05 for dependent data");
+        assert!(
+            p < SIGNIFICANCE_LEVEL,
+            "p={p} should be < 0.05 for dependent data"
+        );
         assert!(
             coef.abs() > 0.9,
             "coef={coef} should be high for dependent data"
@@ -293,7 +299,10 @@ mod tests {
         let z_arr = z.insert_axis(Axis(1));
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, z_arr).unwrap());
-        assert!(p > SIGNIFICANCE_LEVEL, "p={p} should be > 0.05 after conditioning");
+        assert!(
+            p > SIGNIFICANCE_LEVEL,
+            "p={p} should be > 0.05 after conditioning"
+        );
         assert!(
             coef.abs() < 0.1,
             "coef={coef} should be near 0 after conditioning"
@@ -344,7 +353,10 @@ mod tests {
         let z = (&x * 2.0 + &y * 2.0 + &noise).insert_axis(Axis(1));
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
-        assert!(p < SIGNIFICANCE_LEVEL, "p={p} should be < 0.05 for collider structure");
+        assert!(
+            p < SIGNIFICANCE_LEVEL,
+            "p={p} should be < 0.05 for collider structure"
+        );
         assert!(
             coef.abs() > 0.9,
             "coef={coef} should be high for collider structure"
