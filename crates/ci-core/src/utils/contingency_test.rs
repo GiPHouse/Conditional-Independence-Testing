@@ -109,7 +109,7 @@ pub fn g_test(
         bail!("Statistic evaluated to {final_stat}, which should be impossible.");
         //make sure it bails when the negative number is not negligibly small
     }
-    Ok(final_stat.max(0.0)) 
+    Ok(final_stat.max(0.0))
 }
 
 /// # Errors
