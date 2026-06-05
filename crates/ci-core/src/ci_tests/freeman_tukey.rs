@@ -91,7 +91,6 @@ mod tests {
         assert_eq!(dof, 2);
     }
 
-    // scipy: power_divergence([[5,1],[1,5]], lambda_=-0.5) -> stat=6.319453539579289
     #[test]
     fn uncond_dependent_rejected() {
         let t = FreemanTukey {

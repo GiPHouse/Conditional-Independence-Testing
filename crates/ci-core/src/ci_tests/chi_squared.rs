@@ -93,7 +93,6 @@ mod tests {
         assert_eq!(dof, 2);
     }
 
-    // scipy: chi2_contingency([[4,0],[0,4]], lambda_=1, correction=False) -> stat=8.0, p=0.00468
     #[test]
     fn uncond_dependent_data_rejected() {
         let t = ChiSquared {

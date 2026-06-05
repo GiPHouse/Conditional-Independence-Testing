@@ -65,8 +65,6 @@ mod tests {
         }
     }
 
-    // Unconditional case: X and Y are perfectly independent (uniform 2x2 table).
-    // The chi-squared statistic should be 0 and the test should not reject independence.
     #[test]
     fn unconditional_independent_data_is_not_rejected() {
         let test = CressieRead {
@@ -100,8 +98,6 @@ mod tests {
         assert!(independent, "expected fail-to-reject (independent=true)");
     }
 
-    // Unconditional case: X and Y are perfectly dependent (X == Y).
-    // The statistic should be large and the test should reject independence.
     #[test]
     fn unconditional_dependent_data_is_rejected() {
         let test = CressieRead {
@@ -135,9 +131,6 @@ mod tests {
         assert!(!independent, "expected reject (independent=false)");
     }
 
-    // Conditional case: within each Z group X and Y are independent.
-    // Z=0: X=[1,1,2,2], Y=[1,2,1,2]  (independent)
-    // Z=1: X=[1,1,2,2], Y=[1,2,1,2]  (independent)
     #[test]
     fn conditional_independent_per_group() {
         let test = CressieRead {
@@ -169,8 +162,6 @@ mod tests {
         assert!(independent);
     }
 
-    // Conditional case: within each Z group X and Y are perfectly dependent.
-    // Z=0: X=Y=[1,1,2,2]; Z=1: X=Y=[1,1,2,2]. Should reject.
     #[test]
     fn conditional_dependent_per_group() {
         let test = CressieRead {

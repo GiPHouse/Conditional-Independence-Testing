@@ -91,8 +91,6 @@ mod tests {
         assert_eq!(dof, 2);
     }
 
-    // Can't test perfectly dependent (zero cells -> ln(0)), use skewed table instead.
-    // scipy: power_divergence([[5,1],[1,5]], lambda_=0) -> stat=5.822063320647374
     #[test]
     fn uncond_dependent_data_rejected() {
         let t = LogLikelihood {
