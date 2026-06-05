@@ -206,7 +206,7 @@ mod tests {
         let y = array![2., 4., 1., 3., 6., 4., 7., 5., 8., 6.];
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, Array2::zeros((0, 0))).unwrap());
-        assert!(p > SIGNIFICANCE_LEVEL);
+        assert!(p > SIGNIFICANCE_LEVEL, "got {p}");
         assert!(
             coef.abs() < 0.1,
             "coef={coef} should be near 0 for uncorrelated data"
@@ -243,7 +243,7 @@ mod tests {
         let y = array![2., 4., 6., 8., 10.];
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, Array2::zeros((0, 0))).unwrap());
-        assert!(p < SIGNIFICANCE_LEVEL);
+        assert!(p < SIGNIFICANCE_LEVEL, "got {p}");
         assert!(
             (coef - 1.0).abs() < EPS,
             "coef={coef} should be ~1.0 for perfect correlation"
@@ -263,7 +263,7 @@ mod tests {
         let z = array![[1.], [2.], [3.], [4.], [5.], [6.], [7.], [8.]];
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
-        assert!(p > SIGNIFICANCE_LEVEL);
+        assert!(p > SIGNIFICANCE_LEVEL, "got {p}");
         assert!(
             coef.abs() < 0.1,
             "coef={coef} should be near 0 after conditioning"
@@ -309,7 +309,7 @@ mod tests {
         let z = array![[9.], [9.], [9.], [9.], [9.], [9.], [9.], [9.]];
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
-        assert!(p < SIGNIFICANCE_LEVEL);
+        assert!(p < SIGNIFICANCE_LEVEL, "got {p}");
         assert!(
             coef.abs() > 0.9,
             "coef={coef} should be high for collider structure"
@@ -338,7 +338,7 @@ mod tests {
         ];
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
-        assert!(p > SIGNIFICANCE_LEVEL);
+        assert!(p > SIGNIFICANCE_LEVEL, "got {p}");
         assert!(
             coef.abs() < 0.1,
             "coef={coef} should be near 0 after conditioning on all confounders"
@@ -372,6 +372,6 @@ mod tests {
         let y = Array1::from_vec(vec![1.0, 2.0, 3.0]);
         let (coef, p_value) = pearsonr(&x.view(), &y.view()).unwrap();
         assert!((coef - 1.0).abs() < EPS, "perfect positive correlation");
-        assert!(p_value < SIGNIFICANCE_LEVEL);
+        assert!(p_value < SIGNIFICANCE_LEVEL, "got {p_value}");
     }
 }
