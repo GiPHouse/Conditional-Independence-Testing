@@ -5,7 +5,6 @@ wasm-pack bindings
 Install wasm-pack bindgen:
 
 ```sh
-cargo install wasm-pack
 cargo install wasm-bindgen-cli
 ```
 
