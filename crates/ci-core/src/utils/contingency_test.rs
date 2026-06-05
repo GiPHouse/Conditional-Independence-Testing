@@ -212,7 +212,6 @@ mod tests {
     use super::*;
     use ndarray::array;
 
-    /// 1a. Test error when the table is empty
     #[test]
     fn test_empty_table_error() {
         let observed = Array2::<f64>::zeros((0, 0));
@@ -221,7 +220,6 @@ mod tests {
         assert!(result.unwrap_err().to_string().contains("size 0"));
     }
 
-    /// 1b. Test error when table contains negative values
     #[test]
     fn test_negative_values_error() {
         let observed = array![[1.0, -1.0], [2.0, 3.0]];
@@ -230,7 +228,6 @@ mod tests {
         assert!(result.unwrap_err().to_string().contains("nonnegative"));
     }
 
-    /// 1c. Test error when total sum is zero
     #[test]
     fn test_zero_total_error() {
         let observed = array![[0.0, 0.0], [0.0, 0.0]];
@@ -239,8 +236,6 @@ mod tests {
         assert!(result.unwrap_err().to_string().contains("> 0"));
     }
 
-    /// 1d. Test error when expected frequency is zero
-    /// This happens when an entire row or column is zero
     #[test]
     fn test_zero_expected_frequency_error() {
         let observed = array![[10.0, 0.0], [0.0, 0.0]];
@@ -252,7 +247,6 @@ mod tests {
             .contains("Expected frequency is zero"));
     }
 
-    /// 2. Test zero expected frequency specifically in G-test branch (lambda ~ 0)
     #[test]
     fn test_g_test_zero_expected_frequency() {
         let observed = array![[5.0, 0.0], [0.0, 0.0]];
@@ -264,7 +258,6 @@ mod tests {
             .contains("Expected frequency is zero"));
     }
 
-    /// 3. Test zero observed value in Modified log-likelihood test (lambda = -1)
     #[test]
     fn test_modified_log_likelihood_zero_observed() {
         let observed = array![[5.0, 1.0], [2.0, 0.0]]; // contains zero observed
@@ -273,7 +266,6 @@ mod tests {
         assert!(statistic.is_infinite() && p_value < EPS);
     }
 
-    /// 4a. Simple valid test for G-test (lambda = 0)
     #[test]
     fn test_g_test_valid() {
         let observed = array![[10.0, 20.0], [20.0, 40.0]];
@@ -285,7 +277,6 @@ mod tests {
         assert_eq!(dof, 1);
     }
 
-    /// 4b. Simple valid test for Modified log-likelihood (lambda = -1)
     #[test]
     fn test_modified_log_likelihood_valid() {
         let observed = array![[10.0, 20.0], [20.0, 40.0]];
@@ -297,7 +288,6 @@ mod tests {
         assert_eq!(dof, 1);
     }
 
-    /// 4c. Simple valid test for Freeman-Tukey (lambda = -0.5)
     #[test]
     fn test_freeman_tukey_valid() {
         let observed = array![[5.0, 1.0], [1.0, 5.0]];
@@ -310,7 +300,6 @@ mod tests {
         assert_eq!(dof, 1);
     }
 
-    /// 4d. Test zero observed value in Freeman-Tukey (lambda = -0.5)
     #[test]
     fn test_freeman_tukey_zero_observed() {
         let observed = array![[2.0, 1.0], [0.0, 3.0]]; // contains zero observed
@@ -332,7 +321,6 @@ mod tests {
         assert!((stat - expected_stat).abs() < EPS);
     }
 
-    /// 4e. Simple valid test for general Cressie-Read (lambda != 0, -1)
     #[test]
     fn test_cressie_read_valid() {
         let observed = array![[10.0, 20.0], [20.0, 40.0]];
@@ -344,7 +332,6 @@ mod tests {
         assert_eq!(dof, 1);
     }
 
-    /// 5a. Test degrees of freedom for a 2x2 table
     #[test]
     fn test_degrees_of_freedom_2x2() {
         let observed = array![[1.0, 2.0], [3.0, 4.0]];
@@ -352,7 +339,6 @@ mod tests {
         assert_eq!(dof, 1); // (2-1)*(2-1)
     }
 
-    /// 5b. Test degrees of freedom for a 3x4 table
     #[test]
     fn test_degrees_of_freedom_3x4() {
         let observed = array![
@@ -364,7 +350,6 @@ mod tests {
         assert_eq!(dof, (3 - 1) * (4 - 1)); // 2 * 3 = 6
     }
 
-    /// 5c. Test degrees of freedom when one dimension < 2
     #[test]
     fn test_degrees_of_freedom_degenerate() {
         let observed = array![[1.0, 2.0, 3.0]]; // 1x3
