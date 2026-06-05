@@ -240,7 +240,7 @@ fn generate_pyo3_wrapper(s: &ItemStruct) -> TokenStream {
         #[gen_stub_pyclass]
         #[pyclass(name = #py_name, module = "ci_python._ci_python")]
         pub struct #py_ident {
-            inner: ::ci_core::ci_tests::#struct_ident, 
+            inner: ::ci_core::ci_tests::#struct_ident,
         }
 
         #[gen_stub_pymethods]
