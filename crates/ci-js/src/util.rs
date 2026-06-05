@@ -32,6 +32,11 @@ pub fn convert_to_ndarray(
     z_rows: usize,
     z_cols: usize,
 ) -> Result<(Array1<f64>, Array1<f64>, Array2<f64>), JsValue> {
+    if u32::try_from(z_rows * z_cols).unwrap_or(u32::MAX) != z_flat.length() {
+        return Err(JsValue::from_str(
+            "z_rows*z_cols doesnt match the size of z_flat",
+        ));
+    }
     let z_vec: Vec<f64> = z_flat.to_vec();
     let x_vec: Vec<f64> = x.to_vec();
     let y_vec: Vec<f64> = y.to_vec();
