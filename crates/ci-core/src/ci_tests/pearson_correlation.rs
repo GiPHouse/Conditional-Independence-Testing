@@ -202,8 +202,8 @@ mod tests {
             boolean: false,
             significance_level: SIGNIFICANCE_LEVEL,
         };
-        let x = array![1., 2., 3., 4., 5., 6., 7., 8., 9., 10.];
-        let y = array![2., 4., 1., 3., 6., 4., 7., 5., 8., 6.];
+        let x = array![2., 4., 1., 5., 3., 8., 6., 7., 9., 10.];
+        let y = array![5., 3., 7., 2., 8., 1., 9., 4., 6., 10.];
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, Array2::zeros((0, 0))).unwrap());
         assert!(p > SIGNIFICANCE_LEVEL, "got {p}");
@@ -258,10 +258,11 @@ mod tests {
             boolean: false,
             significance_level: SIGNIFICANCE_LEVEL,
         };
-        let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
-        let y = array![1., 2., 3., 4., 5., 6., 7., 8.];
+        let x =
+            array![2.019608, 1.039216, 4.058824, 3.078431, 6.098039, 5.117647, 8.137255, 7.156863];
+        let y =
+            array![2.059406, 3.059406, 2.138614, 3.138614, 6.217822, 7.217822, 6.297030, 7.297030];
         let z = array![[1.], [2.], [3.], [4.], [5.], [6.], [7.], [8.]];
-
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
         assert!(p > SIGNIFICANCE_LEVEL, "got {p}");
         assert!(
@@ -272,26 +273,23 @@ mod tests {
 
     #[test]
     fn cond_boolean_mode() {
+        // accepted
         let t = PearsonCorrelation {
             boolean: true,
             significance_level: SIGNIFICANCE_LEVEL,
         };
-        let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
-        let y = array![2., 4., 6., 8., 10., 12., 14., 16.];
+        let x =
+            array![2.019608, 1.039216, 4.058824, 3.078431, 6.098039, 5.117647, 8.137255, 7.156863];
+        let y =
+            array![2.059406, 3.059406, 2.138614, 3.138614, 6.217822, 7.217822, 6.297030, 7.297030];
         let z = array![[1.], [2.], [3.], [4.], [5.], [6.], [7.], [8.]];
-
         let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(true)));
 
-        // dependent -> false
-        let t = PearsonCorrelation {
-            boolean: true,
-            significance_level: SIGNIFICANCE_LEVEL,
-        };
+        // rejected
         let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
         let y = array![8., 7., 6., 5., 4., 3., 2., 1.];
-        let z = array![[9.], [9.], [9.], [9.], [9.], [9.], [9.], [9.]];
-
+        let z = array![[4.5], [4.5], [4.5], [4.5], [4.5], [4.5], [4.5], [4.5]];
         let r = t.run_test(x, y, z).unwrap();
         assert!(matches!(r, TestResult::Boolean(false)));
     }
@@ -324,17 +322,17 @@ mod tests {
             boolean: false,
             significance_level: SIGNIFICANCE_LEVEL,
         };
-        let x = array![1., 2., 3., 4., 5., 6., 7., 8.];
-        let y = array![1., 2., 3., 4., 5., 6., 7., 8.];
+        let x = array![2.5, 2.5, 2.5, 4.0, 4.0, 4.0, 4.0, 5.5];
+        let y = array![2.4, 2.4, 0.8, 2.8, 5.2, 5.2, 3.6, 5.6];
         let z = array![
-            [1., 2., 3.],
-            [2., 3., 4.],
-            [3., 4., 5.],
-            [4., 5., 6.],
-            [5., 6., 7.],
-            [6., 7., 8.],
-            [7., 8., 9.],
-            [8., 9., 10.],
+            [1., 0., 1.],
+            [1., 1., 0.],
+            [2., 0., 0.],
+            [2., 1., 1.],
+            [3., 0., 1.],
+            [3., 1., 0.],
+            [4., 0., 0.],
+            [4., 1., 1.],
         ];
 
         let (p, coef) = unwrap_correlated(&t.run_test(x, y, z).unwrap());
