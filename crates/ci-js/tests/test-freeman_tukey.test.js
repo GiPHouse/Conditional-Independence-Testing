@@ -3,6 +3,8 @@ import { beforeAll, describe, test, expect } from "vitest";
 
 const wasm = await import("../pkg/ci_js.js");
 
+let global_p = 0.05;
+
 beforeAll(async () => {
   await wasm.default.init();
 });
@@ -22,7 +24,7 @@ describe("freeman_tukey_test", () => {
       x,
       y,
       false,
-      0.05,
+      global_p,
     );
 
     expect(statistic).toBeLessThan(1e-9);
@@ -42,11 +44,11 @@ describe("freeman_tukey_test", () => {
       x,
       y,
       false,
-      0.05,
+      global_p,
     );
 
     expect(statistic).toBeGreaterThan(5.0);
-    expect(p_value).toBeLessThan(0.05);
+    expect(p_value).toBeLessThan(global_p);
     expect(dof).toBe(1);
   });
 
@@ -55,7 +57,7 @@ describe("freeman_tukey_test", () => {
     const y = new Float64Array([1, 2, 1, 2, 1, 2, 1, 2]);
     const z = new Float64Array(0);
 
-    const result = freeman_tukey_test(z, 0, 0, x, y, true, 0.05);
+    const result = freeman_tukey_test(z, 0, 0, x, y, true, global_p);
 
     expect(result).toBe(true);
   });
