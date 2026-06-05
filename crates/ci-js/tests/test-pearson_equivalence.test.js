@@ -3,6 +3,8 @@ import { beforeAll, describe, test, expect } from "vitest";
 
 const wasm = await import("../pkg/ci_js.js");
 
+let global_p = 0.05;
+
 beforeAll(async () => {
   await wasm.default.init();
 });

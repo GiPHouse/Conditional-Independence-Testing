@@ -3,6 +3,9 @@ import { beforeAll, describe, test, expect } from "vitest";
 
 const wasm = await import("../pkg/ci_js.js");
 
+let precision = 1e-9;
+let global_p = 0.05;
+
 beforeAll(async () => {
   await wasm.default.init();
 });
@@ -21,10 +24,10 @@ describe("cressie_read_test", () => {
       x,
       y,
       false,
-      0.05,
+      global_p,
     );
 
-    expect(statistic).toBeLessThan(1e-9);
+    expect(statistic).toBeLessThan(precision);
     expect(p_value).toBeGreaterThanOrEqual(0.99);
     expect(dof).toBe(1);
   });
@@ -34,7 +37,7 @@ describe("cressie_read_test", () => {
     const y = toFloat64(1, 2, 1, 2, 1, 2, 1, 2);
     const z = new Float64Array(0);
 
-    const result = cressie_read_test(z, 0, 0, x, y, true, 0.05);
+    const result = cressie_read_test(z, 0, 0, x, y, true, global_p);
 
     expect(result).toBe(true);
   });
@@ -51,11 +54,11 @@ describe("cressie_read_test", () => {
       x,
       y,
       false,
-      0.05,
+      global_p,
     );
 
     expect(statistic).toBeGreaterThan(5.0);
-    expect(p_value).toBeLessThan(0.05);
+    expect(p_value).toBeLessThan(global_p);
     expect(dof).toBe(1);
   });
 
@@ -64,7 +67,7 @@ describe("cressie_read_test", () => {
     const y = new Float64Array([1, 1, 1, 1, 2, 2, 2, 2]);
     const z = new Float64Array(0);
 
-    const result = cressie_read_test(z, 0, 0, x, y, true, 0.05);
+    const result = cressie_read_test(z, 0, 0, x, y, true, global_p);
 
     expect(result).toBe(false);
   });
@@ -81,10 +84,10 @@ describe("cressie_read_test", () => {
       x,
       y,
       false,
-      0.05,
+      global_p,
     );
 
-    expect(statistic).toBeLessThan(1e-9);
+    expect(statistic).toBeLessThan(precision);
     expect(p_value).toBeGreaterThan(0.99);
     expect(dof).toBe(2);
   });
@@ -94,7 +97,7 @@ describe("cressie_read_test", () => {
     const y = new Float64Array([1, 2, 1, 2, 1, 2, 1, 2]);
     const z = new Float64Array([0, 0, 0, 0, 1, 1, 1, 1]);
 
-    const result = cressie_read_test(z, 8, 1, x, y, true, 0.05);
+    const result = cressie_read_test(z, 8, 1, x, y, true, global_p);
 
     expect(result).toBe(true);
   });
@@ -104,9 +107,9 @@ describe("cressie_read_test", () => {
     const y = new Float64Array([1, 1, 2, 2, 1, 1, 2, 2]);
     const z = new Float64Array([0, 0, 0, 0, 1, 1, 1, 1]);
 
-    const [p_value, statistic] = cressie_read_test(z, 8, 1, x, y, false, 0.05);
+    const [p_value, statistic] = cressie_read_test(z, 8, 1, x, y, false, global_p);
 
     expect(statistic).toBeGreaterThan(5.0);
-    expect(p_value).toBeLessThan(0.05);
+    expect(p_value).toBeLessThan(global_p);
   });
 });
