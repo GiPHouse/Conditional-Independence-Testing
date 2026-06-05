@@ -51,7 +51,6 @@ mod tests {
         assert!(result.iter().all(|g| g.len() == 1));
     }
 
-    //All values are in a single group
     #[test]
     fn test_single_partition() {
         let data = array![[1.0, 10.0], [1.0, 10.0], [1.0, 10.0],];
