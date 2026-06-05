@@ -30,6 +30,8 @@ ci-js        wasm-pack bindings
 
 Downstream crates depend only on `ci-core`. The bindings crates are thin wrappers that handle type conversion.
 
+Documentation can be seen at: https://giphouse.github.io/Conditional-Independence-Testing/
+
 ## Getting Started
 
 ### Rust
