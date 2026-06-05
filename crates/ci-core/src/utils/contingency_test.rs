@@ -12,17 +12,6 @@ use statrs::distribution::{ChiSquared, ContinuousCDF};
 /// Returns an error when the table is empty, contains negatives, sums to zero,
 /// or has a zero expected frequency.
 pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64, usize)> {
-    let (nrows, ncols) = observed.dim();
-    let row_sums = observed.sum_axis(Axis(1));
-    let col_sums = observed.sum_axis(Axis(0));
-    let total: f64 = row_sums.sum();
-    let inverse_total = 1.0 / total;
-
-    let col_times_total = &col_sums * inverse_total;
-    let ln_total = total.ln();
-    let ln_row_sums = row_sums.mapv(f64::ln);
-    let ln_col_sums = col_sums.mapv(f64::ln);
-
     // Check whether contingency test is applicable
     if observed.is_empty() {
         bail!("No data; `observed` has size 0.");
@@ -30,9 +19,20 @@ pub fn contingency_test(observed: &Array2<f64>, lambda: f64) -> Result<(f64, f64
     if observed.iter().any(|&x| x < 0.0) {
         bail!("All values in `observed` must be nonnegative.");
     }
+
+    let (nrows, ncols) = observed.dim();
+    let row_sums = observed.sum_axis(Axis(1));
+    let col_sums = observed.sum_axis(Axis(0));
+    let total: f64 = row_sums.sum();
     if total == 0.0 {
         bail!("Total sum of observed frequencies must be > 0.");
     }
+    let inverse_total = 1.0 / total;
+
+    let col_times_total = &col_sums * inverse_total;
+    let ln_total = total.ln();
+    let ln_row_sums = row_sums.mapv(f64::ln);
+    let ln_col_sums = col_sums.mapv(f64::ln);
 
     let statistic: f64 = if lambda.abs() < EPS {
         g_test(
@@ -134,7 +134,9 @@ pub fn modified_log_likelihood_ratio_test(
                 continue;
             }
             if temp_observed == 0. {
-                bail!("Observed value is zero at position [{i}, {j}]");
+                // log of temp_observed will be -infinity, causing temp_stat to become infinity.
+                // However the math still works, so this is not an error.
+                return Ok(f64::INFINITY);
             }
             temp_stat +=
                 temp_expected * (ln_row_sums[i] + ln_col_sums[j] - temp_observed.ln() - ln_total);
@@ -266,13 +268,9 @@ mod tests {
     #[test]
     fn test_modified_log_likelihood_zero_observed() {
         let observed = array![[5.0, 1.0], [2.0, 0.0]]; // contains zero observed
-        let result = contingency_test(&observed, -1.0);
+        let (statistic, p_value, _dof) = contingency_test(&observed, -1.0).unwrap();
 
-        assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Observed value is zero"));
+        assert!(statistic.is_infinite() && p_value < EPS);
     }
 
     /// 4a. Simple valid test for G-test (lambda = 0)

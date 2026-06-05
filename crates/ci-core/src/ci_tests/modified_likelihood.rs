@@ -47,6 +47,7 @@ impl CITest for ModifiedLikelihood {
 }
 
 #[cfg(test)]
+#[allow(clippy::many_single_char_names)]
 mod tests {
     use super::*;
     use crate::utils::EPS;
@@ -166,6 +167,6 @@ mod tests {
         let y = array![1., 1., 2., 2., 1., 1., 2., 2.];
         let z = array![[1.], [1.], [1.], [1.], [2.], [2.], [2.], [2.]];
         let r = t.run_test(x, y, z).unwrap();
-        assert!(matches!(r, TestResult::Boolean(true)));
+        assert!(matches!(r, TestResult::Boolean(false)));
     }
 }

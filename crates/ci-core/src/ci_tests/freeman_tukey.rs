@@ -47,6 +47,7 @@ impl CITest for FreemanTukey {
 }
 
 #[cfg(test)]
+#[allow(clippy::many_single_char_names)]
 mod tests {
     use super::*;
     use crate::utils::EPS;
